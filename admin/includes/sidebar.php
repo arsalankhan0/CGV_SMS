@@ -50,6 +50,18 @@ foreach($results as $row)
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-basic-exam" aria-expanded="false" aria-controls="ui-basic-exam">
+                <span class="menu-title">Examination</span>
+                <i class="icon-layers menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-basic-exam">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-exam.php">Add Exam</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-exam.php">Manage Exam</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1">
                 <span class="menu-title">Students</span>
                 <i class="icon-people menu-icon"></i>
