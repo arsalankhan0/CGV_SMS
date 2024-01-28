@@ -67,19 +67,19 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Manage Class</h4>
-                   
                     <form class="forms-sample" method="post">
                       <?php
-$eid=$_GET['editid'];
-$sql="SELECT * from  tblclass where ID=$eid";
-$query = $dbh -> prepare($sql);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>  
+                        $eid=$_GET['editid'];
+                        $sql="SELECT * from  tblclass where ID=$eid";
+                        $query = $dbh -> prepare($sql);
+                        $query->execute();
+                        $results=$query->fetchAll(PDO::FETCH_OBJ);
+                        $cnt=1;
+                        if($query->rowCount() > 0)
+                        {
+                        foreach($results as $row)
+                        {               
+                      ?>  
                       <div class="form-group">
                         <label for="exampleInputName1">Class Name</label>
                         <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>

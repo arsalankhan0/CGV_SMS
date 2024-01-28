@@ -2,135 +2,166 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) 
-{
+if (strlen($_SESSION['sturecmsaid'] == 0)) {
     header('location:logout.php');
-} 
-else
-{
-    if(isset($_POST['submit']))
-    {
-        $cname=$_POST['cname'];
-        $section=$_POST['section'];
-        $eid=$_GET['editid'];
+} else {
+    try {
+        if (isset($_POST['submit'])) {
 
-        $sql="update tblclass set ClassName=:cname,Section=:section where ID=:eid";
-        $query=$dbh->prepare($sql);
-        $query->bindParam(':cname',$cname,PDO::PARAM_STR);
-        $query->bindParam(':section',$section,PDO::PARAM_STR);
-        $query->bindParam(':eid',$eid,PDO::PARAM_STR);
-        $query->execute();
-        echo '<script>alert("Class has been updated")</script>';
+            if (isset($_GET['editid'])) {
+                $eid = $_GET['editid'];
+
+                // Fetch ExamName based on ID
+                $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :eid";
+                $examNameQuery = $dbh->prepare($examNameSql);
+                $examNameQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+                $examNameQuery->execute();
+                $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
+                $examName = $examNameRow->ExamName;
+
+                $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
+
+                if (!empty($cName)) {
+                    $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                    $query->execute();
+
+                    echo '<script>alert("Examination has been updated")</script>';
+                } else {
+                    echo '<script>alert("Please select at least one class")</script>';
+                }
+            } else {
+                echo "Edit ID not set";
+            }
+        }
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
     }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-    
-        <title>Student  Management System|| Manage Exam</title>
-        <!-- plugins:css -->
-        <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-        <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-        <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-        <!-- endinject -->
-        <!-- Plugin css for this page -->
-        <link rel="stylesheet" href="vendors/select2/select2.min.css">
-        <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
-        <!-- End plugin css for this page -->
-        <!-- inject:css -->
-        <!-- endinject -->
-        <!-- Layout styles -->
-        <link rel="stylesheet" href="css/style.css" />
-        
-    </head>
-    <body>
-        <div class="container-scroller">
-            <!-- partial:partials/_navbar.html -->
-            <?php include_once('includes/header.php');?>
-            <!-- partial -->
-            <div class="container-fluid page-body-wrapper">
-                    <!-- partial:partials/_sidebar.html -->
-                <?php include_once('includes/sidebar.php');?>
-                    <!-- partial -->
-                    <div class="main-panel">
-                        <div class="content-wrapper">
-                            <div class="page-header">
-                                <h3 class="page-title"> Manage Exam </h3>
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page"> Manage Exam</li>
-                                    </ol>
-                                </nav>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 grid-margin stretch-card">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h4 class="card-title" style="text-align: center;">Manage Exam</h4>
-                                        
-                                            <form class="forms-sample" method="post">
+<head>
+
+    <title>Student Management System|| Manage Exam</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
+    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
+    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <link rel="stylesheet" href="vendors/select2/select2.min.css">
+    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <!-- endinject -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- Multiple Dropdown selection styles  -->
+    <!-- <link rel="stylesheet" href="css/dropdownSelect.css" /> -->
+    <!-- Icons for multiple dropdown selection -->
+    <!-- <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Raleway'>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons'> -->
+
+</head>
+<body>
+<div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <?php
+    include_once('includes/header.php');
+    ?>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+        <!-- partial:partials/_sidebar.html -->
+        <?php include_once('includes/sidebar.php'); ?>
+        <!-- partial -->
+        <div class="main-panel">
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <?php if (isset($examName)) { ?>
+                        <h3 class="page-title"> Manage Exam - Select Classes for '<?php echo $examName; ?>'</h3>
+                    <?php } else { ?>
+                        <h3 class="page-title"> Manage Exam </h3>
+                    <?php } ?>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page"> Manage Exam</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="row">
+                    <div class="col-12 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title" style="text-align: center;">Manage Exam</h4>
+
+                                <form class="forms-sample" method="post">
+                                    <div class="form-group">
+                                        <label for="exampleFormControlSelect2">Select Classes</label>
+
+                                        <select multiple="multiple" id="myMulti" name="classes[]"
+                                                class="form-control">
                                             <?php
-                                                $eid=$_GET['editid'];
-                                                $sql="SELECT * from  tblclass where ID=$eid";
-                                                $query = $dbh -> prepare($sql);
-                                                $query->execute();
-                                                $results=$query->fetchAll(PDO::FETCH_OBJ);
-                                                $cnt=1;
-                                                if($query->rowCount() > 0)
-                                                {
-                                                    foreach($results as $row)
-                                                    { ?>  
-                                                        <div class="form-group">
-                                                            <label for="exampleInputName1">Class Name</label>
-                                                            <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="exampleInputEmail3">Section</label>
-                                                            <select  name="section" class="form-control" required='true'>
-                                                            <option value="<?php  echo htmlentities($row->Section);?>"><?php  echo htmlentities($row->Section);?></option>
-                                                            <option value="A">A</option>
-                                                            <option value="B">B</option>
-                                                            <option value="C">C</option>
-                                                            <option value="D">D</option>
-                                                            <option value="E">E</option>
-                                                            <option value="F">F</option>
-                                                            </select>
-                                                        </div><?php $cnt=$cnt+1;
-                                                    }
-                                                } ?>
-                                            <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
-                                            </form>
-                                        </div>
+                                            $eid = $_GET['editid'];
+                                            $sql = "SELECT * FROM tblclass WHERE ID = $eid";
+                                            $query = $dbh->prepare($sql);
+                                            $query->execute();
+                                            $row = $query->fetch(PDO::FETCH_OBJ);
+
+                                            if ($query->rowCount() > 0) {
+                                                $classSql = "SELECT DISTINCT ClassName FROM tblclass";
+                                                $classQuery = $dbh->prepare($classSql);
+                                                $classQuery->execute();
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_COLUMN);
+
+                                                foreach ($classResults as $className) {
+                                                    echo "<option value='" . htmlentities($className) . "'>" . htmlentities($className) . "</option>";
+                                                }
+                                            }
+                                            ?>
+                                        </select>
                                     </div>
-                                </div>
+                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Update
+                                    </button>
+                                </form>
+
                             </div>
                         </div>
-                    <!-- content-wrapper ends -->
-                    <!-- partial:partials/_footer.html -->
-                    <?php include_once('includes/footer.php');?>
-                    <!-- partial -->
                     </div>
-                <!-- main-panel ends -->
+                </div>
             </div>
-        <!-- page-body-wrapper ends -->
+            <!-- content-wrapper ends -->
+            <!-- partial:partials/_footer.html -->
+            <?php include_once('includes/footer.php'); ?>
+            <!-- partial -->
         </div>
-        <!-- container-scroller -->
-        <!-- plugins:js -->
-        <script src="vendors/js/vendor.bundle.base.js"></script>
-        <!-- endinject -->
-        <!-- Plugin js for this page -->
-        <script src="vendors/select2/select2.min.js"></script>
-        <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- inject:js -->
-        <script src="js/off-canvas.js"></script>
-        <script src="js/misc.js"></script>
-        <!-- endinject -->
-        <!-- Custom js for this page -->
-        <script src="js/typeahead.js"></script>
-        <script src="js/select2.js"></script>
-        <!-- End custom js for this page -->
-    </body>
-</html><?php }  ?>
+        <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+</div>
+<!-- container-scroller -->
+<!-- plugins:js -->
+<script src="vendors/js/vendor.bundle.base.js"></script>
+<!-- endinject -->
+<!-- Plugin js for this page -->
+<script src="vendors/select2/select2.min.js"></script>
+<script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
+<!-- End plugin js for this page -->
+<!-- inject:js -->
+<script src="js/off-canvas.js"></script>
+<script src="js/misc.js"></script>
+<!-- endinject -->
+<!-- Custom js for this page -->
+<script src="js/typeahead.js"></script>
+<script src="js/select2.js"></script>
+<!-- End custom js for this page -->
+<!-- Multiple selection dropdown script -->
+<!-- <script src="js/dropdownSelect.js"></script> -->
+</body>
+</html>
+<?php
+}
+?>
