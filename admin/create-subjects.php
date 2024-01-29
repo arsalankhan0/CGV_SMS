@@ -12,38 +12,38 @@ else
     {
         if(isset($_POST['submit']))
         {
-            $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);
-            $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
+            $subjectName = filter_var($_POST['subjectName'], FILTER_SANITIZE_STRING);
+            $cName = isset($_POST['classes']) ? implode(",", array_map('htmlspecialchars', $_POST['classes'])) : '';
                 
-            if (empty($examName) || empty($cName)) 
+            if (empty($subjectName) || empty($cName)) 
             {
-                echo '<script>alert("Please enter Exam Name and select at least one class")</script>';
+                echo '<script>alert("Please enter Subject Name and select at least one class")</script>';
             }
             else 
             {
-                $checkSql = "SELECT ID FROM tblexamination WHERE ExamName = :examName";
+                $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName";
                 $checkQuery = $dbh->prepare($checkSql);
-                $checkQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
+                $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
                 $checkQuery->execute();
-                $examId = $checkQuery->fetchColumn();
+                $subjectId = $checkQuery->fetchColumn();
                 
-                if ($examId > 0) 
+                if ($subjectId > 0) 
                 {
-                    echo '<script>alert("Exam already exists. Please update the existing exam.")</script>';
+                    echo '<script>alert("Subject "' . htmlentities($existingSubjectName) . '" already exists. Please update the existing subject.")</script>';
                 }
                 else
                 {
-                    $sql="insert into tblexamination(ExamName,ClassName)values(:examName,:cName)";
+                    $sql="insert into tblsubjects(SubjectName,ClassName)values(:subjectName,:cName)";
                     $query=$dbh->prepare($sql);
-                    $query->bindParam(':examName',$examName,PDO::PARAM_STR);
+                    $query->bindParam(':subjectName',$subjectName,PDO::PARAM_STR);
                     $query->bindParam(':cName',$cName,PDO::PARAM_STR);
                     $query->execute();
                     $LastInsertId=$dbh->lastInsertId();
 
                     if ($LastInsertId > 0) 
                     {
-                        echo '<script>alert("Exam Name has been added.")</script>';
-                        echo "<script>window.location.href ='add-exam.php'</script>";
+                        echo '<script>alert("Subject has been created.")</script>';
+                        echo "<script>window.location.href ='create-subjects.php'</script>";
                     } 
                     else 
                     {
@@ -62,7 +62,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System|| Add Exam</title>
+        <title>Student  Management System|| Create Subjects</title>
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
         <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -89,11 +89,11 @@ else
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Add Exam </h3>
+                        <h3 class="page-title"> Create Subjects </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> Add Exam</li>
+                                <li class="breadcrumb-item active" aria-current="page"> Create Subjects</li>
                             </ol>
                         </nav>
                     </div>
@@ -101,15 +101,15 @@ else
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title" style="text-align: center;">Add Exam</h4>
+                                    <h4 class="card-title" style="text-align: center;">Create Subjects</h4>
                                     <form class="forms-sample" method="post">
                                         <div class="form-group">
-                                            <label for="exampleInputName1">Exam Name</label>
-                                            <input type="text" name="examName" value="" class="form-control" required='true'>
+                                            <label for="exampleInputName1">Subject Name</label>
+                                            <input type="text" name="subjectName" value="" id="input-subject" class="form-control" required='true'>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="exampleFormControlSelect2">Select Classes for exam</label>
+                                            <label for="exampleFormControlSelect2">Select Classes to assign <span id="subject-name"></span> subject</label>
                                             <select multiple="multiple" name="classes[]"
                                                     class="js-example-basic-multiple w-100">
                                                 <?php
@@ -166,5 +166,13 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
+    <script>
+        const inputSub = document.getElementById('input-subject')
+        const subName = document.getElementById('subject-name')
+        
+        inputSub.addEventListener('keyup', (e) => {
+            subName.innerHTML = e.target.value;
+        })
+    </script>
   </body>
 </html><?php }  ?>

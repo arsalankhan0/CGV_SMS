@@ -34,7 +34,7 @@ else
     } 
     catch (PDOException $e) 
     {
-        echo "Error: " . $e->getMessage();
+        echo '<script>alert("Ops! An Error occurred.")</script>';
     }
 ?>
 
@@ -56,9 +56,6 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <!-- Dropdown styling -->
-    <link rel="stylesheet" href="css/dropdownSelect.css" />
-
 </head>
 <body>
 <div class="container-scroller">
@@ -101,18 +98,19 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Manage Exam</h4>
-
                                 <form class="forms-sample" method="post">
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
-                                        <select multiple="multiple" id="myMulti" name="classes[]"
-                                                class="form-control">
+                                        <select multiple="multiple" name="classes[]"
+                                                class="js-example-basic-multiple w-100">
                                             <?php
                                             $eid = $_GET['editid'];
-                                            $sql = "SELECT * FROM tblclass WHERE ID = $eid";
-                                            $query = $dbh->prepare($sql);
-                                            $query->execute();
-                                            $row = $query->fetch(PDO::FETCH_OBJ);
+                                            $examClassesSql = "SELECT ClassName FROM tblexamination WHERE ID = :eid";
+                                            $examClassesQuery = $dbh->prepare($examClassesSql);
+                                            $examClassesQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+                                            $examClassesQuery->execute();
+                                            $examClassesRow = $examClassesQuery->fetch(PDO::FETCH_OBJ);
+                                            $selectedClasses = explode(",", $examClassesRow->ClassName);
 
                                             if ($query->rowCount() > 0) 
                                             {
@@ -123,7 +121,8 @@ else
 
                                                 foreach ($classResults as $className) 
                                                 {
-                                                    echo "<option value='" . htmlentities($className) . "'>" . htmlentities($className) . "</option>";
+                                                    $selected = in_array($className, $selectedClasses) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($className) . "' $selected>" . htmlentities($className) . "</option>";
                                                 }
                                             }
                                             ?>
@@ -132,7 +131,6 @@ else
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Update
                                     </button>
                                 </form>
-
                             </div>
                         </div>
                     </div>

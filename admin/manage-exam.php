@@ -115,7 +115,8 @@ else
                                                             <td><?php  echo htmlentities($row->CreationDate);?></td>
                                                             <td>
                                                                 <div><a href="edit-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
-                                                                            || <a href="manage-exam.php?delid=<?php echo ($row->ID);?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a></div>
+                                                                            || <a href="manage-exam.php?delid=<?php echo ($row->ID);?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
+                                                                </div>
                                                             </td> 
                                                         </tr>
                                                         <?php $cnt=$cnt+1;
@@ -171,4 +172,6 @@ else
     <!-- End custom js for this page -->
 </body>
 </html>
-<?php }  ?>
+<?php 
+}  
+?>

@@ -74,6 +74,18 @@ foreach($results as $row)
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-subjects" aria-expanded="false" aria-controls="ui-subjects">
+                <span class="menu-title">Subjects</span>
+                <i class="icon-people menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-subjects">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="create-subjects.php">Create Subjects</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-subjects.php">Manage Subjects</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
                 <span class="menu-title">Notice</span>
                 <i class="icon-doc menu-icon"></i>
