@@ -2,41 +2,38 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid'] == 0)) {
+
+if (strlen($_SESSION['sturecmsaid']) == 0) 
+{
     header('location:logout.php');
-} else {
+} 
+else 
+{
+    $eid = $_GET['editid'];
+
     try {
-        if (isset($_POST['submit'])) {
+        if (isset($_POST['submit']) && isset($_GET['editid']) && !empty($_GET['editid'])) {
 
-            if (isset($_GET['editid'])) {
-                $eid = $_GET['editid'];
+            $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
 
-                // Fetch ExamName based on ID
-                $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :eid";
-                $examNameQuery = $dbh->prepare($examNameSql);
-                $examNameQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-                $examNameQuery->execute();
-                $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
-                $examName = $examNameRow->ExamName;
+            if (!empty($cName)) 
+            {
+                $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                $query->execute();
 
-                $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
-
-                if (!empty($cName)) {
-                    $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-                    $query->execute();
-
-                    echo '<script>alert("Examination has been updated")</script>';
-                } else {
-                    echo '<script>alert("Please select at least one class")</script>';
-                }
-            } else {
-                echo "Edit ID not set";
+                echo '<script>alert("Examination has been updated")</script>';
+            } 
+            else 
+            {
+                echo '<script>alert("Please select at least one class")</script>';
             }
         }
-    } catch (PDOException $e) {
+    } 
+    catch (PDOException $e) 
+    {
         echo "Error: " . $e->getMessage();
     }
 ?>
@@ -59,11 +56,8 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <!-- Multiple Dropdown selection styles  -->
-    <!-- <link rel="stylesheet" href="css/dropdownSelect.css" /> -->
-    <!-- Icons for multiple dropdown selection -->
-    <!-- <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Raleway'>
-    <link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons'> -->
+    <!-- Dropdown styling -->
+    <link rel="stylesheet" href="css/dropdownSelect.css" />
 
 </head>
 <body>
@@ -80,7 +74,17 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
         <div class="main-panel">
             <div class="content-wrapper">
                 <div class="page-header">
-                    <?php if (isset($examName)) { ?>
+                    <?php
+                    $eid = $_GET['editid'];
+
+                    $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :eid";
+                    $examNameQuery = $dbh->prepare($examNameSql);
+                    $examNameQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+                    $examNameQuery->execute();
+                    $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
+                    $examName = $examNameRow->ExamName;
+
+                    if (isset($examName)) { ?>
                         <h3 class="page-title"> Manage Exam - Select Classes for '<?php echo $examName; ?>'</h3>
                     <?php } else { ?>
                         <h3 class="page-title"> Manage Exam </h3>
@@ -100,8 +104,7 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
 
                                 <form class="forms-sample" method="post">
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Classes</label>
-
+                                        <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
                                         <select multiple="multiple" id="myMulti" name="classes[]"
                                                 class="form-control">
                                             <?php
@@ -111,13 +114,15 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
                                             $query->execute();
                                             $row = $query->fetch(PDO::FETCH_OBJ);
 
-                                            if ($query->rowCount() > 0) {
+                                            if ($query->rowCount() > 0) 
+                                            {
                                                 $classSql = "SELECT DISTINCT ClassName FROM tblclass";
                                                 $classQuery = $dbh->prepare($classSql);
                                                 $classQuery->execute();
                                                 $classResults = $classQuery->fetchAll(PDO::FETCH_COLUMN);
 
-                                                foreach ($classResults as $className) {
+                                                foreach ($classResults as $className) 
+                                                {
                                                     echo "<option value='" . htmlentities($className) . "'>" . htmlentities($className) . "</option>";
                                                 }
                                             }
@@ -158,8 +163,6 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <!-- End custom js for this page -->
-<!-- Multiple selection dropdown script -->
-<!-- <script src="js/dropdownSelect.js"></script> -->
 </body>
 </html>
 <?php
