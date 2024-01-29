@@ -52,7 +52,7 @@ foreach($results as $row)
             <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-basic-exam" aria-expanded="false" aria-controls="ui-basic-exam">
                 <span class="menu-title">Examination</span>
-                <i class="icon-layers menu-icon"></i>
+                <i class="icon-book-open menu-icon"></i>
               </a>
               <div class="collapse" id="ui-basic-exam">
                 <ul class="nav flex-column sub-menu">
@@ -76,7 +76,7 @@ foreach($results as $row)
             <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-subjects" aria-expanded="false" aria-controls="ui-subjects">
                 <span class="menu-title">Subjects</span>
-                <i class="icon-people menu-icon"></i>
+                <i class="icon-docs menu-icon"></i>
               </a>
               <div class="collapse" id="ui-subjects">
                 <ul class="nav flex-column sub-menu">

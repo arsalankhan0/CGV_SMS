@@ -112,7 +112,7 @@ else
                                                                 <td><?php  echo htmlentities($row->ClassName);?></td>
                                                                 <td>
                                                                     <div>
-                                                                        <a href="edit-subject-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
+                                                                        <a href="edit-subject-details.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
                                                                         || <a href="manage-subjects.php?delid=<?php echo ($row->ID);?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
                                                                     </div>
                                                                 </td> 

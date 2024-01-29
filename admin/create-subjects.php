@@ -29,7 +29,7 @@ else
                 
                 if ($subjectId > 0) 
                 {
-                    echo '<script>alert("Subject "' . htmlentities($existingSubjectName) . '" already exists. Please update the existing subject.")</script>';
+                    echo '<script>alert("Subject already exists. Please update the existing subject.")</script>';
                 }
                 else
                 {
@@ -109,7 +109,7 @@ else
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="exampleFormControlSelect2">Select Classes to assign <span id="subject-name"></span> subject</label>
+                                            <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"></span> subject</label>
                                             <select multiple="multiple" name="classes[]"
                                                     class="js-example-basic-multiple w-100">
                                                 <?php
@@ -166,13 +166,6 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
-    <script>
-        const inputSub = document.getElementById('input-subject')
-        const subName = document.getElementById('subject-name')
-        
-        inputSub.addEventListener('keyup', (e) => {
-            subName.innerHTML = e.target.value;
-        })
-    </script>
+    <script src="./js/dataBinding.js"></script>
   </body>
 </html><?php }  ?>
