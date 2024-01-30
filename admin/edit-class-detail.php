@@ -2,30 +2,42 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) {
+if (strlen($_SESSION['sturecmsaid']==0)) 
+{
   header('location:logout.php');
-  } else{
-   if(isset($_POST['submit']))
+} 
+else
+{
+  try
   {
- $cname=$_POST['cname'];
- $section=$_POST['section'];
- $eid=$_GET['editid'];
 
-$sql="update tblclass set ClassName=:cname,Section=:section where ID=:eid";
-$query=$dbh->prepare($sql);
-$query->bindParam(':cname',$cname,PDO::PARAM_STR);
-$query->bindParam(':section',$section,PDO::PARAM_STR);
-$query->bindParam(':eid',$eid,PDO::PARAM_STR);
- $query->execute();
-  echo '<script>alert("Class has been updated")</script>';
-}
+    if(isset($_POST['submit']))
+    {
+      $cname = filter_var($_POST['cname'], FILTER_SANITIZE_STRING);
+      $sections = isset($_POST['section']) ? implode(",", $_POST['section']) : '';
+      $eid = $_GET['editid'];
+      
+      $sql = "UPDATE tblclass SET ClassName=:cname, Section=:sections WHERE ID=:eid";
+      $query = $dbh->prepare($sql);
+      $query->bindParam(':cname', $cname, PDO::PARAM_STR);
+      $query->bindParam(':sections', $sections, PDO::PARAM_STR);
+      $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+      $query->execute();
+      
+      echo '<script>alert("Class has been updated")</script>';
+    }
+  }
+  catch(PDOException $e)
+  {
+    echo '<script>alert("Ops! An Error occurred.")</script>';
+    // error_log($e->getMessage()); //-->This is only for debugging purpose  
+  }
 
-  ?>
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
-   
-    <title>Student  Management System|| Manage Class</title>
+    <title>Student  Management System || Manage Class</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -77,27 +89,38 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                         $cnt=1;
                         if($query->rowCount() > 0)
                         {
-                        foreach($results as $row)
-                        {               
-                      ?>  
-                      <div class="form-group">
-                        <label for="exampleInputName1">Class Name</label>
-                        <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputEmail3">Section</label>
-                        <select  name="section" class="form-control" required='true'>
-                          <option value="<?php  echo htmlentities($row->Section);?>"><?php  echo htmlentities($row->Section);?></option>
-                          <option value="A">A</option>
-                          <option value="B">B</option>
-                          <option value="C">C</option>
-                          <option value="D">D</option>
-                          <option value="E">E</option>
-                          <option value="F">F</option>
-                        </select>
-                      </div><?php $cnt=$cnt+1;}} ?>
+                            foreach($results as $row)
+                            {               
+                          ?>  
+                              <div class="form-group">
+                                <label for="exampleInputName1">Class Name</label>
+                                <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>
+                              </div>
+                              <div class="form-group">
+                                <label for="exampleInputEmail3">Sections</label>
+                                <select multiple="multiple" name="section[]"
+                                        class="js-example-basic-multiple w-100">
+                                    <?php
+                                    $eid = $_GET['editid'];
+                                    $sectionSql = "SELECT Section FROM tblclass WHERE ID = :eid";
+                                    $sectionQuery = $dbh->prepare($sectionSql);
+                                    $sectionQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+                                    $sectionQuery->execute();
+                                    $sectionRow = $sectionQuery->fetch(PDO::FETCH_OBJ);
+                                    $selectedSections = explode(",", $sectionRow->Section);
+
+                                    $allSections = array('A', 'B', 'C', 'D', 'E', 'F');
+
+                                    foreach ($allSections as $sectionName) {
+                                        $selected = in_array($sectionName, $selectedSections) ? 'selected' : '';
+                                        echo "<option value='" . htmlentities($sectionName) . "' $selected>" . htmlentities($sectionName) . "</option>";
+                                    }
+                                    ?>
+                                </select>
+                              </div><?php $cnt=$cnt+1;
+                            }
+                        } ?>
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
-                     
                     </form>
                   </div>
                 </div>
@@ -106,7 +129,7 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
           </div>
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
-         <?php include_once('includes/footer.php');?>
+          <?php include_once('includes/footer.php');?>
           <!-- partial -->
         </div>
         <!-- main-panel ends -->
@@ -130,4 +153,7 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
   </body>
-</html><?php }  ?>
+</html>
+<?php 
+}  
+?>

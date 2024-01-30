@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'])==0) 
 {
@@ -12,7 +12,7 @@ else
     if(isset($_GET['delid']))
     {
         $rid=intval($_GET['delid']);
-        $sql="delete from tblsubjects where ID=:rid";
+        $sql = "UPDATE tblsubjects SET IsDeleted = 1 WHERE ID = :rid";
         $query=$dbh->prepare($sql);
         $query->bindParam(':rid',$rid,PDO::PARAM_STR);
         $query->execute();
@@ -96,7 +96,7 @@ else
                                                     $results1=$query1->fetchAll(PDO::FETCH_OBJ);
                                                     $total_rows=$query1->rowCount();
                                                     $total_pages = ceil($total_rows / $no_of_records_per_page);
-                                                    $sql="SELECT * from tblsubjects LIMIT $offset, $no_of_records_per_page";
+                                                    $sql = "SELECT * FROM tblsubjects WHERE IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
                                                     $query = $dbh -> prepare($sql);
                                                     $query->execute();
                                                     $results=$query->fetchAll(PDO::FETCH_OBJ);

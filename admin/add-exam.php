@@ -21,7 +21,7 @@ else
             }
             else 
             {
-                $checkSql = "SELECT ID FROM tblexamination WHERE ExamName = :examName";
+                $checkSql = "SELECT ID FROM tblexamination WHERE IsDeleted = 0 AND ExamName = :examName";
                 $checkQuery = $dbh->prepare($checkSql);
                 $checkQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
                 $checkQuery->execute();
@@ -56,8 +56,8 @@ else
     catch(PDOException $e)
     {
         echo '<script>alert("Ops! An Error occurred.")</script>';
+        // error_log($e->getMessage()); //-->This is only for debugging purpose
     }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,7 +107,6 @@ else
                                             <label for="exampleInputName1">Exam Name</label>
                                             <input type="text" name="examName" value="" class="form-control" required='true'>
                                         </div>
-
                                         <div class="form-group">
                                             <label for="exampleFormControlSelect2">Select Classes for exam</label>
                                             <select multiple="multiple" name="classes[]"
@@ -133,7 +132,6 @@ else
                                                 ?>
                                             </select>
                                         </div>
-
                                         <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                     </form>
                                 </div>
