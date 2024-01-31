@@ -107,11 +107,49 @@ else
                                                 if($query->rowCount() > 0)
                                                 {
                                                     foreach($results as $row)
-                                                    { ?>   
+                                                    {
+                                                        ?>   
                                                         <tr>
                                                             <td><?php echo htmlentities($cnt);?></td>
                                                             <td><?php  echo htmlentities($row->ExamName);?></td>
-                                                            <td><?php  echo htmlentities($row->ClassName);?></td>
+                                                            <td>
+                                                                <?php
+                                                                    $classIds = explode(",", $row->ClassName);
+
+                                                                    for ($i = 0; $i < count($classIds); $i++) 
+                                                                    {
+                                                                        $classId = $classIds[$i];
+                                                                        $classSql = "SELECT ClassName, Section FROM tblclass WHERE ID = :classId AND IsDeleted = 0";
+                                                                        $classQuery = $dbh->prepare($classSql);
+                                                                        $classQuery->bindParam(':classId', $classId, PDO::PARAM_STR);
+                                                                        $classQuery->execute();
+                                                                    
+                                                                        if ($classQuery) 
+                                                                        {
+                                                                            $classInfo = $classQuery->fetch(PDO::FETCH_ASSOC);
+                                                                    
+                                                                            if ($classInfo) 
+                                                                            {
+                                                                                echo htmlentities($classInfo['ClassName'] . " " . $classInfo['Section']);
+                                                                    
+                                                                                if ($i < count($classIds) - 1) 
+                                                                                {
+                                                                                    echo ", ";
+                                                                                }
+                                                                            } 
+                                                                            else 
+                                                                            {
+                                                                                echo ""; 
+                                                                            }
+                                                                        } 
+                                                                        else 
+                                                                        {
+                                                                            echo "Error fetching class"; 
+                                                                        }
+                                                                    }
+                                                                    
+                                                                ?>
+                                                            </td>
                                                             <td><?php  echo htmlentities($row->CreationDate);?></td>
                                                             <td>
                                                                 <div><a href="edit-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>

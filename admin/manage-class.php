@@ -8,16 +8,55 @@ if (strlen($_SESSION['sturecmsaid']==0))
 } 
 else
 {
-   // Code for deletion
-  if(isset($_GET['delid']))
+  if (isset($_GET['delid'])) 
   {
-      $rid=intval($_GET['delid']);
-      $sql="UPDATE tblclass SET IsDeleted = 1 where ID=:rid";
-      $query=$dbh->prepare($sql);
-      $query->bindParam(':rid',$rid,PDO::PARAM_STR);
-      $query->execute();
-      echo "<script>alert('Data deleted');</script>"; 
-      echo "<script>window.location.href = 'manage-class.php'</script>";     
+    $rid = intval($_GET['delid']);
+
+    $checkExaminationSql = "SELECT COUNT(*) FROM tblexamination WHERE ClassName = :rid";
+    $checkExaminationQuery = $dbh->prepare($checkExaminationSql);
+    $checkExaminationQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+    $checkExaminationQuery->execute();
+    $examinationRecordCount = $checkExaminationQuery->fetchColumn();
+
+    $checkStudentSql = "SELECT COUNT(*) FROM tblstudent WHERE StudentClass = :rid";
+    $checkStudentQuery = $dbh->prepare($checkStudentSql);
+    $checkStudentQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+    $checkStudentQuery->execute();
+    $studentRecordCount = $checkStudentQuery->fetchColumn();
+
+    if ($examinationRecordCount > 0 || $studentRecordCount > 0) 
+    {
+      echo '<form id="deleteForm" action="manage-class.php" method="post">
+              <input type="hidden" name="classID" value="' . $rid . '">
+              <input type="hidden" name="confirmDelete" value="1">
+            </form>
+            <script>
+              if (confirm("There are associated records with this class. Are you sure you want to delete it?")) 
+              {
+                  document.getElementById("deleteForm").submit();
+              }
+            </script>';
+
+    } 
+    else 
+    {
+        $sql = "UPDATE tblclass SET IsDeleted = 1 WHERE ID = :rid";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+        $query->execute();
+        echo "<script>alert('Data deleted');</script>";
+        echo "<script>window.location.href = 'manage-class.php'</script>";
+    }
+  }
+  if (isset($_POST['confirmDelete'])) 
+  {
+    $rid = intval($_POST['classID']);
+    $sql = "UPDATE tblclass SET IsDeleted = 1 WHERE ID = :rid";
+    $query = $dbh->prepare($sql);
+    $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+    $query->execute();
+    echo "<script>alert('Data deleted');</script>";
+    echo "<script>window.location.href = 'manage-class.php'</script>";
   }
 ?>
 <!DOCTYPE html>

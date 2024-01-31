@@ -14,17 +14,32 @@ else
     try {
         if (isset($_POST['submit']) && isset($_GET['editid']) && !empty($_GET['editid'])) {
 
-            $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
+            $selectedClasses = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-            if (!empty($cName)) 
+            if (!empty($selectedClasses)) 
             {
-                $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
-                $query = $dbh->prepare($sql);
-                $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-                $query->execute();
+                // Checking for duplicate classes
+                $sqlCheckDuplicate = "SELECT COUNT(*) as count FROM tblexamination WHERE ID != :eid AND ClassName IN (:classes) AND IsDeleted = 0";
+                $stmtCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
+                $stmtCheckDuplicate->bindParam(':eid', $eid, PDO::PARAM_STR);
+                $stmtCheckDuplicate->bindParam(':classes', implode(",", $selectedClasses), PDO::PARAM_STR);
+                $stmtCheckDuplicate->execute();
+                $duplicateCount = $stmtCheckDuplicate->fetch(PDO::FETCH_ASSOC)['count'];
 
-                echo '<script>alert("Examination has been updated")</script>';
+                if ($duplicateCount > 0) 
+                {
+                    echo '<script>alert("Duplicate class with the same exam exists.")</script>';
+                } 
+                else 
+                {
+                    $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':cName', implode(",", $selectedClasses), PDO::PARAM_STR);
+                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                    $query->execute();
+
+                    echo '<script>alert("Examination has been updated")</script>';
+                }
             } 
             else 
             {
@@ -105,7 +120,7 @@ else
                                                 class="js-example-basic-multiple w-100">
                                             <?php
                                             $eid = $_GET['editid'];
-                                            $examClassesSql = "SELECT ClassName FROM tblexamination WHERE ID = :eid";
+                                            $examClassesSql = "SELECT ClassName FROM tblexamination WHERE ID = :eid AND IsDeleted = 0";
                                             $examClassesQuery = $dbh->prepare($examClassesSql);
                                             $examClassesQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
                                             $examClassesQuery->execute();
@@ -114,15 +129,15 @@ else
 
                                             if ($query->rowCount() > 0) 
                                             {
-                                                $classSql = "SELECT DISTINCT ClassName FROM tblclass";
+                                                $classSql = "SELECT ID, ClassName, Section FROM tblclass WHERE IsDeleted = 0";
                                                 $classQuery = $dbh->prepare($classSql);
                                                 $classQuery->execute();
-                                                $classResults = $classQuery->fetchAll(PDO::FETCH_COLUMN);
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                                                foreach ($classResults as $className) 
+                                                foreach ($classResults as $class) 
                                                 {
-                                                    $selected = in_array($className, $selectedClasses) ? 'selected' : '';
-                                                    echo "<option value='" . htmlentities($className) . "' $selected>" . htmlentities($className) . "</option>";
+                                                    $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName'] . " " . $class['Section']) . "</option>";
                                                 }
                                             }
                                             ?>
