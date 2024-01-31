@@ -11,42 +11,22 @@ else
 {
   if(isset($_POST['submit']))
   {
-    // $cname=$_POST['cname'];
-    // $section=$_POST['section'];
-    // $sql="insert into tblclass(ClassName,Section)values(:cname,:section)";
-    // $query=$dbh->prepare($sql);
-    // $query->bindParam(':cname',$cname,PDO::PARAM_STR);
-    // $query->bindParam(':section',$section,PDO::PARAM_STR);
-    // $query->execute();
-    // $LastInsertId=$dbh->lastInsertId();
-    // if ($LastInsertId>0) 
-    // {
-    //   echo '<script>alert("Class has been added.")</script>';
-    //   echo "<script>window.location.href ='add-class.php'</script>";
-    // }
-    // else
-    // {
-    //   echo '<script>alert("Something Went Wrong. Please try again")</script>';
-    // }
-    $cname = $_POST['cname'];
-    $sections = isset($_POST['section']) ? implode(",", $_POST['section']) : '';
-
-    $sql = "INSERT INTO tblclass(ClassName, Section) VALUES(:cname, :sections)";
-    $query = $dbh->prepare($sql);
-    $query->bindParam(':cname', $cname, PDO::PARAM_STR);
-    $query->bindParam(':sections', $sections, PDO::PARAM_STR);
+    $cname=$_POST['cname'];
+    $section=$_POST['section'];
+    $sql="insert into tblclass(ClassName,Section)values(:cname,:section)";
+    $query=$dbh->prepare($sql);
+    $query->bindParam(':cname',$cname,PDO::PARAM_STR);
+    $query->bindParam(':section',$section,PDO::PARAM_STR);
     $query->execute();
-
-    $LastInsertId = $dbh->lastInsertId();
-
-    if ($LastInsertId > 0) 
+    $LastInsertId=$dbh->lastInsertId();
+    if ($LastInsertId>0) 
     {
-        echo '<script>alert("Class has been added.")</script>';
-        echo "<script>window.location.href ='add-class.php'</script>";
-    } 
-    else 
+      echo '<script>alert("Class has been added.")</script>';
+      echo "<script>window.location.href ='add-class.php'</script>";
+    }
+    else
     {
-        echo '<script>alert("Something Went Wrong. Please try again")</script>';
+      echo '<script>alert("Something Went Wrong. Please try again")</script>';
     }
   }
 ?>
@@ -104,7 +84,7 @@ else
                       </div>
                       <div class="form-group">
                         <label for="exampleInputEmail3">Sections</label>
-                        <select multiple="multiple" name="section[]" class="js-example-basic-multiple w-100" required='true'>
+                        <select name="section" class="form-control" required='true'>
                           <option value="" disabled >Choose Sections</option>
                           <option value="A">A</option>
                           <option value="B">B</option>

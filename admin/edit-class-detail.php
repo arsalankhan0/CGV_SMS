@@ -14,14 +14,15 @@ else
     if(isset($_POST['submit']))
     {
       $cname = filter_var($_POST['cname'], FILTER_SANITIZE_STRING);
-      $sections = isset($_POST['section']) ? implode(",", $_POST['section']) : '';
-      $eid = $_GET['editid'];
-      
-      $sql = "UPDATE tblclass SET ClassName=:cname, Section=:sections WHERE ID=:eid";
-      $query = $dbh->prepare($sql);
-      $query->bindParam(':cname', $cname, PDO::PARAM_STR);
-      $query->bindParam(':sections', $sections, PDO::PARAM_STR);
-      $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+      $section = $_POST['section'];
+      $eid=$_GET['editid'];
+  
+      $sql="update tblclass set ClassName=:cname,Section=:section where ID=:eid";
+      $query=$dbh->prepare($sql);
+      $query->bindParam(':cname',$cname,PDO::PARAM_STR);
+      $query->bindParam(':section',$section,PDO::PARAM_STR);
+      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
+
       $query->execute();
       
       echo '<script>alert("Class has been updated")</script>';
@@ -97,25 +98,15 @@ else
                                 <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>
                               </div>
                               <div class="form-group">
-                                <label for="exampleInputEmail3">Sections</label>
-                                <select multiple="multiple" name="section[]"
-                                        class="js-example-basic-multiple w-100">
-                                    <?php
-                                    $eid = $_GET['editid'];
-                                    $sectionSql = "SELECT Section FROM tblclass WHERE ID = :eid";
-                                    $sectionQuery = $dbh->prepare($sectionSql);
-                                    $sectionQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-                                    $sectionQuery->execute();
-                                    $sectionRow = $sectionQuery->fetch(PDO::FETCH_OBJ);
-                                    $selectedSections = explode(",", $sectionRow->Section);
-
-                                    $allSections = array('A', 'B', 'C', 'D', 'E', 'F');
-
-                                    foreach ($allSections as $sectionName) {
-                                        $selected = in_array($sectionName, $selectedSections) ? 'selected' : '';
-                                        echo "<option value='" . htmlentities($sectionName) . "' $selected>" . htmlentities($sectionName) . "</option>";
-                                    }
-                                    ?>
+                              <label for="exampleInputEmail3">Section</label>
+                                <select  name="section" class="form-control" required='true'>
+                                  <option value="<?php  echo htmlentities($row->Section);?>"><?php  echo htmlentities($row->Section);?></option>
+                                  <option value="A">A</option>
+                                  <option value="B">B</option>
+                                  <option value="C">C</option>
+                                  <option value="D">D</option>
+                                  <option value="E">E</option>
+                                  <option value="F">F</option>
                                 </select>
                               </div><?php $cnt=$cnt+1;
                             }

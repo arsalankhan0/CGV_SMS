@@ -2,82 +2,85 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) {
-  header('location:logout.php');
-  } else{
-   if(isset($_POST['submit']))
+  if (strlen($_SESSION['sturecmsaid']==0)) 
   {
- $stuname=$_POST['stuname'];
- $stuemail=$_POST['stuemail'];
- $stuclass=$_POST['stuclass'];
- $gender=$_POST['gender'];
- $dob=$_POST['dob'];
- $stuid=$_POST['stuid'];
- $fname=$_POST['fname'];
- $mname=$_POST['mname'];
- $connum=$_POST['connum'];
- $altconnum=$_POST['altconnum'];
- $address=$_POST['address'];
- $uname=$_POST['uname'];
- $password=md5($_POST['password']);
- $image=$_FILES["image"]["name"];
- $ret="select UserName from tblstudent where UserName=:uname || StuID=:stuid";
- $query= $dbh -> prepare($ret);
-$query->bindParam(':uname',$uname,PDO::PARAM_STR);
-$query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
-$query-> execute();
-     $results = $query -> fetchAll(PDO::FETCH_OBJ);
-if($query -> rowCount() == 0)
-{
-$extension = substr($image,strlen($image)-4,strlen($image));
-$allowed_extensions = array(".jpg","jpeg",".png",".gif");
-if(!in_array($extension,$allowed_extensions))
-{
-echo "<script>alert('Logo has Invalid format. Only jpg / jpeg/ png /gif format allowed');</script>";
-}
-else
-{
-$image=md5($image).time().$extension;
- move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-$sql="insert into tblstudent(StudentName,StudentEmail,StudentClass,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image)values(:stuname,:stuemail,:stuclass,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
-$query=$dbh->prepare($sql);
-$query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
-$query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
-$query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
-$query->bindParam(':gender',$gender,PDO::PARAM_STR);
-$query->bindParam(':dob',$dob,PDO::PARAM_STR);
-$query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
-$query->bindParam(':fname',$fname,PDO::PARAM_STR);
-$query->bindParam(':mname',$mname,PDO::PARAM_STR);
-$query->bindParam(':connum',$connum,PDO::PARAM_STR);
-$query->bindParam(':altconnum',$altconnum,PDO::PARAM_STR);
-$query->bindParam(':address',$address,PDO::PARAM_STR);
-$query->bindParam(':uname',$uname,PDO::PARAM_STR);
-$query->bindParam(':password',$password,PDO::PARAM_STR);
-$query->bindParam(':image',$image,PDO::PARAM_STR);
- $query->execute();
-   $LastInsertId=$dbh->lastInsertId();
-   if ($LastInsertId>0) {
-    echo '<script>alert("Student has been added.")</script>';
-echo "<script>window.location.href ='add-students.php'</script>";
-  }
+    header('location:logout.php');
+  } 
   else
+  {
+    if(isset($_POST['submit']))
     {
-         echo '<script>alert("Something Went Wrong. Please try again")</script>';
+      $stuname=$_POST['stuname'];
+      $stuemail=$_POST['stuemail'];
+      $stuclass=$_POST['stuclass'];
+      $gender=$_POST['gender'];
+      $dob=$_POST['dob'];
+      $stuid=$_POST['stuid'];
+      $fname=$_POST['fname'];
+      $mname=$_POST['mname'];
+      $connum=$_POST['connum'];
+      $altconnum=$_POST['altconnum'];
+      $address=$_POST['address'];
+      $uname=$_POST['uname'];
+      $password=md5($_POST['password']);
+      $image=$_FILES["image"]["name"];
+      $ret="select UserName from tblstudent where UserName=:uname || StuID=:stuid";
+      $query= $dbh -> prepare($ret);
+      $query->bindParam(':uname',$uname,PDO::PARAM_STR);
+      $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
+      $query-> execute();
+      $results = $query -> fetchAll(PDO::FETCH_OBJ);
+      if($query -> rowCount() == 0)
+      {
+        $extension = substr($image,strlen($image)-4,strlen($image));
+        $allowed_extensions = array(".jpg","jpeg",".png",".gif");
+        if(!in_array($extension,$allowed_extensions))
+        {
+          echo "<script>alert('Logo has Invalid format. Only jpg / jpeg/ png /gif format allowed');</script>";
+        }
+        else
+        {
+          $image=md5($image).time().$extension;
+          move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
+          $sql="insert into tblstudent(StudentName,StudentEmail,StudentClass,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image)values(:stuname,:stuemail,:stuclass,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
+          $query=$dbh->prepare($sql);
+          $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
+          $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
+          $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
+          $query->bindParam(':gender',$gender,PDO::PARAM_STR);
+          $query->bindParam(':dob',$dob,PDO::PARAM_STR);
+          $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
+          $query->bindParam(':fname',$fname,PDO::PARAM_STR);
+          $query->bindParam(':mname',$mname,PDO::PARAM_STR);
+          $query->bindParam(':connum',$connum,PDO::PARAM_STR);
+          $query->bindParam(':altconnum',$altconnum,PDO::PARAM_STR);
+          $query->bindParam(':address',$address,PDO::PARAM_STR);
+          $query->bindParam(':uname',$uname,PDO::PARAM_STR);
+          $query->bindParam(':password',$password,PDO::PARAM_STR);
+          $query->bindParam(':image',$image,PDO::PARAM_STR);
+          $query->execute();
+          $LastInsertId=$dbh->lastInsertId();
+          if ($LastInsertId>0) 
+          {
+            echo '<script>alert("Student has been added.")</script>';
+            echo "<script>window.location.href ='add-students.php'</script>";
+          }
+          else
+          {
+            echo '<script>alert("Something Went Wrong. Please try again")</script>';
+          }
+        }
+      }
+      else
+      {
+        echo "<script>alert('Username or Student Id  already exist. Please try again');</script>";
+      }
     }
-}}
-
-else
-{
-
-echo "<script>alert('Username or Student Id  already exist. Please try again');</script>";
-}
-}
   ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
-   
+  
     <title>Student  Management System|| Add Students</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -97,7 +100,7 @@ echo "<script>alert('Username or Student Id  already exist. Please try again');<
   <body>
     <div class="container-scroller">
       <!-- partial:partials/_navbar.html -->
-     <?php include_once('includes/header.php');?>
+      <?php include_once('includes/header.php');?>
       <!-- partial -->
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -120,7 +123,6 @@ echo "<script>alert('Username or Student Id  already exist. Please try again');<
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Add Students</h4>
-                   
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       
                       <div class="form-group">
@@ -135,18 +137,17 @@ echo "<script>alert('Username or Student Id  already exist. Please try again');<
                         <label for="exampleInputEmail3">Student Class</label>
                         <select  name="stuclass" class="form-control" required='true'>
                           <option value="">Select Class</option>
-                         <?php 
+                        <?php 
+                          $sql2 = "SELECT * from    tblclass ";
+                          $query2 = $dbh -> prepare($sql2);
+                          $query2->execute();
+                          $result2=$query2->fetchAll(PDO::FETCH_OBJ);
 
-$sql2 = "SELECT * from    tblclass ";
-$query2 = $dbh -> prepare($sql2);
-$query2->execute();
-$result2=$query2->fetchAll(PDO::FETCH_OBJ);
-
-foreach($result2 as $row1)
-{          
-    ?>  
-<option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
- <?php } ?> 
+                          foreach($result2 as $row1)
+                          {          
+                              ?>  
+                          <option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
+                          <?php } ?> 
                         </select>
                       </div>
                       <div class="form-group">
@@ -161,7 +162,6 @@ foreach($result2 as $row1)
                         <label for="exampleInputName1">Date of Birth</label>
                         <input type="date" name="dob" value="" class="form-control" required='true'>
                       </div>
-                     
                       <div class="form-group">
                         <label for="exampleInputName1">Student ID</label>
                         <input type="text" name="stuid" value="" class="form-control" required='true'>
@@ -191,8 +191,8 @@ foreach($result2 as $row1)
                         <label for="exampleInputName1">Address</label>
                         <textarea name="address" class="form-control" required='true'></textarea>
                       </div>
-<h3>Login details</h3>
-<div class="form-group">
+                        <h3>Login details</h3>
+                        <div class="form-group">
                         <label for="exampleInputName1">User Name</label>
                         <input type="text" name="uname" value="" class="form-control" required='true'>
                       </div>
@@ -201,7 +201,7 @@ foreach($result2 as $row1)
                         <input type="Password" name="password" value="" class="form-control" required='true'>
                       </div>
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
-                     
+                    
                     </form>
                   </div>
                 </div>
