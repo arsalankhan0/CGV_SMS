@@ -7,37 +7,44 @@ if(isset($_POST['login']))
   {
     $stuid=$_POST['stuid'];
     $password=md5($_POST['password']);
-    $sql ="SELECT StuID,ID,StudentClass FROM tblstudent WHERE (UserName=:stuid || StuID=:stuid) and Password=:password";
+    $sql ="SELECT StuID,ID,StudentClass FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
     $query=$dbh->prepare($sql);
     $query-> bindParam(':stuid', $stuid, PDO::PARAM_STR);
-$query-> bindParam(':password', $password, PDO::PARAM_STR);
+    $query-> bindParam(':password', $password, PDO::PARAM_STR);
     $query-> execute();
     $results=$query->fetchAll(PDO::FETCH_OBJ);
     if($query->rowCount() > 0)
-{
-foreach ($results as $result) {
-$_SESSION['sturecmsstuid']=$result->StuID;
-$_SESSION['sturecmsuid']=$result->ID;
-$_SESSION['stuclass']=$result->StudentClass;
-}
+    {
+      foreach ($results as $result) {
+      $_SESSION['sturecmsstuid']=$result->StuID;
+      $_SESSION['sturecmsuid']=$result->ID;
+      $_SESSION['stuclass']=$result->StudentClass;
+    }
 
-  if(!empty($_POST["remember"])) {
-//COOKIES for username
-setcookie ("user_login",$_POST["stuid"],time()+ (10 * 365 * 24 * 60 * 60));
-//COOKIES for password
-setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
-} else {
-if(isset($_COOKIE["user_login"])) {
-setcookie ("user_login","");
-if(isset($_COOKIE["userpassword"])) {
-setcookie ("userpassword","");
+  if(!empty($_POST["remember"])) 
+  {
+    //COOKIES for username
+    setcookie ("user_login",$_POST["stuid"],time()+ (10 * 365 * 24 * 60 * 60));
+    //COOKIES for password
+    setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+    } 
+    else 
+    {
+      if(isset($_COOKIE["user_login"])) 
+      {
+        setcookie ("user_login","");
+        if(isset($_COOKIE["userpassword"])) 
+        {
+          setcookie ("userpassword","");
         }
       }
+  }
+    $_SESSION['login']=$_POST['stuid'];
+    echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
 }
-$_SESSION['login']=$_POST['stuid'];
-echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
-} else{
-echo "<script>alert('Invalid Details');</script>";
+else
+{
+  echo "<script>alert('Invalid Details');</script>";
 }
 }
 

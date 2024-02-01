@@ -4,39 +4,93 @@ error_reporting(0);
 include('includes/dbconnection.php');
 
 if(isset($_POST['login'])) 
-  {
-    $username=$_POST['username'];
-    $password=md5($_POST['password']);
-    $sql ="SELECT ID FROM tbladmin WHERE UserName=:username and Password=:password";
-    $query=$dbh->prepare($sql);
-    $query-> bindParam(':username', $username, PDO::PARAM_STR);
-$query-> bindParam(':password', $password, PDO::PARAM_STR);
-    $query-> execute();
-    $results=$query->fetchAll(PDO::FETCH_OBJ);
-    if($query->rowCount() > 0)
 {
-foreach ($results as $result) {
-$_SESSION['sturecmsaid']=$result->ID;
-}
+    $role = $_POST['role'];
 
-  if(!empty($_POST["remember"])) {
-//COOKIES for username
-setcookie ("user_login",$_POST["username"],time()+ (10 * 365 * 24 * 60 * 60));
-//COOKIES for password
-setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
-} else {
-if(isset($_COOKIE["user_login"])) {
-setcookie ("user_login","");
-if(isset($_COOKIE["userpassword"])) {
-setcookie ("userpassword","");
+    if($role === "admin")
+    {
+        $username=$_POST['username'];
+        $password=md5($_POST['password']);
+        $sql ="SELECT ID FROM tbladmin WHERE UserName=:username AND Password=:password";
+        $query=$dbh->prepare($sql);
+        $query-> bindParam(':username', $username, PDO::PARAM_STR);
+        $query-> bindParam(':password', $password, PDO::PARAM_STR);
+        $query-> execute();
+        $results=$query->fetchAll(PDO::FETCH_OBJ);
+        if($query->rowCount() > 0)
+        {
+            foreach ($results as $result) 
+            {
+              $_SESSION['sturecmsaid']=$result->ID;
+            }
+
+            if(!empty($_POST["remember"])) 
+            {
+              //COOKIES for username
+              setcookie ("user_login",$_POST["username"],time()+ (10 * 365 * 24 * 60 * 60));
+              //COOKIES for password
+              setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+              //COOKIES for role
+              setcookie ("role",$role,time()+(10 * 365 * 24 * 60 * 60));
+            } 
+            else 
+            {
+              if(isset($_COOKIE["user_login"])) 
+              {
+                setcookie ("user_login","");
+                setcookie ("role", "");
+                if(isset($_COOKIE["userpassword"])) 
+                {
+                  setcookie ("userpassword","");
+                }
+              }
+            }
+            $_SESSION['login']=$_POST['username'];
+            echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+        } 
+        else
+        {
+            echo "<script>alert('Invalid Details');</script>";
         }
+    }
+    else
+    {
+      $username = $_POST['username'];
+      $password = $_POST['password'];
+  
+      $sql = "SELECT ID, Password FROM tblemployees WHERE UserName=:username AND IsDeleted = 0";
+      $query = $dbh->prepare($sql);
+      $query->bindParam(':username', $username, PDO::PARAM_STR);
+      $query->execute();
+  
+      $result = $query->fetch(PDO::FETCH_ASSOC);
+  
+      if ($result && password_verify($password, $result['Password'])) 
+      {
+          $_SESSION['sturecmsEMPid'] = $result['ID'];
+  
+          if (!empty($_POST["remember"])) 
+          {
+              setcookie("user_login", $username, time() + (10 * 365 * 24 * 60 * 60));
+              setcookie("userpassword", $password, time() + (10 * 365 * 24 * 60 * 60));
+              setcookie ("role",$role,time()+(10 * 365 * 24 * 60 * 60));
+          } 
+          else 
+          {
+              setcookie("user_login", "");
+              setcookie("userpassword", "");
+              setcookie ("role", "");
+          }
+  
+          $_SESSION['login'] = $username;
+          echo "<script type='text/javascript'> document.location ='../Employee/dashboard.php'; </script>";
+          exit;
+      } 
+      else 
+      {
+          echo "<script>alert('Invalid Details');</script>";
       }
-}
-$_SESSION['login']=$_POST['username'];
-echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
-} else{
-echo "<script>alert('Invalid Details');</script>";
-}
+    }
 }
 
 ?>
@@ -44,7 +98,7 @@ echo "<script>alert('Invalid Details');</script>";
 <html lang="en">
   <head>
   
-    <title>Student  Management System|| Login Page</title>
+    <title>Student  Management System || Login Page</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -56,7 +110,7 @@ echo "<script>alert('Invalid Details');</script>";
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css">
-   
+
   </head>
   <body>
     <div class="container-scroller">
@@ -70,7 +124,15 @@ echo "<script>alert('Invalid Details');</script>";
                 </div>
                 <h4>Hello! let's get started</h4>
                 <h6 class="font-weight-light">Sign in to continue.</h6>
-                <form class="pt-3" id="login" method="post" name="login">
+                <form class="pt-0" id="login" method="post" name="login">
+
+                <div class="d-flex justify-content-end mb-3">
+                  <div>
+                    <label for="admin" class="px-1">Admin</label><input type="radio" id="admin" name="role" value="admin" <?php if(!isset($_COOKIE["role"]) || $_COOKIE["role"] == "admin") { ?> checked <?php } ?>/>
+                    <label for="emp" class="px-1">Employee</label><input type="radio" id="emp" name="role" value="employee" <?php if(isset($_COOKIE["role"]) && $_COOKIE["role"] == "employee") { ?> checked <?php } ?> />
+                  </div>
+                </div>
+
                   <div class="form-group">
                     <input type="text" class="form-control form-control-lg" placeholder="enter your username" required="true" name="username" value="<?php if(isset($_COOKIE["user_login"])) { echo $_COOKIE["user_login"]; } ?>" >
                   </div>
@@ -91,9 +153,8 @@ echo "<script>alert('Invalid Details');</script>";
                   <div class="mb-2">
                     <a href="../index.php" class="btn btn-block btn-facebook auth-form-btn">
                       <i class="icon-social-home mr-2"></i>Back Home </a>
-                  </div>
-                  
-                </form>
+                    </div>
+                  </form>
               </div>
             </div>
           </div>
