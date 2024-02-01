@@ -8,23 +8,22 @@
                 </div>
                 <div class="text-wrapper">
                   <?php
-         $aid= $_SESSION['sturecmsaid'];
-$sql="SELECT * from tbladmin where ID=:aid";
+                  $aid= $_SESSION['sturecmsaid'];
+                  $sql="SELECT * from tbladmin where ID=:aid";
 
-$query = $dbh -> prepare($sql);
-$query->bindParam(':aid',$aid,PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
+                  $query = $dbh -> prepare($sql);
+                  $query->bindParam(':aid',$aid,PDO::PARAM_STR);
+                  $query->execute();
+                  $results=$query->fetchAll(PDO::FETCH_OBJ);
 
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
+                  $cnt=1;
+                  if($query->rowCount() > 0)
+                  {
+                  foreach($results as $row)
+                  {               ?>
                   <p class="profile-name"><?php  echo htmlentities($row->AdminName);?></p>
                   <p class="designation"><?php  echo htmlentities($row->Email);?></p><?php $cnt=$cnt+1;}} ?>
                 </div>
-               
               </a>
             </li>
             <li class="nav-item nav-category">
@@ -82,6 +81,18 @@ foreach($results as $row)
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"> <a class="nav-link" href="create-subjects.php">Create Subjects</a></li>
                   <li class="nav-item"> <a class="nav-link" href="manage-subjects.php">Manage Subjects</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-employees" aria-expanded="false" aria-controls="ui-employees">
+                <span class="menu-title">Employees</span>
+                <i class="icon-user menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-employees">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-employees.php">Add Employees</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-employees.php">Manage Employees</a></li>
                 </ul>
               </div>
             </li>

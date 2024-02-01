@@ -22,7 +22,19 @@ else
     $altconnum=$_POST['altconnum'];
     $address=$_POST['address'];
     $eid=$_GET['editid'];
-    $sql="update tblstudent set StudentName=:stuname,StudentEmail=:stuemail,StudentClass=:stuclass,Gender=:gender,DOB=:dob,StuID=:stuid,FatherName=:fname,MotherName=:mname,ContactNumber=:connum,AltenateNumber=:altconnum,Address=:address where ID=:eid";
+    $sql = "UPDATE tblstudent SET 
+          StudentName=:stuname,
+          StudentEmail=:stuemail,
+          StudentClass=:stuclass,
+          Gender=:gender,
+          DOB=:dob,
+          StuID=:stuid,
+          FatherName=:fname,
+          MotherName=:mname,
+          ContactNumber=:connum,
+          AltenateNumber=:altconnum,
+          Address=:address 
+          WHERE ID=:eid";
     $query=$dbh->prepare($sql);
     $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
     $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
