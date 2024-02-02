@@ -14,10 +14,12 @@ else
     try {
         if (isset($_POST['submit']) && isset($_GET['editid']) && !empty($_GET['editid'])) 
         {
-            $cName = isset($_POST['classes']) ? implode(",", $_POST['classes']) : '';
+            $classIds = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-            if (!empty($cName)) 
+            if (!empty($classIds)) 
             {
+                $cName = implode(",", $classIds);
+
                 $sql = "UPDATE tblsubjects SET ClassName=:cName WHERE ID=:eid";
                 $query = $dbh->prepare($sql);
                 $query->bindParam(':cName', $cName, PDO::PARAM_STR);
@@ -114,15 +116,15 @@ else
 
                                             if ($query->rowCount() > 0) 
                                             {
-                                                $classSql = "SELECT DISTINCT ClassName FROM tblclass";
+                                                $classSql = "SELECT DISTINCT ID, ClassName FROM tblclass";
                                                 $classQuery = $dbh->prepare($classSql);
                                                 $classQuery->execute();
-                                                $classResults = $classQuery->fetchAll(PDO::FETCH_COLUMN);
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_OBJ);
 
-                                                foreach ($classResults as $className) 
+                                                foreach ($classResults as $class) 
                                                 {
-                                                    $selected = in_array($className, $selectedClasses) ? 'selected' : '';
-                                                    echo "<option value='" . htmlentities($className) . "' $selected>" . htmlentities($className) . "</option>";
+                                                    $selected = in_array($class->ID, $selectedClasses) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($class->ID) . "' $selected>" . htmlentities($class->ClassName) . "</option>";
                                                 }
                                             }
                                             ?>

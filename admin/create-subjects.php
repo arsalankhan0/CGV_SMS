@@ -1,63 +1,62 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) 
-{
+
+if (strlen($_SESSION['sturecmsaid']) == 0) {
     header('location:logout.php');
-} 
-else
-{
-    try
-    {
-        if(isset($_POST['submit']))
-        {
+} else {
+    try {
+        if (isset($_POST['submit'])) {
             $subjectName = filter_var($_POST['subjectName'], FILTER_SANITIZE_STRING);
-            $cName = isset($_POST['classes']) ? implode(",", array_map('htmlspecialchars', $_POST['classes'])) : '';
-                
-            if (empty($subjectName) || empty($cName)) 
-            {
+            $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
+
+            if (empty($subjectName) || empty($classes)) {
                 echo '<script>alert("Please enter Subject Name and select at least one class")</script>';
-            }
-            else 
-            {
+            } else {
                 $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName";
                 $checkQuery = $dbh->prepare($checkSql);
                 $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
                 $checkQuery->execute();
                 $subjectId = $checkQuery->fetchColumn();
-                
-                if ($subjectId > 0) 
-                {
-                    echo '<script>alert("Subject already exists. Please update the existing subject.")</script>';
-                }
-                else
-                {
-                    $sql="insert into tblsubjects(SubjectName,ClassName)values(:subjectName,:cName)";
-                    $query=$dbh->prepare($sql);
-                    $query->bindParam(':subjectName',$subjectName,PDO::PARAM_STR);
-                    $query->bindParam(':cName',$cName,PDO::PARAM_STR);
-                    $query->execute();
-                    $LastInsertId=$dbh->lastInsertId();
 
-                    if ($LastInsertId > 0) 
-                    {
+                if ($subjectId > 0) {
+                    echo '<script>alert("Subject already exists. Please update the existing subject.")</script>';
+                } else {
+                    // Fetch IDs of selected classes
+                    $selectedClassIds = [];
+                    foreach ($classes as $className) {
+                        $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
+                        $classQuery = $dbh->prepare($classSql);
+                        $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                        $classQuery->execute();
+                        $classId = $classQuery->fetchColumn();
+                        if ($classId) {
+                            $selectedClassIds[] = $classId;
+                        }
+                    }
+
+                    // Insert subject with comma-separated class IDs
+                    $cName = implode(",", $selectedClassIds);
+                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName) VALUES (:subjectName, :cName)";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    $query->execute();
+                    $LastInsertId = $dbh->lastInsertId();
+
+                    if ($LastInsertId > 0) {
                         echo '<script>alert("Subject has been created.")</script>';
                         echo "<script>window.location.href ='create-subjects.php'</script>";
-                    } 
-                    else 
-                    {
+                    } else {
                         echo '<script>alert("Something Went Wrong. Please try again")</script>';
                     }
                 }
             }
         }
-    }
-    catch(PDOException $e)
-    {
+    } catch (PDOException $e) {
         echo '<script>alert("Ops! An Error occurred.")</script>';
     }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

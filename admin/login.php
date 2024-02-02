@@ -5,8 +5,9 @@ include('includes/dbconnection.php');
 
 if(isset($_POST['login'])) 
 {
+  try
+  {
     $role = $_POST['role'];
-
     if($role === "admin")
     {
         $username=$_POST['username'];
@@ -91,6 +92,11 @@ if(isset($_POST['login']))
           echo "<script>alert('Invalid Details');</script>";
       }
     }
+  }
+  catch(PDOException $e)
+  {
+    echo "<script>alert('Ops! Something went wrong!');</script>";
+  }
 }
 
 ?>

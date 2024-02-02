@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) 
 {
@@ -103,7 +103,7 @@ else
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       <?php
                         $eid=$_GET['editid'];
-                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid";
+                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
                         $query = $dbh -> prepare($sql);
                         $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                         $query->execute();
@@ -125,19 +125,28 @@ else
                             <div class="form-group">
                               <label for="exampleInputEmail3">Student Class</label>
                               <select  name="stuclass" class="form-control" required='true'>
-                                <option value="<?php  echo htmlentities($row->StudentClass);?>"><?php  echo htmlentities($row->ClassName);?> <?php  echo htmlentities($row->Section);?></option>
+                                <?php
+                                  if($row->IsDeleted === 0)
+                                  {
+                                ?>
+                                    <option value="<?php  echo htmlentities($row->StudentClass);?>"><?php  echo htmlentities($row->ClassName);?> <?php  echo htmlentities($row->Section);?></option>
                                 <?php 
-
-                                  $sql2 = "SELECT * from    tblclass ";
+                                  }
+                                  else
+                                  {?>
+                                    <option value="<?php  echo htmlentities($row->StudentClass);?>" >Select</option>
+                                  <?php
+                                  }
+                                  $sql2 = "SELECT * from tblclass WHERE IsDeleted = 0";
                                   $query2 = $dbh -> prepare($sql2);
                                   $query2->execute();
                                   $result2=$query2->fetchAll(PDO::FETCH_OBJ);
 
                                   foreach($result2 as $row1)
-                                  {          
+                                  {   
                                       ?>  
-                                  <option value="<?php echo htmlentities($row1->ClassName);?><?php echo htmlentities($row1->Section);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
-                                  <?php 
+                                    <option value="<?php echo htmlentities($row1->ClassName);?><?php echo htmlentities($row1->Section);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
+                                    <?php 
                                   } 
                                   ?> 
                               </select>
