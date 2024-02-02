@@ -1,37 +1,50 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) {
+if (strlen($_SESSION['sturecmsaid']) == 0) 
+{
     header('location:logout.php');
-} else {
-    try {
-        if (isset($_POST['submit'])) {
+} 
+else 
+{
+    try 
+    {
+        if (isset($_POST['submit'])) 
+        {
             $subjectName = filter_var($_POST['subjectName'], FILTER_SANITIZE_STRING);
             $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-            if (empty($subjectName) || empty($classes)) {
+            if (empty($subjectName) || empty($classes)) 
+            {
                 echo '<script>alert("Please enter Subject Name and select at least one class")</script>';
-            } else {
+            } 
+            else 
+            {
                 $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName";
                 $checkQuery = $dbh->prepare($checkSql);
                 $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
                 $checkQuery->execute();
                 $subjectId = $checkQuery->fetchColumn();
 
-                if ($subjectId > 0) {
+                if ($subjectId > 0) 
+                {
                     echo '<script>alert("Subject already exists. Please update the existing subject.")</script>';
-                } else {
+                } 
+                else 
+                {
                     // Fetch IDs of selected classes
                     $selectedClassIds = [];
-                    foreach ($classes as $className) {
+                    foreach ($classes as $className) 
+                    {
                         $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
                         $classQuery = $dbh->prepare($classSql);
                         $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
                         $classQuery->execute();
                         $classId = $classQuery->fetchColumn();
-                        if ($classId) {
+                        if ($classId) 
+                        {
                             $selectedClassIds[] = $classId;
                         }
                     }
@@ -45,16 +58,21 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                     $query->execute();
                     $LastInsertId = $dbh->lastInsertId();
 
-                    if ($LastInsertId > 0) {
+                    if ($LastInsertId > 0) 
+                    {
                         echo '<script>alert("Subject has been created.")</script>';
                         echo "<script>window.location.href ='create-subjects.php'</script>";
-                    } else {
+                    } 
+                    else 
+                    {
                         echo '<script>alert("Something Went Wrong. Please try again")</script>';
                     }
                 }
             }
         }
-    } catch (PDOException $e) {
+    } 
+    catch (PDOException $e) 
+    {
         echo '<script>alert("Ops! An Error occurred.")</script>';
     }
 ?>
@@ -112,14 +130,14 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                             <select multiple="multiple" name="classes[]"
                                                     class="js-example-basic-multiple w-100">
                                                 <?php
-                                                $sql = "SELECT * FROM tblclass";
+                                                $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
                                                 $query = $dbh->prepare($sql);
                                                 $query->execute();
                                                 $row = $query->fetch(PDO::FETCH_OBJ);
 
                                                 if ($query->rowCount() > 0) 
                                                 {
-                                                    $classSql = "SELECT DISTINCT ClassName FROM tblclass";
+                                                    $classSql = "SELECT DISTINCT ClassName FROM tblclass WHERE IsDeleted = 0";
                                                     $classQuery = $dbh->prepare($classSql);
                                                     $classQuery->execute();
                                                     $classResults = $classQuery->fetchAll(PDO::FETCH_COLUMN);
