@@ -39,6 +39,18 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#students" aria-expanded="false" aria-controls="students">
+                <span class="menu-title">Report Card</span>
+                <i class="icon-doc menu-icon"></i>
+              </a>
+              <div class="collapse" id="students">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="create-marks.php"> Create Student Report </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="assign-marks.php"> View Student Report </a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
                 <span class="menu-title">Notice</span>
                 <i class="icon-doc menu-icon"></i>
