@@ -46,7 +46,7 @@
               <div class="collapse" id="students">
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"> <a class="nav-link" href="create-marks.php"> Create Student Report </a></li>
-                  <li class="nav-item"> <a class="nav-link" href="assign-marks.php"> View Student Report </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="view-students-list.php"> View Students Report </a></li>
                 </ul>
               </div>
             </li>
