@@ -141,7 +141,7 @@ else
                                     <div class="row">
                                         <div class="col-12 grid-margin stretch-card">
                                             <div class="card">
-                                                <div class="card-body">
+                                                <div class="card-body" id="report-card">
                                                     <h4 class="card-title" style="text-align: center;">Student Report of
                                                         <strong><?php
                                                                 $sql = "SELECT * FROM tblexamination WHERE ID = " . $_GET['examName'] . " AND IsDeleted = 0";
@@ -160,7 +160,7 @@ else
                                                     if (isset($subjects) && isset($reports)) 
                                                     {
                                                     ?>
-                                                        <div class="d-flex flex-column" id="report-card">
+                                                        <div class="d-flex flex-column">
                                                             <?php
                                                             if (isset($studentDetails)) 
                                                             {
@@ -247,13 +247,14 @@ else
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
-                                                            <div class="d-flex justify-content-center mt-3">
-                                                                <button class="btn btn-success" id="print-btn" type="button" onclick="window.print()">Print</button>
-                                                            </div>
+                                                            
                                                         </div>
                                                     <?php
                                                     }
                                                     ?>
+                                                </div>
+                                                <div class="d-flex justify-content-center mb-3">
+                                                    <button class="btn btn-success" id="print-btn" type="button">Print</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -284,29 +285,25 @@ else
                     <script src="js/typeahead.js"></script>
                     <script src="js/select2.js"></script>
                     <script src="./js/resultGeneration.js"></script>
+                    <script src="./js/printReportCard.js"></script>
                     <!-- End custom js for this page -->
-
                 </body>
-
                 </html>
 <?php
             } 
             else 
             {
                 echo "<script>alert('Student not found.'); window.location.href='view-students-list.php';</script>";
-                // header("Location:view-students-list.php");
             }
         } 
         else 
         {
             echo "<script>alert('Student not selected.'); window.location.href='view-students-list.php';</script>";
-            // header("Location:view-students-list.php");
         }
     } 
     else 
     {
         echo "<script>alert('Invalid Request.'); window.location.href='view-students-list.php';</script>";
-        // header("Location:view-students-list.php");
     }
 }
 ?>

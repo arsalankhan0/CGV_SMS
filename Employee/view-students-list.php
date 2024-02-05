@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
@@ -137,7 +137,6 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                 <?php
                                 if (isset($_POST['filter'])) {
                                     $selectedClass = $_POST['class'];
-                                    // $selectedSection = $_POST['section'];
                                     $selectedExam = $_POST['exam'];
                                     $selectedSession = $_POST['session'];
 
@@ -184,6 +183,7 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                             echo "</td>";
                                             echo "</tr>";
                                             $cnt = $cnt + 1;
+                                            
                                         }
                                         
 
