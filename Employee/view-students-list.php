@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
@@ -65,68 +65,71 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                     <h4 class="card-title mb-sm-0">View Students Report</h4>
                                 </div>
                                 
-                                <!-- Filter Form -->
-                                <form method="post">
-                                    <div class="form-group">
-                                        <label for="class">Select Class:</label>
-                                        <select name="class" id="class" class="form-control">
-                                            <?php
-                                            $sqlClasses = "SELECT DISTINCT ClassName FROM tblreports WHERE IsDeleted = 0";
-                                            $queryClasses = $dbh->prepare($sqlClasses);
-                                            $queryClasses->execute();
-                                            $classes = $queryClasses->fetchAll(PDO::FETCH_COLUMN);
-                                            
-                                            foreach ($classes as $class) {
-                                                echo "<option value='" . $class . "'>" . $class . "</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="section">Select Section:</label>
-                                        <select name="section" id="section" class="form-control">
-                                            <?php
-                                                $sqlSections = "SELECT DISTINCT ClassName FROM tblreports WHERE IsDeleted = 0";
-                                                $querySections = $dbh->prepare($sqlSections);
-                                                $querySections->execute();
-                                                $sections = $querySections->fetchAll(PDO::FETCH_COLUMN);
-                                                
-                                                foreach ($sections as $section) 
-                                                {
-                                                    echo "<option value='" . $section . "'>" . $section . "</option>";
+                                <!-- Filter this Form -->
+                                <form method="post" class="mb-3">
+                                    <div class="form-row">
+                                        <!-- Select Class and Section-->
+                                        <div class="form-group col-md-4">
+                                            <label for="class">Select Class:</label>
+                                            <select name="class" id="class" class="form-control">
+                                                <?php
+                                                $sqlClasses = "SELECT DISTINCT ClassName FROM tblreports WHERE  IsDeleted = 0";
+                                                $queryClasses = $dbh->prepare($sqlClasses);
+                                                $queryClasses->execute();
+                                                $classes = $queryClasses->fetchAll(PDO::FETCH_COLUMN);
+
+                                                foreach ($classes as $class) {
+                                                    // Fetch ClassName and Section from tblclass based on the ID
+                                                    $sqlClassNames = "SELECT ClassName, Section FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
+                                                    $queryClassNames = $dbh->prepare($sqlClassNames);
+                                                    $queryClassNames->bindParam(':classID', $class, PDO::PARAM_STR);
+                                                    $queryClassNames->execute();
+                                                    $className = $queryClassNames->fetch(PDO::FETCH_ASSOC);
+
+                                                    echo "<option value='" . $class . "'>" . $className['ClassName']." ".$className['Section']. "</option>";
                                                 }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="section">Select Exam:</label>
-                                        <select name="exam" id="exam" class="form-control">
-                                            <?php
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <!-- Select Exam -->
+                                        <div class="form-group col-md-4">
+                                            <label for="exam">Select Exam:</label>
+                                            <select name="exam" id="exam" class="form-control">
+                                                <?php
                                                 $sqlExam = "SELECT DISTINCT ExamName FROM tblreports WHERE IsDeleted = 0";
                                                 $queryExam = $dbh->prepare($sqlExam);
                                                 $queryExam->execute();
                                                 $Exams = $queryExam->fetchAll(PDO::FETCH_COLUMN);
-                                                
+
                                                 foreach ($Exams as $Exam) {
-                                                    echo "<option value='" . $Exam . "'>" . $Exam . "</option>";
+                                                    // Fetch Exam Name from tblclass based on the ID
+                                                    $sqlExamNames = "SELECT ExamName FROM tblexamination WHERE ID = :ExamID AND IsDeleted = 0";
+                                                    $queryExamNames = $dbh->prepare($sqlExamNames);
+                                                    $queryExamNames->bindParam(':ExamID', $Exam, PDO::PARAM_STR);
+                                                    $queryExamNames->execute();
+                                                    $ExamName = $queryExamNames->fetch(PDO::FETCH_COLUMN);
+
+                                                    echo "<option value='" . $Exam . "'>" . $ExamName . "</option>";
                                                 }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="session">Select Session:</label>
-                                        <select name="session" id="session" class="form-control">
-                                            <?php
-                                            $sqlSessions = "SELECT DISTINCT ExamSession FROM tblreports WHERE IsDeleted = 0";
-                                            $querySessions = $dbh->prepare($sqlSessions);
-                                            $querySessions->execute();
-                                            $sessions = $querySessions->fetchAll(PDO::FETCH_COLUMN);
-                                            
-                                            foreach ($sessions as $session) {
-                                                echo "<option value='" . $session . "'>" . $session . "</option>";
-                                            }
-                                            ?>
-                                        </select>
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <!-- Select Session -->
+                                        <div class="form-group col-md-4">
+                                            <label for="session">Select Session:</label>
+                                            <select name="session" id="session" class="form-control">
+                                                <?php
+                                                $sqlSessions = "SELECT DISTINCT ExamSession FROM tblreports WHERE IsDeleted = 0";
+                                                $querySessions = $dbh->prepare($sqlSessions);
+                                                $querySessions->execute();
+                                                $sessions = $querySessions->fetchAll(PDO::FETCH_COLUMN);
+
+                                                foreach ($sessions as $session) {
+                                                    echo "<option value='" . $session . "'>" . $session . "</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
                                     </div>
                                     <button type="submit" name="filter" class="btn btn-primary">Filter</button>
                                 </form>
@@ -134,14 +137,13 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                 <?php
                                 if (isset($_POST['filter'])) {
                                     $selectedClass = $_POST['class'];
-                                    $selectedSection = $_POST['section'];
+                                    // $selectedSection = $_POST['section'];
                                     $selectedExam = $_POST['exam'];
                                     $selectedSession = $_POST['session'];
 
-                                    $sqlFilteredReports = "SELECT DISTINCT StudentName, ExamName, ClassName, ExamSession FROM tblreports WHERE ClassName = :class AND ClassName = :section AND ExamName = :exam AND ExamSession = :session AND IsDeleted = 0";
+                                    $sqlFilteredReports = "SELECT DISTINCT StudentName, ExamName, ClassName, ExamSession FROM tblreports WHERE ClassName = :class AND ExamName = :exam AND ExamSession = :session AND IsDeleted = 0";
                                     $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                     $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
-                                    $queryFilteredReports->bindParam(':section', $selectedSection, PDO::PARAM_STR);
                                     $queryFilteredReports->bindParam(':exam', $selectedExam, PDO::PARAM_STR);
                                     $queryFilteredReports->bindParam(':session', $selectedSession, PDO::PARAM_STR);
                                     $queryFilteredReports->execute();
@@ -155,21 +157,26 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                         echo "<tr>";
                                         echo "<th class='font-weight-bold'>S.No</th>";
                                         echo "<th class='font-weight-bold'>Student Name</th>";
-                                        echo "<th class='font-weight-bold'>Class</th>";
-                                        echo "<th class='font-weight-bold'>Section</th>";
+                                        echo "<th class='font-weight-bold'>Roll No</th>";
                                         echo "<th class='font-weight-bold'>Action</th>";
                                         echo "</tr>";
                                         echo "</thead>";
                                         echo "<tbody>";
-
+                                        
                                         $cnt = 1;
                                         foreach ($filteredReports as $report) 
                                         {
+                                             // Fetch Name of student from tblstudent based on the StudentID
+                                            $sqlStudentDetails = "SELECT StudentName, RollNo FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                                            $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
+                                            $queryStudentDetails->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
+                                            $queryStudentDetails->execute();
+                                            $studentDetails = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
+                                            
                                             echo "<tr>";
                                             echo "<td>" . htmlentities($cnt) . "</td>";
-                                            echo "<td>" . htmlentities($report['StudentName']) . "</td>";
-                                            echo "<td>" . htmlentities($report['ClassName']) . "</td>";
-                                            echo "<td>" . htmlentities($report['ClassName']) . "</td>";
+                                            echo "<td>". htmlentities($studentDetails['StudentName']) ."</td>";
+                                            echo "<td>". htmlentities($studentDetails['RollNo']) ."</td>";
                                             echo "<td>";
                                             echo "<div>";
                                             echo "<a href='view-report-details.php?examSession=" . urlencode($report['ExamSession']) . "&className=" . urlencode($report['ClassName']) . "&examName=" . urlencode($report['ExamName']) . "&studentName=" . urlencode($report['StudentName']) . "' title='View Report'><i class='icon-eye'></i></a>";
@@ -178,6 +185,7 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                             echo "</tr>";
                                             $cnt = $cnt + 1;
                                         }
+                                        
 
                                         echo "</tbody>";
                                         echo "</table>";

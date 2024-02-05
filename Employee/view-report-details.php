@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -37,12 +37,12 @@ else
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
 
-            try {
+            try 
+            {
                 // Fetch data from the database for the selected student, class, and exam
                 $examSession = $_GET['examSession'];
                 $className = $_GET['className'];
                 $examName = $_GET['examName'];
-                // $studentName = $studentDetails['ID'];
                 $studentName = $_GET['studentName'];
 
                 $sqlReports = "SELECT * FROM tblreports WHERE ExamSession = :examSession AND ClassName = :className AND ExamName = :examName AND StudentName = :studentName AND IsDeleted = 0";
@@ -160,7 +160,7 @@ else
                                                     if (isset($subjects) && isset($reports)) 
                                                     {
                                                     ?>
-                                                        <div class="d-flex flex-column">
+                                                        <div class="d-flex flex-column" id="report-card">
                                                             <?php
                                                             if (isset($studentDetails)) 
                                                             {
@@ -174,7 +174,7 @@ else
                                                                         <tr>
                                                                             <td>Roll No:</td>
                                                                             <td><?php
-                                                                                // echo htmlentities($studentDetails['RollNo']); 
+                                                                                echo htmlentities($studentDetails['RollNo']); 
                                                                                 ?></td>
                                                                         </tr>
                                                                         <tr>
@@ -190,7 +190,7 @@ else
                                                             <?php
                                                             }
                                                             ?>
-                                                            <table class="table table-responsive table-bordered">
+                                                            <table class="table table-bordered">
                                                                 <thead>
                                                                     <tr>
                                                                         <th></th>
@@ -248,7 +248,7 @@ else
                                                                 </tbody>
                                                             </table>
                                                             <div class="d-flex justify-content-center mt-3">
-                                                                <button class="btn btn-success" type="button" onclick="window.print()">Print</button>
+                                                                <button class="btn btn-success" id="print-btn" type="button" onclick="window.print()">Print</button>
                                                             </div>
                                                         </div>
                                                     <?php
@@ -285,6 +285,7 @@ else
                     <script src="js/select2.js"></script>
                     <script src="./js/resultGeneration.js"></script>
                     <!-- End custom js for this page -->
+
                 </body>
 
                 </html>

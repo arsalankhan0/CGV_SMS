@@ -103,7 +103,7 @@ else
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       <?php
                         $eid=$_GET['editid'];
-                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
+                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
                         $query = $dbh -> prepare($sql);
                         $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                         $query->execute();
@@ -150,6 +150,10 @@ else
                                   } 
                                   ?> 
                               </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="exampleInputName1">Student Roll No</label>
+                        <input type="number" name="stuRollNo" value="<?php  echo htmlentities($row->RollNo);?>" min="0" class="form-control" required='true'>                  
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Gender</label>

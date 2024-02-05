@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid']))
@@ -200,7 +200,7 @@ else
                                                     <tr>
                                                         <td>Roll No:</td>
                                                         <td><?php 
-                                                        // echo htmlentities($studentDetails['RollNo']); 
+                                                        echo htmlentities($studentDetails['RollNo']); 
                                                         ?></td>
                                                     </tr>
                                                     <tr>

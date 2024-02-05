@@ -13,6 +13,7 @@ include('includes/dbconnection.php');
       $stuname=$_POST['stuname'];
       $stuemail=$_POST['stuemail'];
       $stuclass=$_POST['stuclass'];
+      $stuRollNo=$_POST['stuRollNo'];
       $gender=$_POST['gender'];
       $dob=$_POST['dob'];
       $stuid=$_POST['stuid'];
@@ -42,11 +43,12 @@ include('includes/dbconnection.php');
         {
           $image=md5($image).time().$extension;
           move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-          $sql="insert into tblstudent(StudentName,StudentEmail,StudentClass,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image)values(:stuname,:stuemail,:stuclass,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
+          $sql="insert into tblstudent(StudentName,StudentEmail,StudentClass,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image)values(:stuname,:stuemail,:stuclass,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
           $query=$dbh->prepare($sql);
           $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
           $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
           $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
+          $query->bindParam(':stuRollNo',$stuRollNo,PDO::PARAM_STR);
           $query->bindParam(':gender',$gender,PDO::PARAM_STR);
           $query->bindParam(':dob',$dob,PDO::PARAM_STR);
           $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
@@ -138,7 +140,7 @@ include('includes/dbconnection.php');
                         <select  name="stuclass" class="form-control" required='true'>
                           <option value="">Select Class</option>
                         <?php 
-                          $sql2 = "SELECT * from    tblclass ";
+                          $sql2 = "SELECT * from tblclass";
                           $query2 = $dbh -> prepare($sql2);
                           $query2->execute();
                           $result2=$query2->fetchAll(PDO::FETCH_OBJ);
@@ -149,6 +151,10 @@ include('includes/dbconnection.php');
                           <option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
                           <?php } ?> 
                         </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="exampleInputName1">Student Roll No</label>
+                        <input type="number" name="stuRollNo" value="" class="form-control" min="0" required='true'>
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Gender</label>
