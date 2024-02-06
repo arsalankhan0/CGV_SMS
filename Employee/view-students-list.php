@@ -1,13 +1,17 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
+if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
+{
     header('location:logout.php');
-} else {
+} 
+else 
+{
     // Code for deletion
-    if (isset($_GET['delid'])) {
+    if (isset($_GET['delid'])) 
+    {
         $rid = intval($_GET['delid']);
         $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID=:rid";
         $query = $dbh->prepare($sql);
@@ -135,7 +139,8 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0)) {
                                 </form>
                                 
                                 <?php
-                                if (isset($_POST['filter'])) {
+                                if (isset($_POST['filter'])) 
+                                {
                                     $selectedClass = $_POST['class'];
                                     $selectedExam = $_POST['exam'];
                                     $selectedSession = $_POST['session'];
