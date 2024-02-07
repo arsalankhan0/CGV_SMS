@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) 
 {
@@ -8,31 +8,31 @@ if (strlen($_SESSION['sturecmsaid']==0))
 } 
 else
 {
-  try
+  try 
   {
-
-    if(isset($_POST['submit']))
+    if (isset($_POST['submit'])) 
     {
-      $cname = filter_var($_POST['cname'], FILTER_SANITIZE_STRING);
-      $section = $_POST['section'];
-      $eid=$_GET['editid'];
-  
-      $sql="update tblclass set ClassName=:cname,Section=:section where ID=:eid";
-      $query=$dbh->prepare($sql);
-      $query->bindParam(':cname',$cname,PDO::PARAM_STR);
-      $query->bindParam(':section',$section,PDO::PARAM_STR);
-      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
+        $cname = filter_var($_POST['cname'], FILTER_SANITIZE_STRING);
+        $sections = implode(',', $_POST['section']);
+        $eid = $_GET['editid'];
 
-      $query->execute();
-      
-      echo '<script>alert("Class has been updated")</script>';
+        $sql = "update tblclass set ClassName=:cname,Section=:section where ID=:eid";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':cname', $cname, PDO::PARAM_STR);
+        $query->bindParam(':section', $sections, PDO::PARAM_STR);
+        $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+
+        $query->execute();
+
+        echo '<script>alert("Class has been updated")</script>';
     }
-  }
-  catch(PDOException $e)
+  } 
+  catch (PDOException $e) 
   {
-    echo '<script>alert("Ops! An Error occurred.")</script>';
-    // error_log($e->getMessage()); //-->This is only for debugging purpose  
+      echo '<script>alert("Ops! An Error occurred.")</script>';
+      // error_log($e->getMessage()); //-->This is only for debugging purpose  
   }
+
 
 ?>
 <!DOCTYPE html>
@@ -98,16 +98,19 @@ else
                                 <input type="text" name="cname" value="<?php  echo htmlentities($row->ClassName);?>" class="form-control" required='true'>
                               </div>
                               <div class="form-group">
-                              <label for="exampleInputEmail3">Section</label>
-                                <select  name="section" class="form-control" required='true'>
-                                  <option value="<?php  echo htmlentities($row->Section);?>"><?php  echo htmlentities($row->Section);?></option>
-                                  <option value="A">A</option>
-                                  <option value="B">B</option>
-                                  <option value="C">C</option>
-                                  <option value="D">D</option>
-                                  <option value="E">E</option>
-                                  <option value="F">F</option>
-                                </select>
+                                  <label for="exampleInputEmail3">Sections</label>
+                                  <?php
+                                  $selectedSections = explode(',', $row->Section);
+                                  ?>
+                                  <select name="section[]" class="js-example-basic-multiple w-100" required='true' multiple>
+                                      <?php
+                                      $allSections = ['A', 'B', 'C', 'D', 'E', 'F'];
+                                      foreach ($allSections as $section) {
+                                          $selected = in_array($section, $selectedSections) ? 'selected' : '';
+                                          echo "<option value='$section' $selected>$section</option>";
+                                      }
+                                      ?>
+                                  </select>
                               </div><?php $cnt=$cnt+1;
                             }
                         } ?>

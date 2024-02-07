@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']==0)) 
@@ -9,31 +9,67 @@ if (strlen($_SESSION['sturecmsaid']==0))
 } 
 else
 {
-  if(isset($_POST['submit']))
-  {
-    $cname=$_POST['cname'];
-    $section=$_POST['section'];
-    $sql="insert into tblclass(ClassName,Section)values(:cname,:section)";
-    $query=$dbh->prepare($sql);
-    $query->bindParam(':cname',$cname,PDO::PARAM_STR);
-    $query->bindParam(':section',$section,PDO::PARAM_STR);
-    $query->execute();
-    $LastInsertId=$dbh->lastInsertId();
-    if ($LastInsertId>0) 
+  // if(isset($_POST['submit']))
+  // {
+  //   $cname=$_POST['cname'];
+  //   $section=$_POST['section'];
+  //   $sql="insert into tblclass(ClassName,Section)values(:cname,:section)";
+  //   $query=$dbh->prepare($sql);
+  //   $query->bindParam(':cname',$cname,PDO::PARAM_STR);
+  //   $query->bindParam(':section',$section,PDO::PARAM_STR);
+  //   $query->execute();
+  //   $LastInsertId=$dbh->lastInsertId();
+  //   if ($LastInsertId>0) 
+  //   {
+  //     echo '<script>alert("Class has been added.")</script>';
+  //     echo "<script>window.location.href ='add-class.php'</script>";
+  //   }
+  //   else
+  //   {
+  //     echo '<script>alert("Something Went Wrong. Please try again")</script>';
+  //   }
+  // }
+    try
     {
-      echo '<script>alert("Class has been added.")</script>';
-      echo "<script>window.location.href ='add-class.php'</script>";
+      if (isset($_POST['submit'])) 
+      {
+          $cname = $_POST['cname'];
+          $sections = implode(',', $_POST['section']);
+
+          $activeSessionQuery = "SELECT session_id FROM tblsessions WHERE is_active = 1";
+          $activeSessionStmt = $dbh->query($activeSessionQuery);
+          $activeSessionResult = $activeSessionStmt->fetch(PDO::FETCH_ASSOC);
+          $activeSessionId = $activeSessionResult['session_id'];
+
+          $sql = "INSERT INTO tblclass (ClassName, Section, SessionID) VALUES (:cname, :sections, :session_id)";
+          $query = $dbh->prepare($sql);
+          $query->bindParam(':cname', $cname, PDO::PARAM_STR);
+          $query->bindParam(':sections', $sections, PDO::PARAM_STR);
+          $query->bindParam(':session_id', $activeSessionId, PDO::PARAM_INT);
+          $query->execute();
+
+          $LastInsertId = $dbh->lastInsertId();
+
+          if ($LastInsertId > 0) 
+          {
+              echo '<script>alert("Class has been added.")</script>';
+              echo "<script>window.location.href ='add-class.php'</script>";
+          } 
+          else 
+          {
+              echo '<script>alert("Something Went Wrong. Please try again")</script>';
+          }
+      }
     }
-    else
+    catch(PDOException $e)
     {
-      echo '<script>alert("Something Went Wrong. Please try again")</script>';
+      echo '<script>alert("Ops! An error occurred!")</script>';
+      // error_log($e->getMessage()); //-->This is only for debugging purpose  
     }
-  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
-   
     <title>Student  Management System || Add Class</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -53,7 +89,7 @@ else
   <body>
     <div class="container-scroller">
       <!-- partial:partials/_navbar.html -->
-     <?php include_once('includes/header.php');?>
+      <?php include_once('includes/header.php');?>
       <!-- partial -->
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -84,7 +120,7 @@ else
                       </div>
                       <div class="form-group">
                         <label for="exampleInputEmail3">Sections</label>
-                        <select name="section" class="form-control" required='true'>
+                        <select name="section[]" multiple="multiple" class="js-example-basic-multiple w-100" required='true'>
                           <option value="" disabled >Choose Sections</option>
                           <option value="A">A</option>
                           <option value="B">B</option>

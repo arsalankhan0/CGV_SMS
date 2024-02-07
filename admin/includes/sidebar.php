@@ -61,6 +61,18 @@
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-sessions" aria-expanded="false" aria-controls="ui-sessions">
+                <span class="menu-title">Session Management</span>
+                <i class="icon-clock menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-sessions">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-session.php">Create Session</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-session.php">Set Active Session</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1">
                 <span class="menu-title">Students</span>
                 <i class="icon-people menu-icon"></i>

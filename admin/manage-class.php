@@ -167,17 +167,17 @@ else
                       </table>
                     </div>
                     <div align="left">
-    <ul class="pagination" >
-        <li><a href="?pageno=1"><strong>First></strong></a></li>
-        <li class="<?php if($pageno <= 1){ echo 'disabled'; } ?>">
-            <a href="<?php if($pageno <= 1){ echo '#'; } else { echo "?pageno=".($pageno - 1); } ?>"><strong style="padding-left: 10px">Prev></strong></a>
-        </li>
-        <li class="<?php if($pageno >= $total_pages){ echo 'disabled'; } ?>">
-            <a href="<?php if($pageno >= $total_pages){ echo '#'; } else { echo "?pageno=".($pageno + 1); } ?>"><strong style="padding-left: 10px">Next></strong></a>
-        </li>
-        <li><a href="?pageno=<?php echo $total_pages; ?>"><strong style="padding-left: 10px">Last</strong></a></li>
-    </ul>
-</div>
+                        <ul class="pagination" >
+                            <li><a href="?pageno=1"><strong>First></strong></a></li>
+                            <li class="<?php if($pageno <= 1){ echo 'disabled'; } ?>">
+                                <a href="<?php if($pageno <= 1){ echo '#'; } else { echo "?pageno=".($pageno - 1); } ?>"><strong style="padding-left: 10px">Prev></strong></a>
+                            </li>
+                            <li class="<?php if($pageno >= $total_pages){ echo 'disabled'; } ?>">
+                                <a href="<?php if($pageno >= $total_pages){ echo '#'; } else { echo "?pageno=".($pageno + 1); } ?>"><strong style="padding-left: 10px">Next></strong></a>
+                            </li>
+                            <li><a href="?pageno=<?php echo $total_pages; ?>"><strong style="padding-left: 10px">Last</strong></a></li>
+                        </ul>
+                    </div>
                   </div>
                 </div>
               </div>
