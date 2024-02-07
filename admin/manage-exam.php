@@ -130,7 +130,7 @@ else
                                                                     
                                                                             if ($classInfo) 
                                                                             {
-                                                                                echo htmlentities($classInfo['ClassName'] . " " . $classInfo['Section']);
+                                                                                echo htmlentities($classInfo['ClassName']);
                                                                     
                                                                                 if ($i < count($classIds) - 1) 
                                                                                 {

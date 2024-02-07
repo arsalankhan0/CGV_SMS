@@ -137,7 +137,7 @@ else
                                                 foreach ($classResults as $class) 
                                                 {
                                                     $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
-                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName'] . " " . $class['Section']) . "</option>";
+                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
                                                 }
                                             }
                                             ?>

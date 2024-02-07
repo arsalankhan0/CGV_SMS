@@ -117,8 +117,9 @@ else
                                                 $classResults = $query->fetchAll(PDO::FETCH_ASSOC);
 
                                                 foreach ($classResults as $class) {
-                                                    $classNameWithSection = $class['ClassName'] . ' ' . $class['Section'];
-                                                    echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($classNameWithSection) . "</option>";                                                }
+                                                    $classNameWithSection = $class['ClassName'];
+                                                    echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($classNameWithSection) . "</option>";                                                
+                                                }
                                             }
                                             ?>
                                         </select>

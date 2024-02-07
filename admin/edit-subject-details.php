@@ -31,7 +31,8 @@ else
 
                 // Fetching IDs of selected classes
                 $selectedClassIds = [];
-                foreach ($classes as $className) {
+                foreach ($classes as $className) 
+                {
                     $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
                     $classQuery = $dbh->prepare($classSql);
                     $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
@@ -41,19 +42,27 @@ else
                         $selectedClassIds[] = $classId;
                     }
                 }
+                // Get the active session ID
+                $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+                $sessionQuery = $dbh->prepare($getSessionSql);
+                $sessionQuery->execute();
+                $sessionID = $sessionQuery->fetchColumn();
 
                 // Updating subject with comma-separated class IDs
                 $cName = implode(",", $selectedClassIds);
-                $sql = "UPDATE tblsubjects SET ClassName=:cName WHERE ID=:eid";
+                $sql = "UPDATE tblsubjects SET ClassName=:cName WHERE SessionID = :sessionID AND ID=:eid";
                 $query = $dbh->prepare($sql);
                 $query->bindParam(':cName', $cName, PDO::PARAM_STR);
                 $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                 $query->execute();
 
                 echo '<script>alert("Subjects have been updated")</script>';
             }
         }
-    } catch (PDOException $e) {
+    } 
+    catch (PDOException $e) 
+    {
         echo '<script>alert("Ops! An Error occurred.")</script>';
         // For debugging purpose.
         // error_log("PDOException: " . $e->getMessage());

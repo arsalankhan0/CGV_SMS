@@ -1,21 +1,26 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
     header('location:logout.php');
-} else {
-    // Code for deletion
-    if (isset($_GET['delid'])) {
-        $rid = intval($_GET['delid']);
-        $sql = "UPDATE tblsubjects SET IsDeleted = 1 WHERE ID = :rid";
-        $query = $dbh->prepare($sql);
-        $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $query->execute();
-        echo "<script>alert('Data deleted');</script>";
-        echo "<script>window.location.href = 'manage-subjects.php'</script>";
-    }
+} 
+else 
+{
+    try
+    {
+        // Code for deletion
+        if (isset($_GET['delid'])) 
+        {
+            $rid = intval($_GET['delid']);
+            $sql = "UPDATE tblsubjects SET IsDeleted = 1 WHERE ID = :rid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $query->execute();
+            echo "<script>alert('Data deleted');</script>";
+            echo "<script>window.location.href = 'manage-subjects.php'</script>";
+        }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,16 +81,26 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    if (isset($_GET['pageno'])) {
+                                                    if (isset($_GET['pageno'])) 
+                                                    {
                                                         $pageno = $_GET['pageno'];
-                                                    } else {
+                                                    } 
+                                                    else 
+                                                    {
                                                         $pageno = 1;
                                                     }
+                                                    // Get the active session ID
+                                                    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+                                                    $sessionQuery = $dbh->prepare($getSessionSql);
+                                                    $sessionQuery->execute();
+                                                    $sessionID = $sessionQuery->fetchColumn();
+
                                                     // Formula for pagination
                                                     $no_of_records_per_page = 15;
                                                     $offset = ($pageno - 1) * $no_of_records_per_page;
-                                                    $ret = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                                                    $ret = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE SessionID = :sessionID AND IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
                                                     $query1 = $dbh->prepare($ret);
+                                                    $query1->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                     $query1->execute();
                                                     $results1 = $query1->fetchAll(PDO::FETCH_OBJ);
                                                     $total_rows = $query1->rowCount();
@@ -103,6 +118,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                                     // Fetch class names based on IDs stored in ClassName column
                                                                     $classIds = explode(",", $row->ClassName);
                                                                     $classNames = [];
+
                                                                     foreach ($classIds as $classId) 
                                                                     {
                                                                         $classSql = "SELECT ClassName FROM tblclass WHERE ID = :classId AND IsDeleted = 0";
@@ -183,6 +199,11 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
         <!-- End custom js for this page -->
     </body>
 </html>
-<?php 
+<?php
+    }
+    catch (PDOException $e) 
+    {
+        echo '<script>alert("Ops! An Error occurred.")</script>';
+    }
 }  
 ?>

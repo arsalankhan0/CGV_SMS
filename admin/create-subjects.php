@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -22,16 +22,22 @@ else
             } 
             else 
             {
-                $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName";
+                // Get the active session ID
+                $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+                $sessionQuery = $dbh->prepare($getSessionSql);
+                $sessionQuery->execute();
+                $sessionID = $sessionQuery->fetchColumn();
+
+                $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName AND IsDeleted = 0 AND SessionID = :sessionID";
                 $checkQuery = $dbh->prepare($checkSql);
                 $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                $checkQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT); // Assuming $sessionID is the active session ID
                 $checkQuery->execute();
                 $subjectId = $checkQuery->fetchColumn();
-
-                if ($subjectId > 0) 
-                {
-                    echo '<script>alert("Subject already exists. Please update the existing subject.")</script>';
-                } 
+                
+                if ($subjectId > 0) {
+                    echo '<script>alert("Subject already exists in the current session. Please update the existing subject.")</script>';
+                }
                 else 
                 {
                     // Fetch IDs of selected classes
@@ -48,32 +54,29 @@ else
                             $selectedClassIds[] = $classId;
                         }
                     }
-
-                    // Insert subject with comma-separated class IDs
+                    // Insert subject with comma-separated class IDs and active session ID
                     $cName = implode(",", $selectedClassIds);
-                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName) VALUES (:subjectName, :cName)";
+                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID) VALUES (:subjectName, :cName, :sessionID)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
                     $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                     $query->execute();
                     $LastInsertId = $dbh->lastInsertId();
 
-                    if ($LastInsertId > 0) 
-                    {
+                    if ($LastInsertId > 0) {
                         echo '<script>alert("Subject has been created.")</script>';
                         echo "<script>window.location.href ='create-subjects.php'</script>";
-                    } 
-                    else 
-                    {
+                    } else {
                         echo '<script>alert("Something Went Wrong. Please try again")</script>';
                     }
                 }
             }
         }
-    } 
+    }
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
+        echo '<script>alert("Ops! An Error occurred.'. $e->getMessage() .'")</script>';
     }
 ?>
 <!DOCTYPE html>
