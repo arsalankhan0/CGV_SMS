@@ -19,6 +19,10 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
             $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
             $eid = filter_var($_GET['editid'], FILTER_SANITIZE_STRING);
 
+            // Fetch assigned classes and subjects from form
+            $assignedClasses = isset($_POST['assignedClasses']) ? implode(',', $_POST['assignedClasses']) : '';
+            $assignedSubjects = isset($_POST['assignedSubjects']) ? implode(',', $_POST['assignedSubjects']) : '';
+
             $sql = "UPDATE tblemployees SET 
                 Name = :name, 
                 Email = :email, 
@@ -28,7 +32,9 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                 FatherName = :fathername, 
                 ContactNumber = :contactnumber, 
                 AlternateNumber = :alternatenumber, 
-                Address = :address
+                Address = :address,
+                AssignedClasses = :assignedClasses,
+                AssignedSubjects = :assignedSubjects
                 WHERE ID = :eid";
 
             $query = $dbh->prepare($sql);
@@ -41,6 +47,8 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
             $query->bindParam(':contactnumber', $contactnumber, PDO::PARAM_STR);
             $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
+            $query->bindParam(':assignedClasses', $assignedClasses, PDO::PARAM_STR);
+            $query->bindParam(':assignedSubjects', $assignedSubjects, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
             $query->execute();
@@ -111,7 +119,9 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                         if($query->rowCount() > 0)
                         {
                         foreach($results as $row)
-                        {               
+                        {           
+                            $selectedClasses = explode(',', $row->AssignedClasses);
+                            $selectedSubjects = explode(',', $row->AssignedSubjects);    
                             ?>
                             <div class="form-group">
                                 <label for="exampleInputName1">Employee Name</label>
@@ -123,10 +133,45 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail3">Employee Role</label>
-                                            <select name="role" class="form-control" required='true'>
-                                                <option value="<?php echo htmlentities($row->Role); ?>" disabled><?php echo htmlentities($row->Role); ?></option>
-                                                <option value="Teaching">Teaching</option>
-                                                <option value="Non-Teaching">Non-Teaching</option>
+                                            <select name="role" id="employeeRole" class="form-control" required='true'>
+                                                <option value="Teaching" <?php echo ($row->Role == 'Teaching') ? 'selected' : ''; ?>>Teaching</option>
+                                                <option value="Non-Teaching" <?php echo ($row->Role == 'Non-Teaching') ? 'selected' : ''; ?>>Non-Teaching</option>
+                                            </select>
+                                        </div>
+
+
+                                        <div class="form-group" id="assignClassesSection">
+                                            <label for="exampleInputName1">Assign Classes</label>
+                                            <select name="assignedClasses[]" multiple="multiple" class="js-example-basic-multiple w-100">
+                                                <?php
+                                                // Fetch options for classes from tblclass
+                                                $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                                $classQuery = $dbh->prepare($classSql);
+                                                $classQuery->execute();
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($classResults as $class) {
+                                                    $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="assignSubjectsSection">
+                                            <label for="exampleInputName1">Assign Subjects</label>
+                                            <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
+                                                <?php
+                                                // Fetch options for subjects from tblsubjects
+                                                $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
+                                                $subjectQuery = $dbh->prepare($subjectSql);
+                                                $subjectQuery->execute();
+                                                $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($subjectResults as $subject) {
+                                                    $selected = in_array($subject['ID'], $selectedSubjects) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($subject['ID']) . "' $selected>" . htmlentities($subject['SubjectName']) . "</option>";
+                                                }
+                                                ?>
                                             </select>
                                         </div>
                                         <div class="form-group">
@@ -202,6 +247,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/showMoreInput.js"></script>
     <!-- End custom js for this page -->
     </body>
 </html>

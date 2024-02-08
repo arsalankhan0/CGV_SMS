@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -11,67 +11,83 @@ else
 {
     try 
     {
-        $eid = $_GET['editid'];
-        
-        // Fetching subject name
-        $subjectNameSql = "SELECT SubjectName FROM tblsubjects WHERE ID = :eid";
-        $subjectNameQuery = $dbh->prepare($subjectNameSql);
-        $subjectNameQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-        $subjectNameQuery->execute();
-        $subjectNameRow = $subjectNameQuery->fetch(PDO::FETCH_OBJ);
-        $subjectName = $subjectNameRow->SubjectName;
-
         if (isset($_POST['submit'])) 
         {
+            $eid = $_GET['editid'];
             $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-            if (empty($classes)) {
+            if (empty($classes)) 
+            {
                 echo '<script>alert("Please select at least one class")</script>';
-            } else {
-
-                // Fetching IDs of selected classes
+            } 
+            else 
+            {
+                // Fetch IDs of selected classes
                 $selectedClassIds = [];
                 foreach ($classes as $className) 
                 {
-                    $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
+                    $classSql = "SELECT ID FROM tblclass WHERE ID = :className";
                     $classQuery = $dbh->prepare($classSql);
                     $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
                     $classQuery->execute();
                     $classId = $classQuery->fetchColumn();
-                    if ($classId) {
+
+                    if ($classId) 
+                    {
                         $selectedClassIds[] = $classId;
                     }
+                }                
+
+                // Fetch selected subject types
+                $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+
+                // Check if at least one subject type is selected
+                if (empty($subjectTypes)) 
+                {
+                    echo '<script>alert("Please select at least one subject type")</script>';
+                } 
+                else 
+                {
+                    // Update subject with comma-separated class IDs and subject types
+                    $cName = implode(",", $selectedClassIds);
+                    $subjectTypeString = implode(",", $subjectTypes);
+
+                    $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes WHERE ID=:eid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
+                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+
+                    $query->execute();
+
+                    echo '<script>alert("Subject has been updated.")</script>';
+                    echo "<script>window.location.href ='manage-subjects.php'</script>"; 
                 }
-                // Get the active session ID
-                $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-                $sessionQuery = $dbh->prepare($getSessionSql);
-                $sessionQuery->execute();
-                $sessionID = $sessionQuery->fetchColumn();
-
-                // Updating subject with comma-separated class IDs
-                $cName = implode(",", $selectedClassIds);
-                $sql = "UPDATE tblsubjects SET ClassName=:cName WHERE SessionID = :sessionID AND ID=:eid";
-                $query = $dbh->prepare($sql);
-                $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-                $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                $query->execute();
-
-                echo '<script>alert("Subjects have been updated")</script>';
             }
+        } 
+        else // Fetch existing data for editing
+        {
+            $eid = $_GET['editid'];
+
+            // Fetching subject details
+            $subjectDetailsSql = "SELECT ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
+            $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
+            $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+            $subjectDetailsQuery->execute();
+            $subjectDetailsRow = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
+            $selectedClasses = explode(",", $subjectDetailsRow['ClassName']);
+            $selectedSubjectTypes = explode(",", $subjectDetailsRow['SubjectType']);
         }
     } 
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
-        // For debugging purpose.
-        // error_log("PDOException: " . $e->getMessage());
+        echo '<script>alert("Ops! An Error occurred.'. $e->getMessage() .'")</script>';
     }
 ?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System || Create Subjects</title>
+        <title>Student  Management System || Update Subject</title>
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
         <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -89,7 +105,9 @@ else
     <body>
         <div class="container-scroller">
             <!-- partial:partials/_navbar.html -->
-            <?php include_once('includes/header.php');?>
+            <?php 
+            include_once('includes/header.php');
+            ?>
             <!-- partial -->
             <div class="container-fluid page-body-wrapper">
             <!-- partial:partials/_sidebar.html -->
@@ -98,7 +116,7 @@ else
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title">  Update Subject - <?php echo $subjectName; ?> </h3>
+                        <h3 class="page-title"> Update Subject </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
@@ -112,25 +130,51 @@ else
                                 <div class="card-body">
                                     <h4 class="card-title" style="text-align: center;">Update Subject</h4>
                                     <form class="forms-sample" method="post">
+
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Assign Classes to <?php echo $subjectName;?></label>
+                                        <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"></span> subject</label>
                                         <select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">
                                             <?php
-                                            $eid = $_GET['editid'];
-                                            $sql = "SELECT DISTINCT ClassName FROM tblclass WHERE IsDeleted = 0";
-                                            $query = $dbh->prepare($sql);
-                                            $query->execute();
-                                            $classResults = $query->fetchAll(PDO::FETCH_COLUMN);
+                                            $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                            $classQuery = $dbh->prepare($classSql);
+                                            $classQuery->execute();
+                                            $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                                            foreach ($classResults as $className) {
-                                                echo "<option value='" . htmlspecialchars($className) . "'>" . htmlspecialchars($className) . "</option>";
+                                            foreach ($classResults as $class) 
+                                            {
+                                                $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
+                                                echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
-                                </form>
+                                        <div class="form-group">
+                                            <label>Subject Type</label>
+                                            <div class="checkbox-group d-flex justify-content-start">
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="theory">
+                                                        Theory
+                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('theory', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="theory" id="theory">
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="practical">
+                                                        Practical
+                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('practical', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="practical" id="practical">
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="viva">
+                                                        Viva
+                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('viva', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="viva" id="viva">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>

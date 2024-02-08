@@ -54,21 +54,48 @@ else
                             $selectedClassIds[] = $classId;
                         }
                     }
-                    // Insert subject with comma-separated class IDs and active session ID
-                    $cName = implode(",", $selectedClassIds);
-                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID) VALUES (:subjectName, :cName, :sessionID)";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                    $query->execute();
-                    $LastInsertId = $dbh->lastInsertId();
+                    // // Insert subject with comma-separated class IDs and active session ID
+                    // $cName = implode(",", $selectedClassIds);
+                    // $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID) VALUES (:subjectName, :cName, :sessionID)";
+                    // $query = $dbh->prepare($sql);
+                    // $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                    // $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    // $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                    // $query->execute();
+                    // $LastInsertId = $dbh->lastInsertId();
 
-                    if ($LastInsertId > 0) {
-                        echo '<script>alert("Subject has been created.")</script>';
-                        echo "<script>window.location.href ='create-subjects.php'</script>";
-                    } else {
-                        echo '<script>alert("Something Went Wrong. Please try again")</script>';
+                    // Fetch selected subject types
+                    $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+
+                    // Check if at least one subject type is selected
+                    if (empty($subjectTypes)) 
+                    {
+                        echo '<script>alert("Please select at least one subject type")</script>';
+                    } 
+                    else 
+                    {
+                        $cName = implode(",", $selectedClassIds);
+                        $subjectTypeString = implode(",", $subjectTypes);
+
+                        // Insert subject with comma-separated class IDs, active session ID, and subject types
+                        $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, SubjectType) VALUES (:subjectName, :cName, :sessionID, :subjectTypes)";
+                        $query = $dbh->prepare($sql);
+                        $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                        $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                        $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                        $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
+                        $query->execute();
+                        $LastInsertId = $dbh->lastInsertId();
+
+                        if ($LastInsertId > 0) 
+                        {
+                            echo '<script>alert("Subject has been created.")</script>';
+                            echo "<script>window.location.href ='create-subjects.php'</script>";
+                        } 
+                        else 
+                        {
+                            echo '<script>alert("Something Went Wrong. Please try again")</script>';
+                        }
                     }
                 }
             }
@@ -152,6 +179,30 @@ else
                                                 }
                                                 ?>
                                             </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Subject Type</label>
+                                            <div class="checkbox-group d-flex justify-content-start">
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="theory">
+                                                        Theory
+                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="theory" id="theory">
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="practical">
+                                                        Practical
+                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="practical" id="practical">
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mr-4">
+                                                    <label class="form-check-label" for="viva">
+                                                        Viva
+                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="viva" id="viva">
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>

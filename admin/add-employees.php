@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || strlen($_SESSION['sturecmsaid']) == 0) 
@@ -48,11 +48,24 @@ else
                     $image = md5($image) . time() . '.' . $extension;
                     move_uploaded_file($_FILES["image"]["tmp_name"], "images/" . $image);
 
-                    $sql = "INSERT INTO tblemployees(Name, Email, Role, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
+                    if ($role === 'Teaching') 
+                    {
+                        $selectedClasses = implode(',', $_POST['assignedClasses']);
+                        $selectedSubjects = implode(',', $_POST['assignedSubjects']);
+                    } 
+                    else 
+                    {
+                        $selectedClasses = '';
+                        $selectedSubjects = '';
+                    }
+
+                    $sql = "INSERT INTO tblemployees(Name, Email, Role, AssignedClasses, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :assignedClasses, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':name', $name, PDO::PARAM_STR);
                     $query->bindParam(':email', $email, PDO::PARAM_STR);
                     $query->bindParam(':role', $role, PDO::PARAM_STR);
+                    $query->bindParam(':assignedClasses', $selectedClasses, PDO::PARAM_STR);
+                    $query->bindParam(':assignedSubjects', $selectedSubjects, PDO::PARAM_STR);
                     $query->bindParam(':gender', $gender, PDO::PARAM_STR);
                     $query->bindParam(':dob', $dob, PDO::PARAM_STR);
                     $query->bindParam(':empid', $empid, PDO::PARAM_STR);
@@ -146,12 +159,49 @@ else
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Employee Role</label>
-                                        <select name="role" class="form-control" required>
+                                        <select name="role" id="employeeRole" class="form-control" required>
                                             <option value="">Select Role</option>
                                             <option value="Teaching">Teaching</option>
                                             <option value="Non-Teaching">Non-Teaching</option>
                                         </select>
                                     </div>
+
+
+
+                                    <div class="form-group" id="assignClassesSection">
+                                        <label for="exampleInputName1">Assign Classes</label>
+                                        <select name="assignedClasses[]" multiple="multiple" class="js-example-basic-multiple w-100">
+                                            <?php
+                                            // Fetch options for classes from tblclass
+                                            $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                            $classQuery = $dbh->prepare($classSql);
+                                            $classQuery->execute();
+                                            $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                            foreach ($classResults as $class) {
+                                                echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['ClassName']) . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="assignSubjectsSection">
+                                        <label for="exampleInputName1">Assign Subjects</label>
+                                        <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
+                                            <?php
+                                            // Fetch options for subjects from tblsubjects
+                                            $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
+                                            $subjectQuery = $dbh->prepare($subjectSql);
+                                            $subjectQuery->execute();
+                                            $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                            foreach ($subjectResults as $subject) {
+                                                echo "<option value='" . htmlentities($subject['ID']) . "'>" . htmlentities($subject['SubjectName']) . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+
+
                                     <div class="form-group">
                                         <label for="exampleInputName1">Gender</label>
                                         <select name="gender" class="form-control" required>
@@ -229,6 +279,7 @@ else
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/showMoreInput.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>
