@@ -88,7 +88,7 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
                                         $no_of_records_per_page = 15;
                                         $offset = ($pageno - 1) * $no_of_records_per_page;
 
-                                        $studentSql = "SELECT tblstudent.StuID, tblstudent.ID as sid, tblstudent.StudentName, tblstudent.StudentEmail,tblstudent.StudentClass, tblstudent.DateofAdmission FROM tblstudent WHERE tblstudent.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                                        $studentSql = "SELECT tblstudent.StuID, tblstudent.ID as sid, tblstudent.StudentName, tblstudent.StudentEmail,tblstudent.StudentClass, tblstudent.StudentSection, tblstudent.DateofAdmission FROM tblstudent WHERE tblstudent.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
                                         $studentQuery = $dbh->prepare($studentSql);
                                         $studentQuery->execute();
                                         $students = $studentQuery->fetchAll(PDO::FETCH_OBJ);
@@ -106,25 +106,19 @@ if (strlen($_SESSION['sturecmsaid'] == 0)) {
                                                         $classQuery = $dbh->prepare($classSql);
                                                         $classQuery->bindParam(':classId', $student->StudentClass, PDO::PARAM_STR);
                                                         $classQuery->execute();
-
-                                                        if ($classQuery) 
-                                                        {
+                                                    
+                                                        if ($classQuery) {
                                                             $classInfo = $classQuery->fetch(PDO::FETCH_ASSOC);
-
-                                                            if ($classInfo) 
-                                                            {
-                                                                echo htmlentities($classInfo['ClassName'] . " " . $classInfo['Section']);
-                                                            }
-
-                                                            if ($classQuery->rowCount() < 1) 
-                                                            {
+                                                    
+                                                            if ($classInfo) {
+                                                                echo htmlentities($classInfo['ClassName'] . " " . $student->StudentSection);
+                                                            } else {
                                                                 echo "N.A";
                                                             }
-                                                        } 
-                                                        else 
-                                                        {
+                                                        } else {
                                                             echo "Error fetching class";
                                                         }
+                                                    
                                                         ?>
                                                     </td>
                                                     <td><?php echo htmlentities($student->StudentName); ?></td>

@@ -129,7 +129,7 @@ else
                                   if($row->IsDeleted === 0)
                                   {
                                 ?>
-                                    <option value="<?php  echo htmlentities($row->StudentClass);?>"><?php  echo htmlentities($row->ClassName);?> <?php  echo htmlentities($row->Section);?></option>
+                                    <option value="<?php  echo htmlentities($row->StudentClass);?>"><?php  echo htmlentities($row->ClassName);?></option>
                                 <?php 
                                   }
                                   else
@@ -145,12 +145,18 @@ else
                                   foreach($result2 as $row1)
                                   {   
                                       ?>  
-                                    <option value="<?php echo htmlentities($row1->ClassName);?><?php echo htmlentities($row1->Section);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
+                                    <option value="<?php echo htmlentities($row1->ClassName);?>"><?php echo htmlentities($row1->ClassName);?></option>
                                     <?php 
                                   } 
                                   ?> 
                               </select>
-                      </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail3">Student Section</label>
+                                <select name="stusection" id="stusection" class="form-control" required='true'>
+                                    <!-- Here Sections will be populated based on the selected class -->
+                                </select>
+                            </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Student Roll No</label>
                         <input type="number" name="stuRollNo" value="<?php  echo htmlentities($row->RollNo);?>" min="0" class="form-control" required='true'>                  
