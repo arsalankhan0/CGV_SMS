@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
   if (strlen($_SESSION['sturecmsaid']==0)) 
   {
@@ -46,7 +46,6 @@ include('includes/dbconnection.php');
             {
               $image=md5($image).time().$extension;
               move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-              // $sql="insert into tblstudent(StudentName,StudentEmail,StudentClass,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image)values(:stuname,:stuemail,:stuclass,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
               $sql = "insert into tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image) values(:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
@@ -238,7 +237,7 @@ include('includes/dbconnection.php');
           </div>
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
-         <?php include_once('includes/footer.php');?>
+        <?php include_once('includes/footer.php');?>
           <!-- partial -->
         </div>
         <!-- main-panel ends -->
@@ -260,34 +259,7 @@ include('includes/dbconnection.php');
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
-    <script>
-        document.getElementById('stuclass').addEventListener('change', function() {
-            var classId = this.value;
-            var sectionDropdown = document.getElementById('stusection');
-
-            sectionDropdown.innerHTML = '';
-
-            if (classId !== '') 
-            {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'get_sections.php?classId=' + classId, true);
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState == 4 && xhr.status == 200) 
-                    {
-                        var sections = JSON.parse(xhr.responseText);
-
-                        sections.forEach((section) => {
-                            var option = document.createElement('option');
-                            option.value = section;
-                            option.text = section;
-                            sectionDropdown.add(option);
-                        });
-                    }
-                };
-                xhr.send();
-            }
-        });
-    </script>
+    <script src="./js/SectionsForStudent.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

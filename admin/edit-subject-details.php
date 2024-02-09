@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -41,14 +41,12 @@ else
                 // Fetch selected subject types
                 $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
 
-                // Check if at least one subject type is selected
                 if (empty($subjectTypes)) 
                 {
                     echo '<script>alert("Please select at least one subject type")</script>';
                 } 
                 else 
                 {
-                    // Update subject with comma-separated class IDs and subject types
                     $cName = implode(",", $selectedClassIds);
                     $subjectTypeString = implode(",", $subjectTypes);
 
@@ -65,12 +63,12 @@ else
                 }
             }
         } 
-        else // Fetch existing data for editing
+        else
         {
             $eid = $_GET['editid'];
 
             // Fetching subject details
-            $subjectDetailsSql = "SELECT ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
+            $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
             $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
             $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
             $subjectDetailsQuery->execute();
@@ -116,7 +114,7 @@ else
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Update Subject </h3>
+                        <h3 class="page-title"> Update <?php echo $subjectDetailsRow['SubjectName']; ?></span> Subject </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
@@ -132,7 +130,7 @@ else
                                     <form class="forms-sample" method="post">
 
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"></span> subject</label>
+                                        <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"><?php echo $subjectDetailsRow['SubjectName']; ?></span> subject</label>
                                         <select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">
                                             <?php
                                             $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
@@ -173,7 +171,7 @@ else
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
                                     </form>
                                 </div>
                             </div>

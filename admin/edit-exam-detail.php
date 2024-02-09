@@ -39,6 +39,7 @@ else
                     $query->execute();
 
                     echo '<script>alert("Examination has been updated")</script>';
+                    echo "<script>window.location.href ='manage-exam.php'</script>"; 
                 }
             } 
             else 

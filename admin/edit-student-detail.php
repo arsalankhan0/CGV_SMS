@@ -8,50 +8,60 @@ if (strlen($_SESSION['sturecmsaid']==0))
 } 
 else
 {
-  if(isset($_POST['submit']))
+  try
   {
-    $stuname=$_POST['stuname'];
-    $stuemail=$_POST['stuemail'];
-    $stuclass=$_POST['stuclass'];
-    $gender=$_POST['gender'];
-    $dob=$_POST['dob'];
-    $stuid=$_POST['stuid'];
-    $fname=$_POST['fname'];
-    $mname=$_POST['mname'];
-    $connum=$_POST['connum'];
-    $altconnum=$_POST['altconnum'];
-    $address=$_POST['address'];
-    $eid=$_GET['editid'];
-    $sql = "UPDATE tblstudent SET 
-          StudentName=:stuname,
-          StudentEmail=:stuemail,
-          StudentClass=:stuclass,
-          Gender=:gender,
-          DOB=:dob,
-          StuID=:stuid,
-          FatherName=:fname,
-          MotherName=:mname,
-          ContactNumber=:connum,
-          AltenateNumber=:altconnum,
-          Address=:address 
-          WHERE ID=:eid";
-    $query=$dbh->prepare($sql);
-    $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
-    $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
-    $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
-    $query->bindParam(':gender',$gender,PDO::PARAM_STR);
-    $query->bindParam(':dob',$dob,PDO::PARAM_STR);
-    $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
-    $query->bindParam(':fname',$fname,PDO::PARAM_STR);
-    $query->bindParam(':mname',$mname,PDO::PARAM_STR);
-    $query->bindParam(':connum',$connum,PDO::PARAM_STR);
-    $query->bindParam(':altconnum',$altconnum,PDO::PARAM_STR);
-    $query->bindParam(':address',$address,PDO::PARAM_STR);
-    $query->bindParam(':eid',$eid,PDO::PARAM_STR);
-    $query->execute();
-      echo '<script>alert("Student has been updated")</script>';
-  }
 
+    if(isset($_POST['submit']))
+    {
+      $stuname=$_POST['stuname'];
+      $stuemail=$_POST['stuemail'];
+      $stuclass=$_POST['stuclass'];
+      $stusection = $_POST['stusection'];
+      $gender=$_POST['gender'];
+      $dob=$_POST['dob'];
+      $stuid=$_POST['stuid'];
+      $fname=$_POST['fname'];
+      $mname=$_POST['mname'];
+      $connum=$_POST['connum'];
+      $altconnum=$_POST['altconnum'];
+      $address=$_POST['address'];
+      $eid=$_GET['editid'];
+      $sql = "UPDATE tblstudent SET 
+            StudentName=:stuname,
+            StudentEmail=:stuemail,
+            StudentClass=:stuclass,
+            StudentSection=:stusection,
+            Gender=:gender,
+            DOB=:dob,
+            StuID=:stuid,
+            FatherName=:fname,
+            MotherName=:mname,
+            ContactNumber=:connum,
+            AltenateNumber=:altconnum,
+            Address=:address 
+            WHERE ID=:eid";
+      $query=$dbh->prepare($sql);
+      $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
+      $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
+      $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
+      $query->bindParam(':stusection', $stusection, PDO::PARAM_STR);
+      $query->bindParam(':gender',$gender,PDO::PARAM_STR);
+      $query->bindParam(':dob',$dob,PDO::PARAM_STR);
+      $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
+      $query->bindParam(':fname',$fname,PDO::PARAM_STR);
+      $query->bindParam(':mname',$mname,PDO::PARAM_STR);
+      $query->bindParam(':connum',$connum,PDO::PARAM_STR);
+      $query->bindParam(':altconnum',$altconnum,PDO::PARAM_STR);
+      $query->bindParam(':address',$address,PDO::PARAM_STR);
+      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
+      $query->execute();
+        echo '<script>alert("Student has been updated")</script>';
+    }
+  }
+  catch(PDOException $e)
+  {
+    echo "<script>alert('Ops! Something went wrong');</script>";
+  }
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -103,7 +113,7 @@ else
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       <?php
                         $eid=$_GET['editid'];
-                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
+                        $sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
                         $query = $dbh -> prepare($sql);
                         $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                         $query->execute();
@@ -124,7 +134,7 @@ else
                             </div>
                             <div class="form-group">
                               <label for="exampleInputEmail3">Student Class</label>
-                              <select  name="stuclass" class="form-control" required='true'>
+                              <select  name="stuclass" id="stuclass" class="form-control" required='true'>
                                 <?php
                                   if($row->IsDeleted === 0)
                                   {
@@ -145,7 +155,7 @@ else
                                   foreach($result2 as $row1)
                                   {   
                                       ?>  
-                                    <option value="<?php echo htmlentities($row1->ClassName);?>"><?php echo htmlentities($row1->ClassName);?></option>
+                                    <option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?></option>
                                     <?php 
                                   } 
                                   ?> 
@@ -154,6 +164,7 @@ else
                             <div class="form-group">
                                 <label for="exampleInputEmail3">Student Section</label>
                                 <select name="stusection" id="stusection" class="form-control" required='true'>
+                                  <option value="<?php  echo htmlentities($row->StudentSection);?>" selected><?php  echo htmlentities($row->StudentSection);?></option>
                                     <!-- Here Sections will be populated based on the selected class -->
                                 </select>
                             </div>
@@ -243,6 +254,7 @@ else
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/SectionsForStudent.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>
