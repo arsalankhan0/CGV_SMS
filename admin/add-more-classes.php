@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -18,29 +18,16 @@ else
 
             if (!empty($selectedClasses)) 
             {
-                // Checking for duplicate classes
-                $sqlCheckDuplicate = "SELECT COUNT(*) as count FROM tblexamination WHERE ID != :eid AND ClassName IN (:classes) AND IsDeleted = 0";
-                $stmtCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
-                $stmtCheckDuplicate->bindParam(':eid', $eid, PDO::PARAM_STR);
-                $stmtCheckDuplicate->bindParam(':classes', implode(",", $selectedClasses), PDO::PARAM_STR);
-                $stmtCheckDuplicate->execute();
-                $duplicateCount = $stmtCheckDuplicate->fetch(PDO::FETCH_ASSOC)['count'];
+                    $selectedClassesImploded = implode(",", $selectedClasses);
 
-                if ($duplicateCount > 0) 
-                {
-                    echo '<script>alert("Duplicate class with the same exam exists.")</script>';
-                } 
-                else 
-                {
                     $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
                     $query = $dbh->prepare($sql);
-                    $query->bindParam(':cName', implode(",", $selectedClasses), PDO::PARAM_STR);
+                    $query->bindParam(':cName', $selectedClassesImploded, PDO::PARAM_STR);
                     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
                     $query->execute();
 
-                    echo '<script>alert("Examination has been updated")</script>';
+                    echo '<script>alert("Classes has been updated")</script>';
                     echo "<script>window.location.href ='manage-exam.php'</script>"; 
-                }
             } 
             else 
             {
@@ -58,7 +45,7 @@ else
 <html lang="en">
 <head>
 
-    <title>Student Management System|| Manage Exam</title>
+    <title>Student Management System|| Manage Classes</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -77,7 +64,7 @@ else
 <div class="container-scroller">
     <!-- partial:partials/_navbar.html -->
     <?php
-    include_once('includes/header.php');
+    // include_once('includes/header.php');
     ?>
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
@@ -98,14 +85,14 @@ else
                     $examName = $examNameRow->ExamName;
 
                     if (isset($examName)) { ?>
-                        <h3 class="page-title"> Manage Exam - Select Classes for '<?php echo $examName; ?>'</h3>
+                        <h3 class="page-title"> Manage Classes - Select Classes for '<?php echo $examName; ?>'</h3>
                     <?php } else { ?>
-                        <h3 class="page-title"> Manage Exam </h3>
+                        <h3 class="page-title"> Manage Classes </h3>
                     <?php } ?>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"> Manage Exam</li>
+                            <li class="breadcrumb-item active" aria-current="page"> Manage Classes</li>
                         </ol>
                     </nav>
                 </div>
@@ -113,7 +100,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Manage Exam</h4>
+                                <h4 class="card-title" style="text-align: center;">Manage Classes</h4>
                                 <form class="forms-sample" method="post">
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
