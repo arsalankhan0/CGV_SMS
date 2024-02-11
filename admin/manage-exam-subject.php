@@ -1,13 +1,11 @@
 <?php
 session_start();
+error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) 
-{
+if (strlen($_SESSION['sturecmsaid']) == 0) {
     header('location:logout.php');
-} 
-else 
-{
+} else {
     $eid = $_GET['editid'];
     $examid = $_GET['examid'];
 
@@ -17,57 +15,76 @@ else
     $sessionQuery->execute();
     $sessionID = $sessionQuery->fetchColumn();
 
-    try
-    {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') 
-        {
-            if(isset($_POST['submit']))
-            {
-                foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) 
-                {
-                    // Fetch subject details
-                    $subjectDetailsSql = "SELECT * FROM tblsubjects WHERE ID = :subjectId";
-                    $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
-                    $subjectDetailsQuery->bindParam(':subjectId', $subjectId, PDO::PARAM_STR);
-                    $subjectDetailsQuery->execute();
-                    $subjectDetails = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
+    $insertFlag = true;
 
-                    $insertReportSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, Subjects, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks) 
-                                        VALUES (:examSession, :className, :examName, :subjects, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks)";
-                    $insertReportQuery = $dbh->prepare($insertReportSql);
-                    $insertReportQuery->bindParam(':examSession', $sessionID, PDO::PARAM_STR);
-                    $insertReportQuery->bindParam(':className', $eid, PDO::PARAM_STR);
-                    $insertReportQuery->bindParam(':examName', $examid, PDO::PARAM_STR);
-                    $insertReportQuery->bindParam(':subjects', $subjectId, PDO::PARAM_STR);
+    try {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['submit'])) {
+                foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) {
+                    // Check if the entry already exists
+                    $checkDuplicateSql = "SELECT * FROM tblmaxmarks WHERE ClassID = :classID AND ExamID = :examID AND SessionID = :sessionID AND SubjectID = :subjectID";
+                    $checkDuplicateQuery = $dbh->prepare($checkDuplicateSql);
+                    $checkDuplicateQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                    $checkDuplicateQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                    $checkDuplicateQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                    $checkDuplicateQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+                    $checkDuplicateQuery->execute();
 
-                    // Set default values for disabled fields
-                    $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
-                    $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
-                    $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
-
-                    $insertReportQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
-                    $insertReportQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
-                    $insertReportQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
-
-                    $insertReportQuery->execute();
+                    if ($checkDuplicateQuery->rowCount() > 0) 
+                    {
+                        $insertFlag = false;
+                        echo "<script>alert('Duplicate entry found');</script>";
+                        break;
+                    }
                 }
 
-                echo "<script>alert('Published Successfully');</script>";
-                echo "<script>window.location.href = 'manage-exam-subject.php'</script>";
-                exit();
+                if ($insertFlag) 
+                {
+                    foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) 
+                    {
+                        // Fetch subject details
+                        $subjectDetailsSql = "SELECT * FROM tblsubjects WHERE ID = :subjectId";
+                        $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
+                        $subjectDetailsQuery->bindParam(':subjectId', $subjectId, PDO::PARAM_STR);
+                        $subjectDetailsQuery->execute();
+                        $subjectDetails = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
+
+                        // Insert into tblmaxmarks table
+                        $insertMaxMarksSql = "INSERT INTO tblmaxmarks (ClassID, ExamID, SessionID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks) 
+                                        VALUES (:classID, :examID, :sessionID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks)";
+                        $insertMaxMarksQuery = $dbh->prepare($insertMaxMarksSql);
+                        $insertMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+
+                        // Set default values for disabled fields
+                        $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
+                        $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
+                        $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
+
+                        $insertMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+
+                        $insertMaxMarksQuery->execute();
+                    }
+
+                    echo "<script>alert('Published Successfully');</script>";
+                    echo "<script>window.location.href = 'manage-exam-subject.php?editid=$eid&examid=$examid'</script>";
+                    exit();
+                }
             }
         }
-    }
-    catch(PDOException $e)
-    {
+    } catch (PDOException $e) {
         echo "<script>alert('Ops! Something went wrong.');</script>";
+        echo $e->getMessage();
     }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <title>Student Management System || Assign Max Marks</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -86,9 +103,7 @@ else
 <body>
 <div class="container-scroller">
     <!-- partial:partials/_navbar.html -->
-    <?php
-    include_once('includes/header.php');
-    ?>
+    <?php include_once('includes/header.php'); ?>
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -98,9 +113,6 @@ else
             <div class="content-wrapper">
                 <div class="page-header">
                     <?php
-                    // $eid = $_GET['editid'];
-                    // $examid = $_GET['examid'];
-
                     $examNameSql = "SELECT ExamName, ClassName FROM tblexamination WHERE ID = :examid";
                     $examNameQuery = $dbh->prepare($examNameSql);
                     $examNameQuery->bindParam(':examid', $examid, PDO::PARAM_STR);
@@ -139,7 +151,6 @@ else
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                // Fetch subjects based on the editid
                                                 $subjectSql = "SELECT * FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
                                                 $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
@@ -158,15 +169,15 @@ else
                                                         $disabledPractical = !in_array('practical', $subjectTypes) ? 'disabled' : '';
                                                         $disabledViva = !in_array('viva', $subjectTypes) ? 'disabled' : '';
                                                         ?>
-                                                            <td><input type="number" class="border border-secondary py-1"
-                                                                    name="theory[<?php echo $subjectId; ?>]"
-                                                                    <?php echo $disabledTheory; ?>></td>
-                                                            <td><input type="number" class="border border-secondary py-1"
-                                                                    name="practical[<?php echo $subjectId; ?>]"
-                                                                    <?php echo $disabledPractical; ?>></td>
-                                                            <td><input type="number" class="border border-secondary py-1"
-                                                                    name="viva[<?php echo $subjectId; ?>]"
-                                                                    <?php echo $disabledViva; ?>></td>
+                                                        <td><input type="number" class="border border-secondary py-1"
+                                                                name="theory[<?php echo $subjectId; ?>]"
+                                                                <?php echo $disabledTheory; ?>></td>
+                                                        <td><input type="number" class="border border-secondary py-1"
+                                                                name="practical[<?php echo $subjectId; ?>]"
+                                                                <?php echo $disabledPractical; ?>></td>
+                                                        <td><input type="number" class="border border-secondary py-1"
+                                                                name="viva[<?php echo $subjectId; ?>]"
+                                                                <?php echo $disabledViva; ?>></td>
                                                     </tr>
                                                     <?php
                                                 }
@@ -175,8 +186,7 @@ else
                                         </table>
                                     </div>
                                     <div class="d-flex justify-content-end pt-4">
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Publish
-                                        </button>
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Publish</button>
                                     </div>
                                 </form>
                             </div>

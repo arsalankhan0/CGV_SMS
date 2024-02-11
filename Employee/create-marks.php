@@ -9,22 +9,26 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
-
     try 
     {
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $sessionID = $sessionQuery->fetchColumn();
+
         if (isset($_POST['submit'])) 
         {
             $examName = filter_var($_POST['exam'], FILTER_SANITIZE_STRING);
             $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
-            $sessionYear = $_POST['session'];
 
-            if (empty($examName) || empty($classIDs) || empty($sessionYear)) 
+            if (empty($examName) || empty($classIDs)) 
             {
-                echo '<script>alert("Please enter Exam Name, select at least one class, and choose a session year")</script>';
+                echo '<script>alert("Please select at least one option in both fields!")</script>';
             } 
             else 
             {
-                $_SESSION['sessionYear'] = $sessionYear;
+                $_SESSION['sessionYear'] = $sessionID;
                 $_SESSION['examName'] = $examName;
                 $_SESSION['classIDs'] = serialize($classIDs);
 
@@ -35,9 +39,7 @@ else
     catch (PDOException $e) 
     {
         echo '<script>alert("Ops! An Error occurred.")</script>';
-        // error_log($e->getMessage()); //-->This is only for debugging purpose
     }
-
 ?>
 
 <!DOCTYPE html>
@@ -86,69 +88,76 @@ else
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Create Student Report</h4>
                                 <form class="forms-sample" method="post">
-                                    <div class="form-group">
-                                        <label for="dropdownYear">Session</label>
-                                        <select id="dropdownYear" class="form-control" name="session">
-                                        <?php
-                                            $currentYear = date('Y');
-                                            $startYear = $currentYear - 3;
-                                            $endYear = $currentYear + 6;
-
-                                            for ($year = $startYear; $year <= $endYear; $year++) 
-                                            {
-                                                $selected = ($year == $currentYear) ? 'selected' : '';
-                                                echo "<option value='$year' $selected>$year</option>";
-                                            }
-                                        ?>
-                                        </select>
-                                    </div>
 
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Classes</label>
-                                        <select multiple="multiple" name="classes[]"
-                                                class="js-example-basic-multiple w-100">
-                                            <?php
-                                            $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
+                                        <?php
+                                        $assignedClassSql = "SELECT AssignedClasses FROM tblemployees WHERE ID = :empID AND IsDeleted = 0";
+                                        $assignedClassQuery = $dbh->prepare($assignedClassSql);
+                                        $assignedClassQuery->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
+                                        $assignedClassQuery->execute();
+                                        $assignedClasses = $assignedClassQuery->fetchColumn();
+
+                                        if (!empty($assignedClasses)) 
+                                        {
+                                            $sql = "SELECT * FROM tblclass WHERE ID IN ($assignedClasses) AND IsDeleted = 0";
                                             $query = $dbh->prepare($sql);
                                             $query->execute();
 
                                             if ($query->rowCount() > 0) 
                                             {
+                                                echo '<select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">';
                                                 $classResults = $query->fetchAll(PDO::FETCH_ASSOC);
 
                                                 foreach ($classResults as $class) 
                                                 {
-                                                    $classNameWithSection = $class['ClassName'] . ' ' . $class['Section'];
-                                                    echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($classNameWithSection) . "</option>";                                                
+                                                    // Display only class name without sections
+                                                    echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['ClassName']) . "</option>";
                                                 }
-                                                    
+
+                                                echo '</select>';
+                                            } 
+                                            else 
+                                            {
+                                                echo '<p>No class assigned.</p>';
                                             }
-                                            ?>
-                                        </select>
+                                        } 
+                                        else 
+                                        {
+                                            echo '<p>No class assigned.</p>';
+                                        }
+                                        ?>
                                     </div>
+                                    <?php 
+                                    if (!empty($assignedClasses)) 
+                                    {
+                                    ?>
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Exam</label>
-                                        <select name="exam"
-                                                class="form-control w-100">
+                                        <select name="exam" class="form-control w-100">
                                             <?php
-                                            $sql = "SELECT * FROM tblexamination WHERE IsDeleted = 0";
-                                            $query = $dbh->prepare($sql);
-                                            $query->execute();
+                                                $sql = "SELECT * FROM tblexamination WHERE IsDeleted = 0";
+                                                $query = $dbh->prepare($sql);
+                                                $query->execute();
 
-                                            if ($query->rowCount() > 0) 
-                                            {
-                                                $examResults = $query->fetchAll(PDO::FETCH_ASSOC);
+                                                if ($query->rowCount() > 0) {
+                                                    $examResults = $query->fetchAll(PDO::FETCH_ASSOC);
 
-                                                foreach ($examResults as $exam) 
-                                                {
-                                                    echo "<option value='" . htmlentities($exam['ID']) . "'>" . htmlentities($exam['ExamName']) . "</option>";    
+                                                    foreach ($examResults as $exam) {
+                                                        echo "<option value='" . htmlentities($exam['ID']) . "'>" . htmlentities($exam['ExamName']) . "</option>";
+                                                    }
                                                 }
-                                            }
                                             ?>
                                         </select>
                                     </div>
-
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Next</button>
+                                    <?php 
+                                    } 
+                                    else
+                                    {
+                                        echo '<p></p>';
+                                    }
+                                    ?>
                                 </form>
                             </div>
                         </div>

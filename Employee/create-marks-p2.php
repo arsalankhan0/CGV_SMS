@@ -9,37 +9,60 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
-    if (isset($_SESSION['classIDs']) && isset($_SESSION['examName']) && isset($_SESSION['sessionYear']))
+    if (isset($_SESSION['classIDs']) && isset($_SESSION['examName'])) 
     {
         try 
         {
             if (isset($_POST['submit'])) 
             {
-                $studentName = filter_var($_POST['student'], FILTER_VALIDATE_INT);
-
-                if (empty($studentName)) 
-                {
-                    echo '<script>alert("Please select a valid student!")</script>';
-                } 
-                else 
-                {
-                    $_SESSION['studentName'] = $studentName;
-                    
-                    echo "<script>window.location.href ='create-marks-p3.php'</script>";
-                }
+                
             }
         } 
         catch (PDOException $e) 
         {
             echo '<script>alert("Ops! An Error occurred.")</script>';
-            // error_log($e->getMessage()); //-->This is only for debugging purpose
         }
-    }
-    else
+    } 
+    else 
     {
         header("Location:create-marks.php");
     }
 
+    // Fetch students
+    $classIDs = unserialize($_SESSION['classIDs']);
+    $sql = "SELECT * FROM tblstudent WHERE StudentClass IN (" . implode(",", $classIDs) . ") AND IsDeleted = 0";
+    $query = $dbh->prepare($sql);
+    $query->execute();
+    $students = $query->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch assigned subjects for the teacher
+    $teacherID = $_SESSION['sturecmsEMPid'];
+    $assignedSubjectsSql = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :teacherID AND IsDeleted = 0";
+    $assignedSubjectsQuery = $dbh->prepare($assignedSubjectsSql);
+    $assignedSubjectsQuery->bindParam(':teacherID', $teacherID, PDO::PARAM_INT);
+    $assignedSubjectsQuery->execute();
+    $assignedSubjects = $assignedSubjectsQuery->fetchColumn();
+
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
+    if (!empty($assignedSubjects)) 
+    {
+        $assignedSubjectsIDs = explode(',', $assignedSubjects);
+
+        // Fetch subjects for the selected class
+        $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND SessionID = $sessionID AND IsDeleted = 0";
+        $subjectQuery = $dbh->prepare($subjectSql);
+        $subjectQuery->execute();
+        $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+    } 
+    else 
+    {
+        echo '<script>alert("No subjects assigned to the teacher.")</script>';
+    }
 ?>
 
 <!DOCTYPE html>
@@ -84,48 +107,51 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Create Student Report For <strong><?php 
-                                    $sql = "SELECT * FROM tblexamination WHERE ID = ". $_SESSION['examName'] ." AND IsDeleted = 0";
+                                <h4 class="card-title" style="text-align: center;">Create Student Report For <strong><?php
+                                    $sql = "SELECT * FROM tblexamination WHERE ID = " . $_SESSION['examName'] . " AND IsDeleted = 0";
                                     $query = $dbh->prepare($sql);
                                     $query->execute();
                                     $examinations = $query->fetchAll(PDO::FETCH_ASSOC);
 
-                                    foreach ($examinations as $exam) 
-                                    {
+                                    foreach ($examinations as $exam) {
                                         echo htmlentities($exam['ExamName']);
                                     }
-                                ?></strong></h4>
+                                    ?></strong></h4>
 
                                 <form class="forms-sample" method="post">
-                                    <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Student</label>
-                                        <select name="student"
-                                                class="form-control w-100">
-                                            <?php
-                                            $classIDs = unserialize($_SESSION['classIDs']);
-
-                                            $sql = "SELECT * FROM tblstudent WHERE StudentClass IN (" . implode(",", $classIDs) . ") AND IsDeleted = 0";
-                                            $query = $dbh->prepare($sql);
-                                            $query->execute();
-
-                                            if ($query->rowCount() > 0) 
-                                            {
-                                                $students = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                                foreach ($students as $student) 
-                                                {
-                                                    echo "<option value='" . htmlentities($student['ID']) . "'>" . htmlentities($student['StudentName']) . "</option>";    
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th>Student Name</th>
+                                                <?php
+                                                foreach ($subjects as $subject) {
+                                                    echo "<th>" . htmlentities($subject['SubjectName']) . "</th>";
                                                 }
-                                            }
-                                            else
-                                            {
-                                                echo "<option value='' disabled>No Student Found.</option>";
+                                                ?>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <?php
+                                            foreach ($students as $student) {
+                                                ?>
+                                                <tr>
+                                                    <td><?php echo htmlentities($student['StudentName']); ?></td>
+                                                    <?php
+                                                    foreach ($subjects as $subject) {
+                                                        echo "<td contenteditable='true'></td>";
+                                                    }
+                                                    ?>
+                                                </tr>
+                                                <?php
                                             }
                                             ?>
-                                        </select>
+                                            </tbody>
+                                        </table>
                                     </div>
-
-                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Assign Marks</button>
+                                    <div class="pt-3">
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Assign Marks</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -159,6 +185,4 @@ else
 <!-- End custom js for this page -->
 </body>
 </html>
-<?php 
-} 
-?>
+<?php } ?>
