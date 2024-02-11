@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -21,6 +21,12 @@ else
         $queryStudent->execute();
         $studentDetails = $queryStudent->fetch(PDO::FETCH_ASSOC);
 
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
+
         if ($studentDetails) 
         {
             // Fetch student Class
@@ -31,16 +37,10 @@ else
             $queryStudentClass->execute();
             $studentClass = $queryStudentClass->fetch(PDO::FETCH_ASSOC);
 
-            // Fetch subjects
-            $sqlSubjects = "SELECT * FROM tblsubjects WHERE IsDeleted = 0";
-            $querySubjects = $dbh->prepare($sqlSubjects);
-            $querySubjects->execute();
-            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
-
             try 
             {
                 // Fetch data from the database for the selected student, class, and exam
-                $examSession = $_GET['examSession'];
+                $examSession = $session['session_id'];
                 $className = $_GET['className'];
                 $examName = $_GET['examName'];
                 $studentName = $_GET['studentName'];
@@ -85,13 +85,32 @@ else
                 {
                     echo "<script>alert('No data found for the selected student, class, and exam.');</script>";
                 }
-
             } 
             catch (PDOException $e) 
             {
                 echo '<script>alert("Ops! An Error occurred.")</script>';
                 // error_log($e->getMessage()); //-->This is only for debugging purposes
             }
+
+            // Fetch subjects
+            $sqlSubjects = "SELECT * FROM tblsubjects WHERE IsDeleted = 0";
+            $querySubjects = $dbh->prepare($sqlSubjects);
+            $querySubjects->execute();
+            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);// Fetch the logged-in employee ID
+            $employeeID = $_SESSION['sturecmsEMPid'];
+            
+            // Fetch subjects assigned to the teacher from tblemployees
+            $sqlAssignedSubjects = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :employeeID AND IsDeleted = 0";
+            $queryAssignedSubjects = $dbh->prepare($sqlAssignedSubjects);
+            $queryAssignedSubjects->bindParam(':employeeID', $employeeID, PDO::PARAM_INT);
+            $queryAssignedSubjects->execute();
+            $assignedSubjects = $queryAssignedSubjects->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Fetch only the assigned subjects from tblsubjects
+            $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(',', $assignedSubjects) . ") AND IsDeleted = 0";
+            $querySubjects = $dbh->prepare($sqlSubjects);
+            $querySubjects->execute();
+            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
 
             if (isset($subjects) && isset($reports)) 
             {
@@ -153,7 +172,7 @@ else
                                                                     echo htmlentities($exam['ExamName']);
                                                                 }
                                                                 ?>
-                                                        </strong>- Session <?php echo $_GET['examSession']; ?>
+                                                        </strong>(<?php echo $session['session_name']; ?>)
                                                     </h4>
 
                                                     <?php
@@ -183,7 +202,7 @@ else
                                                                         </tr>
                                                                         <tr>
                                                                             <td>Section:</td>
-                                                                            <td><?php echo htmlentities($studentClass['Section']); ?></td>
+                                                                            <td><?php echo htmlentities($studentDetails['StudentSection']); ?></td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>
@@ -210,10 +229,18 @@ else
                                                                 </thead>
                                                                 <tbody>
                                                                     <?php
-                                                                    foreach ($reports as $report) {
+                                                                    foreach ($reports as $report) 
+                                                                    {
+                                                                        $subjectID = $report['Subjects'];
+                                                                        $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
+                                                                        $querySubjectsName = $dbh->prepare($sqlSubjectsName);
+                                                                        $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                                                                        $querySubjectsName->execute();
+                                                                        $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
                                                                         ?>
                                                                         <tr>
-                                                                            <td><?php echo htmlentities($report['Subjects']); ?></td>
+                                                                            <!-- <td><?php echo htmlentities($report['Subjects']); ?></td> -->
+                                                                            <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
                                                                             <td><?php echo htmlentities($report['TheoryMaxMarks']); ?></td>
                                                                             <td><?php echo htmlentities($report['TheoryMarksObtained']); ?></td>
                                                                             <td><?php echo htmlentities($report['PracticalMaxMarks']); ?></td>
@@ -233,18 +260,7 @@ else
                                                                         <td id="viva-max-marks"><?php echo $vivaMaxMarksTotal; ?></td>
                                                                         <td id="viva-obt-marks"><?php echo $vivaObtMarksTotal; ?></td>
                                                                     </tr>
-                                                                    <tr>
-                                                                        <td colspan="2"></td>
-                                                                        <td class="font-weight-bold">TOTAL MAX MARKS</td>
-                                                                        <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
-                                                                        <td class="font-weight-bold">PERCENTAGE</td>
-                                                                    </tr>
-                                                                    <tr class=" table-secondary">
-                                                                        <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
-                                                                        <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
-                                                                        <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
-                                                                        <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
-                                                                    </tr>
+                                                                    
                                                                 </tbody>
                                                             </table>
                                                             

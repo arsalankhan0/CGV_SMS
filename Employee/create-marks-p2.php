@@ -9,26 +9,11 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
+
+
     if (isset($_SESSION['classIDs']) && isset($_SESSION['examName'])) 
     {
-        try 
-        {
-            if (isset($_POST['submit'])) 
-            {
-                
-            }
-        } 
-        catch (PDOException $e) 
-        {
-            echo '<script>alert("Ops! An Error occurred.")</script>';
-        }
-    } 
-    else 
-    {
-        header("Location:create-marks.php");
-    }
-
-    // Fetch students
+            // Fetch students
     $classIDs = unserialize($_SESSION['classIDs']);
     $sql = "SELECT * FROM tblstudent WHERE StudentClass IN (" . implode(",", $classIDs) . ") AND IsDeleted = 0";
     $query = $dbh->prepare($sql);
@@ -58,10 +43,125 @@ else
         $subjectQuery = $dbh->prepare($subjectSql);
         $subjectQuery->execute();
         $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+        // Function to check if a specific type is present in the comma-separated list
+        function isSubjectType($type, $subject) 
+        {
+            $types = explode(',', $subject['SubjectType']);
+            return in_array($type, $types);
+        }
+        // Function to check if the max marks are assigned by the admin
+        function getMaxMarks($classID, $examID, $sessionID, $subjectID, $type) 
+        {
+            global $dbh;
+            
+            $sql = "SELECT * FROM tblmaxmarks 
+                    WHERE ClassID = :classID 
+                    AND ExamID = :examID 
+                    AND SessionID = :sessionID 
+                    AND SubjectID = :subjectID";
+            
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':classID', $classID, PDO::PARAM_INT);
+            $query->bindParam(':examID', $examID, PDO::PARAM_INT);
+            $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+            $query->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+            
+            $query->execute();
+            $result = $query->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result && $result[$type . 'MaxMarks'] > 0) {
+                return $result[$type . 'MaxMarks'];
+            }
+            
+            return null;
+        }
     } 
     else 
     {
         echo '<script>alert("No subjects assigned to the teacher.")</script>';
+    }
+        if (isset($_POST['submit'])) 
+        {
+            try 
+            {
+                $examID = $_SESSION['examName'];
+    
+                foreach ($students as $student) 
+                {
+                    foreach ($subjects as $subject) 
+                    {
+                        // Check for duplicate entry
+                        $checkDuplicateSql = "SELECT COUNT(*) as count FROM tblreports 
+                                                WHERE ExamSession = :sessionID 
+                                                AND ClassName = :classID 
+                                                AND ExamName = :examID 
+                                                AND StudentName = :studentID 
+                                                AND Subjects = :subjectID
+                                                AND IsDeleted = 0";
+    
+                        $checkDuplicateQuery = $dbh->prepare($checkDuplicateSql);
+                        $checkDuplicateQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                        $checkDuplicateQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                        $checkDuplicateQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                        $checkDuplicateQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                        $checkDuplicateQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+    
+                        $checkDuplicateQuery->execute();
+                        $duplicateCount = $checkDuplicateQuery->fetchColumn();
+
+                        if ($duplicateCount > 0) 
+                        {
+                            echo '<script>alert("Duplicate entry found!")</script>';
+                            echo "<script>window.location.href ='create-marks-p2.php'</script>";
+                            exit;
+                        }
+    
+                        // If no duplicate, proceed to insert data
+                        $theoryMaxMarks = isset($_POST['theoryMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['theoryMaxMarks'][$student['ID']][$subject['ID']] : 0;
+                        $theoryMarksObtained = isset($_POST['theoryMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['theoryMarksObtained'][$student['ID']][$subject['ID']] : 0;
+    
+                        $practicalMaxMarks = isset($_POST['practicalMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['practicalMaxMarks'][$student['ID']][$subject['ID']] : 0;
+                        $practicalMarksObtained = isset($_POST['practicalMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['practicalMarksObtained'][$student['ID']][$subject['ID']] : 0;
+    
+                        $vivaMaxMarks = isset($_POST['vivaMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['vivaMaxMarks'][$student['ID']][$subject['ID']] : 0;
+                        $vivaMarksObtained = isset($_POST['vivaMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['vivaMarksObtained'][$student['ID']][$subject['ID']] : 0;
+    
+                        $studentID = $student['ID'];
+                        $subjectID = $subject['ID'];
+    
+                        // Insert data into tblreports table
+                        $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, StudentName, Subjects, TheoryMaxMarks, TheoryMarksObtained, PracticalMaxMarks, PracticalMarksObtained, VivaMaxMarks, VivaMarksObtained)
+                                        VALUES (:sessionID, :classID, :examID, :studentID, :subjectID, :theoryMaxMarks, :theoryMarksObtained, :practicalMaxMarks, :practicalMarksObtained, :vivaMaxMarks, :vivaMarksObtained)";
+    
+                        $insertQuery = $dbh->prepare($insertSql);
+                        $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                        $insertQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':theoryMarksObtained', $theoryMarksObtained, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':practicalMarksObtained', $practicalMarksObtained, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);
+                        $insertQuery->bindParam(':vivaMarksObtained', $vivaMarksObtained, PDO::PARAM_INT);
+    
+                        $insertQuery->execute();
+                    }
+                }
+    
+                echo '<script>alert("Marks assigned successfully.")</script>';
+            } 
+            catch (PDOException $e) 
+            {
+                echo '<script>alert("Ops! An error occurred.")</script>';
+            }
+        }
+    } 
+    else 
+    {
+        header("Location:create-marks.php");
     }
 ?>
 
@@ -82,6 +182,7 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css"/>
+    
 </head>
 <body>
 <div class="container-scroller">
@@ -119,32 +220,112 @@ else
                                     ?></strong></h4>
 
                                 <form class="forms-sample" method="post">
+                                    
                                     <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                            <tr>
-                                                <th>Student Name</th>
-                                                <?php
-                                                foreach ($subjects as $subject) {
-                                                    echo "<th>" . htmlentities($subject['SubjectName']) . "</th>";
-                                                }
-                                                ?>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <?php
-                                            foreach ($students as $student) {
-                                                ?>
+                                        <table class="table text-center table-bordered">
                                                 <tr>
-                                                    <td><?php echo htmlentities($student['StudentName']); ?></td>
-                                                    <?php
-                                                    foreach ($subjects as $subject) {
-                                                        echo "<td contenteditable='true'></td>";
-                                                    }
-                                                    ?>
+                                                    <th rowspan="3">Student Name</th>
+                                                    <?php foreach ($subjects as $subject) { ?>
+                                                        <th colspan="6" class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']); ?></th>
+                                                    <?php } ?>
                                                 </tr>
-                                                <?php
-                                            }
+                                                <tr>
+                                                    <?php foreach ($subjects as $subject) 
+                                                    { ?>
+                                                        <th colspan="2">Theory</th>
+                                                        <th colspan="2">Practical</th>
+                                                        <th colspan="2">Viva</th>
+                                                    <?php } ?>
+                                                </tr>
+                                                <tr>
+                                                    <?php foreach ($subjects as $subject) { ?>
+                                                        <td>Max Marks</td>
+                                                        <td>Marks Obtained</td>
+                                                        <td>Max Marks</td>
+                                                        <td>Marks Obtained</td>
+                                                        <td>Max Marks</td>
+                                                        <td>Marks Obtained</td>
+                                                    <?php } ?>
+                                                </tr>
+                                            <tbody>
+                                            <?php foreach ($students as $student) 
+                                            { ?>
+                                                <tr>
+                                                    <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
+                                                    <?php foreach ($subjects as $subject) 
+                                                    { ?>
+                                                        <?php
+                                                            $theoryMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Theory');
+                                                            $practicalMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Practical');
+                                                            $vivaMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Viva');
+                                                        ?>
+                                                            <?php if ($theoryMaxMarks !== null || $practicalMaxMarks !== null || $vivaMaxMarks !== null) 
+                                                            { ?>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>
+                                                                        value="<?php echo $theoryMaxMarks; ?>">
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="theoryMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="practicalMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>
+                                                                        value="<?php echo $practicalMaxMarks; ?>">
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="practicalMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="vivaMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>
+                                                                        value="<?php echo $vivaMaxMarks; ?>">
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="vivaMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                            <?php 
+                                                            } 
+                                                            else
+                                                            {
+                                                            ?>
+                                                            <td>
+                                                                <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>
+                                                                        >
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="theoryMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="practicalMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>
+                                                                        >
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="practicalMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="vivaMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>
+                                                                        >
+                                                                </td>
+                                                                <td>
+                                                                    <input type='number' class='border border-secondary' name="vivaMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>>
+                                                                </td>
+                                                            <?php
+                                                                }
+                                                    } ?>
+                                                </tr>
+                                                <?php 
+                                            } 
                                             ?>
                                             </tbody>
                                         </table>
