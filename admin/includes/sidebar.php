@@ -57,6 +57,7 @@
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"> <a class="nav-link" href="add-exam.php">Add Exam</a></li>
                   <li class="nav-item"> <a class="nav-link" href="manage-exam.php">Manage Exam</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="view-result.php">View Results</a></li>
                 </ul>
               </div>
             </li>

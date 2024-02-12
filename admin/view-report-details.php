@@ -3,7 +3,7 @@ session_start();
 // error_reporting(0);
 include('includes/dbconnection.php');
 
-if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
+if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
 {
     header('location:logout.php');
 } 
@@ -74,11 +74,11 @@ else
                 }
 
                 // Calculate grand total and total max marks
-                // $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
-                // $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
+                $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
+                $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
 
                 // Calculate percentage
-                // $percentage = ($grandTotal / $totalMaxMarks) * 100;
+                $percentage = ($grandTotal / $totalMaxMarks) * 100;
 
 
                 if (!$reports) 
@@ -97,18 +97,13 @@ else
             $querySubjects = $dbh->prepare($sqlSubjects);
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
-            $employeeID = $_SESSION['sturecmsEMPid'];
+            $aID = $_SESSION['sturecmsaid'];
             
-            // Fetch subjects assigned to the teacher from tblemployees
-            $sqlAssignedSubjects = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :employeeID AND IsDeleted = 0";
-            $queryAssignedSubjects = $dbh->prepare($sqlAssignedSubjects);
-            $queryAssignedSubjects->bindParam(':employeeID', $employeeID, PDO::PARAM_INT);
-            $queryAssignedSubjects->execute();
-            $assignedSubjects = $queryAssignedSubjects->fetchAll(PDO::FETCH_COLUMN);
-            
+            $examSession = $_GET['examSession'];
             // Fetch only the assigned subjects from tblsubjects
-            $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(',', $assignedSubjects) . ") AND IsDeleted = 0";
+            $sqlSubjects = "SELECT * FROM tblsubjects WHERE SessionID = :examSession AND IsDeleted = 0";
             $querySubjects = $dbh->prepare($sqlSubjects);
+            $querySubjects->bindParam(':examSession', $examSession, PDO::PARAM_INT);
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
 
@@ -119,7 +114,7 @@ else
                 <html lang="en">
 
                 <head>
-                    <title>Student Management System || View Student Report</title>
+                    <title>Student Management System || Student Report</title>
                     <!-- plugins:css -->
                     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
                     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -137,30 +132,10 @@ else
 
                 <body>
                     <div class="container-scroller">
-                        <!-- partial:partials/_navbar.html -->
-                        <?php
-                        include_once('includes/header.php');
-                        ?>
                         <!-- partial -->
                         <div class="container-fluid page-body-wrapper">
-                            <!-- partial:partials/_sidebar.html -->
-                            <?php include_once('includes/sidebar.php'); ?>
-                            <!-- partial -->
-                            <div class="main-panel">
-                                <div class="content-wrapper">
-                                    <div class="page-header">
-                                        <h3 class="page-title"> View Student Report </h3>
-                                        <nav aria-label="breadcrumb">
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                                <li class="breadcrumb-item active" aria-current="page"> View Student Report </li>
-                                            </ol>
-                                        </nav>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-12 grid-margin stretch-card">
-                                            <div class="card">
-                                                <div class="card-body" id="report-card">
+                            <div class="card">
+                                <div class="card-body" id="report-card">
                                                     <h4 class="card-title" style="text-align: center;">Student Report of
                                                         <strong><?php
                                                                 $sql = "SELECT * FROM tblexamination WHERE ID = " . $_GET['examName'] . " AND IsDeleted = 0";
@@ -260,6 +235,19 @@ else
                                                                         <td id="viva-max-marks"><?php echo $vivaMaxMarksTotal; ?></td>
                                                                         <td id="viva-obt-marks"><?php echo $vivaObtMarksTotal; ?></td>
                                                                     </tr>
+
+                                                                    <tr>
+                                                                        <td colspan="2"></td>
+                                                                        <td class="font-weight-bold">TOTAL MAX MARKS</td>
+                                                                        <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
+                                                                        <td class="font-weight-bold">PERCENTAGE</td>
+                                                                    </tr>
+                                                                    <tr class=" table-secondary">
+                                                                        <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
+                                                                        <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
+                                                                        <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
+                                                                        <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
+                                                                    </tr>
                                                                     
                                                                 </tbody>
                                                             </table>
@@ -268,20 +256,8 @@ else
                                                     <?php
                                                     }
                                                     ?>
-                                                </div>
-                                                <div class="d-flex justify-content-center mb-3">
-                                                    <button class="btn btn-success" id="print-btn" type="button">Print</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
-                                <!-- content-wrapper ends -->
-                                <!-- partial:partials/_footer.html -->
-                                <?php include_once('includes/footer.php'); ?>
-                                <!-- partial -->
                             </div>
-                            <!-- main-panel ends -->
                         </div>
                         <!-- page-body-wrapper ends -->
                     </div>
@@ -309,17 +285,17 @@ else
             } 
             else 
             {
-                echo "<script>alert('Student not found.'); window.location.href='view-students-list.php';</script>";
+                echo "<script>alert('Student not found.'); window.location.href='view-result.php';</script>";
             }
         } 
         else 
         {
-            echo "<script>alert('Student not selected.'); window.location.href='view-students-list.php';</script>";
+            echo "<script>alert('Student not selected.'); window.location.href='view-result.php';</script>";
         }
     } 
     else 
     {
-        echo "<script>alert('Invalid Request.'); window.location.href='view-students-list.php';</script>";
+        echo "<script>alert('Invalid Request.'); window.location.href='view-result.php';</script>";
     }
 }
 ?>

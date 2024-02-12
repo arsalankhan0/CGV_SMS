@@ -111,7 +111,6 @@ else
 
                                                 foreach ($classResults as $class) 
                                                 {
-                                                    // Display only class name without sections
                                                     echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['ClassName']) . "</option>";
                                                 }
 
