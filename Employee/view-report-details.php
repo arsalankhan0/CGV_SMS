@@ -102,12 +102,12 @@ else
             // Fetch subjects assigned to the teacher from tblemployees
             $sqlAssignedSubjects = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :employeeID AND IsDeleted = 0";
             $queryAssignedSubjects = $dbh->prepare($sqlAssignedSubjects);
-            $queryAssignedSubjects->bindParam(':employeeID', $employeeID, PDO::PARAM_INT);
+            $queryAssignedSubjects->bindParam(':employeeID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
             $queryAssignedSubjects->execute();
-            $assignedSubjects = $queryAssignedSubjects->fetchAll(PDO::FETCH_COLUMN);
+            $assignedSubjects = $queryAssignedSubjects->fetch(PDO::FETCH_ASSOC);
             
             // Fetch only the assigned subjects from tblsubjects
-            $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(',', $assignedSubjects) . ") AND IsDeleted = 0";
+            $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . $assignedSubjects['AssignedSubjects'] . ") AND IsDeleted = 0";
             $querySubjects = $dbh->prepare($sqlSubjects);
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);

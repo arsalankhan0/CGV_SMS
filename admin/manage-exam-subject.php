@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
@@ -70,13 +70,29 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                         $insertMaxMarksQuery->execute();
                     }
 
-                    echo "<script>alert('Published Successfully');</script>";
+                    echo "<script>alert('Added Successfully');</script>";
                     echo "<script>window.location.href = 'manage-exam-subject.php?editid=$eid&examid=$examid'</script>";
                     exit();
                 }
             }
         }
-    } catch (PDOException $e) {
+
+        // Get values from the submitted form
+        $examId = $_GET['examid'];
+    
+        // Check if already published
+        $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId 
+                                AND IsPublished = 1
+                                AND session_id = :session_id
+                                AND IsDeleted = 0";
+        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+        $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+        $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        $checkPublishedQuery->execute();
+        $published = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+    } 
+    catch (PDOException $e) 
+    {
         echo "<script>alert('Ops! Something went wrong.');</script>";
         echo $e->getMessage();
     }
@@ -165,19 +181,31 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         <?php
                                                         $subjectTypes = explode(",", strtolower($subject['SubjectType']));
                                                         $subjectId = $subject['ID'];
-                                                        $disabledTheory = !in_array('theory', $subjectTypes) ? 'disabled' : '';
-                                                        $disabledPractical = !in_array('practical', $subjectTypes) ? 'disabled' : '';
-                                                        $disabledViva = !in_array('viva', $subjectTypes) ? 'disabled' : '';
+                                                        $disabledTheory = (!in_array('theory', $subjectTypes) || $published) ? 'disabled' : '';
+                                                        $disabledPractical = (!in_array('practical', $subjectTypes) || $published) ? 'disabled' : '';
+                                                        $disabledViva = (!in_array('viva', $subjectTypes) || $published) ? 'disabled' : '';
                                                         ?>
-                                                        <td><input type="number" class="border border-secondary py-1"
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
                                                                 name="theory[<?php echo $subjectId; ?>]"
-                                                                <?php echo $disabledTheory; ?>></td>
-                                                        <td><input type="number" class="border border-secondary py-1"
+                                                                <?php echo $disabledTheory;
+                                                                ?>
+                                                                >
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
                                                                 name="practical[<?php echo $subjectId; ?>]"
-                                                                <?php echo $disabledPractical; ?>></td>
-                                                        <td><input type="number" class="border border-secondary py-1"
+                                                                <?php echo $disabledPractical; 
+                                                                ?>
+                                                                >
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
                                                                 name="viva[<?php echo $subjectId; ?>]"
-                                                                <?php echo $disabledViva; ?>></td>
+                                                                <?php echo $disabledViva; 
+                                                                ?>
+                                                                >
+                                                        </td>
                                                     </tr>
                                                     <?php
                                                 }
@@ -186,7 +214,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                         </table>
                                     </div>
                                     <div class="d-flex justify-content-end pt-4">
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Publish</button>
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                     </div>
                                 </form>
                             </div>

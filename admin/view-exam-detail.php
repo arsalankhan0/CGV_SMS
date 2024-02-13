@@ -39,6 +39,7 @@ else
             echo "<script>window.location.href = 'view-exam-detail.php?editid=$eid'</script>";
         }
     }
+    
 ?>
 
 <!DOCTYPE html>
@@ -160,6 +161,7 @@ else
                                                                                 <i class="icon-trash"></i>
                                                                             </a>
                                                                         </td>
+                                                                        
                                                                     </tr>
                                                                     <?php
                                                                     $cnt++;

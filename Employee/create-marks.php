@@ -20,9 +20,9 @@ else
         if (isset($_POST['submit'])) 
         {
             $examName = filter_var($_POST['exam'], FILTER_SANITIZE_STRING);
-            $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
+            $classID = $_POST['classes'];
 
-            if (empty($examName) || empty($classIDs)) 
+            if (empty($examName) || empty($classID)) 
             {
                 echo '<script>alert("Please select at least one option in both fields!")</script>';
             } 
@@ -30,7 +30,7 @@ else
             {
                 $_SESSION['sessionYear'] = $sessionID;
                 $_SESSION['examName'] = $examName;
-                $_SESSION['classIDs'] = serialize($classIDs);
+                $_SESSION['classIDs'] = serialize($classID);
 
                 echo "<script>window.location.href ='create-marks-p2.php'</script>";
             }
@@ -90,7 +90,7 @@ else
                                 <form class="forms-sample" method="post">
 
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Classes</label>
+                                        <label for="exampleFormControlSelect2">Select Class</label>
                                         <?php
                                         $assignedClassSql = "SELECT AssignedClasses FROM tblemployees WHERE ID = :empID AND IsDeleted = 0";
                                         $assignedClassQuery = $dbh->prepare($assignedClassSql);
@@ -100,20 +100,23 @@ else
 
                                         if (!empty($assignedClasses)) 
                                         {
-                                            $sql = "SELECT * FROM tblclass WHERE ID IN ($assignedClasses) AND IsDeleted = 0";
+                                            $assignedClassesArray = explode(',', $assignedClasses);
+                                            $inClause = implode(',', array_fill(0, count($assignedClassesArray), '?'));
+    
+                                            $sql = "SELECT * FROM tblclass WHERE ID IN ($inClause) AND IsDeleted = 0";
                                             $query = $dbh->prepare($sql);
-                                            $query->execute();
-
+                                            $query->execute($assignedClassesArray);
+    
                                             if ($query->rowCount() > 0) 
                                             {
-                                                echo '<select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">';
+                                                echo '<select name="classes" class="form-control">';
                                                 $classResults = $query->fetchAll(PDO::FETCH_ASSOC);
-
+    
                                                 foreach ($classResults as $class) 
                                                 {
                                                     echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['ClassName']) . "</option>";
                                                 }
-
+    
                                                 echo '</select>';
                                             } 
                                             else 
@@ -154,7 +157,7 @@ else
                                     } 
                                     else
                                     {
-                                        echo '<p></p>';
+                                        // echo '<p></p>';
                                     }
                                     ?>
                                 </form>

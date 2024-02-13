@@ -19,6 +19,42 @@ else
         echo "<script>alert('Data deleted');</script>"; 
         echo "<script>window.location.href = 'manage-exam.php'</script>";     
     }
+    if (isset($_POST['publish'])) 
+    {
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $sessionID = $sessionQuery->fetchColumn();
+
+        // Get values from the submitted form
+        $examId = $_POST['exam_id'];
+    
+        // Check if already published
+        $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+        $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+        $checkPublishedQuery->execute();
+        $publishedResult = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+    
+        if ($publishedResult && $publishedResult['IsPublished'] === 1 && $publishedResult['session_id'] === $sessionID) 
+        {
+            echo "<script>alert('Already published');</script>";
+            echo "<script>window.location.href = 'manage-exam.php'</script>";
+        } 
+        else 
+        {
+            // Update IsPublished
+            $updateSql = "UPDATE tblexamination SET IsPublished = 1, session_id = :session_id WHERE ID = :examId";
+            $updateQuery = $dbh->prepare($updateSql);
+            $updateQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+            $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+            $updateQuery->execute();
+    
+            echo "<script>alert('Published Successfully');</script>";
+            echo "<script>window.location.href = 'manage-exam.php'</script>";
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -154,8 +190,16 @@ else
                                                             <td>
                                                                 <div><a href="view-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
                                                                             || <a href="manage-exam.php?delid=<?php echo ($row->ID);?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
-                                                                </div>
-                                                            </td> 
+                                                                        </div>
+                                                                    </td> 
+                                                                    <td>
+                                                                        <form method="post" action="">
+                                                                            <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
+                                                                            <button type="submit" name="publish" class="btn-sm btn-dark">Publish</button>
+                                                                            <button type="submit" name="publish_result" class="btn-sm btn-dark">Publish Result</button>
+                                                                        </form>  
+                                                                    </td>                                                                      
+                                                                    
                                                         </tr>
                                                         <?php $cnt=$cnt+1;
                                                     }

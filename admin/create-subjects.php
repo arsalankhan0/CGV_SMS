@@ -31,7 +31,7 @@ else
                 $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName AND IsDeleted = 0 AND SessionID = :sessionID";
                 $checkQuery = $dbh->prepare($checkSql);
                 $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                $checkQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT); // Assuming $sessionID is the active session ID
+                $checkQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT); 
                 $checkQuery->execute();
                 $subjectId = $checkQuery->fetchColumn();
                 
