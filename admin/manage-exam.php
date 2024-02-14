@@ -8,6 +8,12 @@ if (strlen($_SESSION['sturecmsaid'])==0)
 } 
 else
 {
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
     // Code for deletion
     if(isset($_GET['delid']))
     {
@@ -21,12 +27,6 @@ else
     }
     if (isset($_POST['publish'])) 
     {
-        // Get the active session ID
-        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-        $sessionQuery = $dbh->prepare($getSessionSql);
-        $sessionQuery->execute();
-        $sessionID = $sessionQuery->fetchColumn();
-
         // Get values from the submitted form
         $examId = $_POST['exam_id'];
     
@@ -35,11 +35,11 @@ else
         $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
         $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
         $checkPublishedQuery->execute();
-        $publishedResult = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
     
-        if ($publishedResult && $publishedResult['IsPublished'] === 1 && $publishedResult['session_id'] === $sessionID) 
+        if ($publish && $publish['IsPublished'] === 1 && $publish['session_id'] === $sessionID) 
         {
-            echo "<script>alert('Already published');</script>";
+            echo "<script>alert('Exam Already published');</script>";
             echo "<script>window.location.href = 'manage-exam.php'</script>";
         } 
         else 
@@ -51,8 +51,53 @@ else
             $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
             $updateQuery->execute();
     
-            echo "<script>alert('Published Successfully');</script>";
+            echo "<script>alert('Exam Published Successfully');</script>";
             echo "<script>window.location.href = 'manage-exam.php'</script>";
+        }
+    }
+    if (isset($_POST['publish_result'])) 
+    {
+        // Get values from the submitted form
+        $examId = $_POST['exam_id'];
+
+        // Check if result is already published
+        $checkResultPublishedSql = "SELECT IsResultPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+        $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+        $checkResultPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+        $checkResultPublishedQuery->execute();
+        $resultPublished = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+        if ($resultPublished && $resultPublished['IsResultPublished'] == 1) 
+        {
+            echo "<script>alert('Result Already Published');</script>";
+            echo "<script>window.location.href = 'manage-exam.php'</script>";
+        } 
+        else 
+        {
+            // Check if exam is published
+            $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+            $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+            $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+            $checkPublishedQuery->execute();
+            $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+            if ($publish && $publish['IsPublished'] == 1 && $publish['session_id'] == $sessionID) 
+            {
+                // Update IsResultPublished
+                $updatePublishResultSql = "UPDATE tblexamination SET IsResultPublished = 1, session_id = :session_id WHERE ID = :examId";
+                $updatePublishResultQuery = $dbh->prepare($updatePublishResultSql);
+                $updatePublishResultQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+                $updatePublishResultQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+                $updatePublishResultQuery->execute();
+
+                echo "<script>alert('Result Published Successfully');</script>";
+                echo "<script>window.location.href = 'manage-exam.php'</script>";
+            } 
+            else 
+            {
+                echo "<script>alert('Please Publish the exam first!');</script>";
+                echo "<script>window.location.href = 'manage-exam.php'</script>";
+            }
         }
     }
 ?>

@@ -10,23 +10,34 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 else 
 {
 
-    // Get the active session ID
-    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-    $sessionQuery = $dbh->prepare($getSessionSql);
-    $sessionQuery->execute();
-    $sessionID = $sessionQuery->fetchColumn();
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $sessionID = $sessionQuery->fetchColumn();
 
-    // Check if exam is published
-    $checkPublishedSql = "SELECT * FROM tblexamination WHERE ID = :examId 
-                            AND IsPublished = 1 
-                            AND session_id = :session_id 
-                            AND IsDeleted = 0";
+        // Check if exam is published
+        $checkPublishedSql = "SELECT * FROM tblexamination WHERE ID = :examId 
+                                AND IsPublished = 1 
+                                AND session_id = :session_id 
+                                AND IsDeleted = 0";
 
-    $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
-    $checkPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
-    $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-    $checkPublishedQuery->execute();
-    $publishedResult = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+        $checkPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
+        $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        $checkPublishedQuery->execute();
+        $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+    
+        // Check if Result is published
+        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId 
+                                AND IsResultPublished = 1
+                                AND session_id = :session_id
+                                AND IsDeleted = 0";
+        $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+        $checkResultPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
+        $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        $checkResultPublishedQuery->execute();
+        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
 
         if (isset($_SESSION['classIDs']) && isset($_SESSION['examName'])) 
         {
@@ -94,6 +105,34 @@ else
                     
                     return null;
                 }
+                // Function to check if the max marks are assigned by the teacher
+                function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type) 
+                {
+                    global $dbh;
+                    
+                    $sql = "SELECT * FROM tblreports 
+                            WHERE ClassName = :classID 
+                            AND ExamSession = :sessionID 
+                            AND ExamName = :examID 
+                            AND Subjects = :subjectID
+                            AND IsDeleted = 0";
+                    
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':classID', $classID, PDO::PARAM_INT);
+                    $query->bindParam(':examID', $examID, PDO::PARAM_INT);
+                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                    $query->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                    
+                    $query->execute();
+                    $result = $query->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($result && $result[$type . 'MaxMarks'] > 0) 
+                    {
+                        return $result[$type . 'MaxMarks'];
+                    }
+                    
+                    return null;
+                }
             } 
             else 
             {
@@ -103,6 +142,8 @@ else
             {
                 try 
                 {
+                    $dbh->beginTransaction();
+                    
                     $examID = $_SESSION['examName'];
             
                     foreach ($students as $student) 
@@ -119,27 +160,80 @@ else
                             $vivaMaxMarks = isset($_POST['vivaMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['vivaMaxMarks'][$student['ID']][$subject['ID']] : '';
                             $vivaMarksObtained = isset($_POST['vivaMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['vivaMarksObtained'][$student['ID']][$subject['ID']] : '';
 
-                            // Check for existing entry
+                            // Check for existing entry in tblreports
                             $checkExistingSql = "SELECT ExamSession, ClassName, ExamName, StudentName, Subjects FROM tblreports 
-                            WHERE ExamSession = :sessionID 
-                            AND ClassName = :classID 
-                            AND ExamName = :examID 
-                            AND StudentName = :studentID 
-                            AND Subjects = :subjectID
-                            AND IsDeleted = 0";
-
+                                                    WHERE ExamSession = :sessionID 
+                                                    AND ClassName = :classID 
+                                                    AND ExamName = :examID 
+                                                    AND StudentName = :studentID 
+                                                    AND Subjects = :subjectID
+                                                    AND IsDeleted = 0";
                             $checkExistingQuery = $dbh->prepare($checkExistingSql);
                             $checkExistingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-
                             $checkExistingQuery->execute();
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
+
+                            // Check for existing entry in tblmaxmarks
+                            $checkExistingMaxSql = "SELECT SessionID, ClassID, ExamID, SubjectID FROM tblmaxmarks 
+                                                    WHERE SessionID = :sessionID 
+                                                    AND ClassID = :classID 
+                                                    AND ExamID = :examID 
+                                                    AND SubjectID = :subjectID
+                                                    AND IsDeleted = 0";
+                            $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
+                            $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            $checkExistingMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                            $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                            $checkExistingMaxQuery->execute();
+                            $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
+
+                            if(!$existingMaxReportDetails)
+                            {
+                                $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, ExamID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks)
+                                            VALUES (:sessionID, :classID, :examID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks)";
+            
+                                $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
+                                $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);            
+                                $insertAdminMaxQuery->execute();
+                            }
+                            else
+                            {
+                                 // If an existing entry is found in tblmaxmarks, update the data
+                                $updateAdminSql = "UPDATE tblmaxmarks SET 
+                                                TheoryMaxMarks = :theoryMaxMarks, 
+                                                PracticalMaxMarks = :practicalMaxMarks, 
+                                                VivaMaxMarks = :vivaMaxMarks
+                                                WHERE SessionID = :sessionID 
+                                                AND ClassID = :classID 
+                                                AND ExamID = :examID 
+                                                AND SubjectID = :subjectID 
+                                                AND IsDeleted = 0";
+                            
+                                $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
+                                $updateAdminMaxQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                $updateAdminMaxQuery->execute();
+                            }
             
                             // If the student is not in tblreports, insert the student
-                            if (!$existingReportDetails) {
+                            if (!$existingReportDetails) 
+                            {
                                 $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, StudentName, Subjects, TheoryMaxMarks, TheoryMarksObtained, PracticalMaxMarks, PracticalMarksObtained, VivaMaxMarks, VivaMarksObtained)
                                             VALUES (:sessionID, :classID, :examID, :studentID, :subjectID, :theoryMaxMarks, :theoryMarksObtained, :practicalMaxMarks, :practicalMarksObtained, :vivaMaxMarks, :vivaMarksObtained)";
             
@@ -187,16 +281,18 @@ else
                                 $updateQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                                 $updateQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                                 $updateQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                
                                 $updateQuery->execute();
+
+                                
                             }
                         }
                     }
-            
+                    $dbh->commit();
                     echo '<script>alert("Marks assigned successfully.")</script>';
                 } 
                 catch (PDOException $e) 
                 {
+                    $dbh->rollBack();
                     echo '<script>alert("Ops! An error occurred.'.$e->getMessage().'")</script>';
                 }
             }
@@ -225,6 +321,7 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="../css/remove-spinner.css"/>
     
 </head>
 <body>
@@ -251,7 +348,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <?php
-                                if($publishedResult)
+                                if($publish)
                                 {
                             ?>
                             <div class="card-body">
@@ -269,6 +366,12 @@ else
                                 <form class="forms-sample" method="post">
                                     
                                     <div class="table-responsive">
+                                        <?php 
+                                            if ($publishedResult) 
+                                            {
+                                                echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
+                                            }
+                                        ?>
                                         <table class="table text-center table-bordered">
                                                 <tr>
                                                     <th rowspan="3">Student Name</th>
@@ -301,89 +404,78 @@ else
                                                     <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
                                                     <?php foreach ($subjects as $subject) 
                                                     { 
-                                                        // Check if marks exist in tblreports for the student, exam, and subject type
-                                                                $checkMarksSql = "SELECT * FROM tblreports 
-                                                                WHERE ExamSession = :sessionID 
-                                                                AND ClassName = :classID 
-                                                                AND ExamName = :examID 
-                                                                AND StudentName = :studentID 
-                                                                AND Subjects = :subjectID
-                                                                AND IsDeleted = 0";
+                                                            // Check if marks exist in tblreports for the student, exam, and subject type
+                                                            $checkMarksSql = "SELECT * FROM tblreports 
+                                                                                WHERE ExamSession = :sessionID 
+                                                                                AND ClassName = :classID 
+                                                                                AND ExamName = :examID 
+                                                                                AND StudentName = :studentID 
+                                                                                AND Subjects = :subjectID
+                                                                                AND IsDeleted = 0";
+                                                            $checkMarksQuery = $dbh->prepare($checkMarksSql);
+                                                            $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                                            $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                                                            $checkMarksQuery->bindParam(':examID', $_SESSION['examName'], PDO::PARAM_INT);
+                                                            $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                                                            $checkMarksQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                                            $checkMarksQuery->execute();
+                                                            $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                            // Display marks obtained if they exist; otherwise, display an empty field
+                                                            $theoryMarksObtained = ($marksData && isset($marksData['TheoryMarksObtained'])) ? $marksData['TheoryMarksObtained'] : '';
+                                                            $practicalMarksObtained = ($marksData && isset($marksData['PracticalMarksObtained'])) ? $marksData['PracticalMarksObtained'] : '';
+                                                            $vivaMarksObtained = ($marksData && isset($marksData['VivaMarksObtained'])) ? $marksData['VivaMarksObtained'] : '';
+
+                                                            // Storing max marks that admin gives, in variables.
+                                                            $adminTheoryMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Theory');
+                                                            $adminPracticalMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Practical');
+                                                            $adminVivaMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Viva');
                                                             
-                                                        $checkMarksQuery = $dbh->prepare($checkMarksSql);
-                                                        $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                                        $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                                        $checkMarksQuery->bindParam(':examID', $_SESSION['examName'], PDO::PARAM_INT);
-                                                        $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                                                        $checkMarksQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-
-                                                        $checkMarksQuery->execute();
-                                                        $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
-
-                                                        // Display marks obtained if they exist; otherwise, display an empty field
-                                                        $theoryMarksObtained = ($marksData && isset($marksData['TheoryMarksObtained'])) ? $marksData['TheoryMarksObtained'] : '';
-                                                        $practicalMarksObtained = ($marksData && isset($marksData['PracticalMarksObtained'])) ? $marksData['PracticalMarksObtained'] : '';
-                                                        $vivaMarksObtained = ($marksData && isset($marksData['VivaMarksObtained'])) ? $marksData['VivaMarksObtained'] : '';
-
-                                                            $theoryMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Theory');
-                                                            $practicalMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Practical');
-                                                            $vivaMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Viva');
+                                                            // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
+                                                            $theoryMaxMarksToShow = (isSubjectType('theory', $subject) && $adminTheoryMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Theory') : $adminTheoryMaxMarks;
+                                                            $practicalMaxMarksToShow = (isSubjectType('practical', $subject) && $practicalMarksObtained === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Practical') : $adminPracticalMaxMarks;
+                                                            $vivaMaxMarksToShow = (isSubjectType('viva', $subject) && $vivaMarksObtained === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Viva') : $adminVivaMaxMarks;
+                                                            
+                                                            // Disable the input fields if the condition matches. 
+                                                            $disabledTheory = (!isSubjectType('theory', $subject) || $publishedResult) ? 'disabled' : ''; 
+                                                            $disabledPractical = (!isSubjectType('practical', $subject) || $publishedResult) ? 'disabled' : ''; 
+                                                            $disabledViva = (!isSubjectType('viva', $subject) || $publishedResult) ? 'disabled' : ''; 
                                                         ?>
-                                                            <?php if ($theoryMaxMarks !== null || $practicalMaxMarks !== null || $vivaMaxMarks !== null) 
-                                                            { ?>
+                                                            <?php if ($theoryMaxMarksToShow !== null || $practicalMaxMarksToShow !== null || $vivaMaxMarksToShow !== null) 
+                                                            { 
+                                                        ?>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>
-                                                                        <?php echo (isSubjectType('theory', $subject)) ? 'value="' . $theoryMaxMarks . '"' : ''; ?>>
+                                                                        <?php echo $disabledTheory; ?>
+                                                                        value="<?php echo $theoryMaxMarksToShow; ?>"
+                                                                        >
                                                                 </td>
                                                                 <td>
-                                                                    <?php if (isSubjectType('theory', $subject)) 
-                                                                    { ?>
                                                                         <input type='number' class='border border-secondary' name="theoryMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                            <?php echo $disabledTheory; ?>
                                                                             value="<?php echo $theoryMarksObtained; ?>">
-                                                                    <?php 
-                                                                    } 
-                                                                    else 
-                                                                    { ?>
-                                                                        <input type='number' class='border border-secondary' name="theoryMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" disabled>
-                                                                    <?php 
-                                                                    } ?>
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="practicalMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>
-                                                                        <?php echo (isSubjectType('practical', $subject)) ? 'value="' . $practicalMaxMarks . '"' : ''; ?>>
+                                                                        <?php echo $disabledPractical; ?>
+                                                                        value="<?php echo $practicalMaxMarksToShow; ?>"
+                                                                        >
                                                                 </td>
                                                                 <td>
-                                                                    <?php if (isSubjectType('practical', $subject)) 
-                                                                    { ?>
                                                                         <input type='number' class='border border-secondary' name="practicalMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                            <?php echo $disabledPractical; ?>
                                                                             value="<?php echo $practicalMarksObtained; ?>">
-                                                                    <?php 
-                                                                    } 
-                                                                    else 
-                                                                    { ?>
-                                                                        <input type='number' class='border border-secondary' name="practicalMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" disabled>
-                                                                    <?php 
-                                                                    } ?>
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="vivaMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>
-                                                                        <?php echo (isSubjectType('viva', $subject)) ? 'value="' . $vivaMaxMarks . '"' : ''; ?>>
+                                                                        <?php echo $disabledViva; ?>
+                                                                        value="<?php echo $vivaMaxMarksToShow; ?>"
+                                                                        >
                                                                 </td>
                                                                 <td>
-                                                                    <?php if (isSubjectType('viva', $subject)) 
-                                                                    { ?>
                                                                         <input type='number' class='border border-secondary' name="vivaMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                            <?php echo $disabledViva; ?>
                                                                             value="<?php echo $vivaMarksObtained; ?>">
-                                                                    <?php 
-                                                                    } 
-                                                                    else 
-                                                                    { ?>
-                                                                        <input type='number' class='border border-secondary' name="vivaMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" disabled>
-                                                                    <?php 
-                                                                    } ?>
                                                                 </td>
                                                             <?php 
                                                             } 
@@ -392,34 +484,34 @@ else
                                                             ?>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>
+                                                                            <?php echo $disabledTheory; ?>
                                                                             >
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="theoryMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('theory', $subject)) ? '' : 'disabled'; ?>
+                                                                        <?php echo $disabledTheory; ?>
                                                                         value="<?php echo $theoryMarksObtained; ?>"
                                                                         >
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="practicalMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>
+                                                                        <?php echo $disabledPractical; ?>
                                                                         >
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="practicalMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('practical', $subject)) ? '' : 'disabled'; ?>
+                                                                        <?php echo $disabledPractical; ?>
                                                                         value="<?php echo $practicalMarksObtained; ?>"
                                                                         >
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="vivaMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>
+                                                                        <?php echo $disabledViva; ?>
                                                                         >
                                                                 </td>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="vivaMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo (isSubjectType('viva', $subject)) ? '' : 'disabled'; ?>
+                                                                        <?php echo $disabledViva ?>
                                                                         value="<?php echo $vivaMarksObtained; ?>"
                                                                         >
                                                                 </td>
@@ -434,7 +526,11 @@ else
                                         </table>
                                     </div>
                                     <div class="pt-3">
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Assign Marks</button>
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit" 
+                                            <?php echo ($publishedResult) ? 'disabled' : ''; ?>
+                                        >
+                                            Assign Marks
+                                        </button>
                                     </div>
                                 </form>
                             </div>

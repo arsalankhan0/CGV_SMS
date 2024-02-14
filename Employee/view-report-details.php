@@ -37,6 +37,13 @@ else
             $queryStudentClass->execute();
             $studentClass = $queryStudentClass->fetch(PDO::FETCH_ASSOC);
 
+            // Fetch subjects assigned to the teacher from tblemployees
+            $sqlAssignedSubjects = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :employeeID AND IsDeleted = 0";
+            $queryAssignedSubjects = $dbh->prepare($sqlAssignedSubjects);
+            $queryAssignedSubjects->bindParam(':employeeID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
+            $queryAssignedSubjects->execute();
+            $assignedSubjects = $queryAssignedSubjects->fetch(PDO::FETCH_ASSOC);
+
             try 
             {
                 // Fetch data from the database for the selected student, class, and exam
@@ -45,12 +52,19 @@ else
                 $examName = $_GET['examName'];
                 $studentName = $_GET['studentName'];
 
-                $sqlReports = "SELECT * FROM tblreports WHERE ExamSession = :examSession AND ClassName = :className AND ExamName = :examName AND StudentName = :studentName AND IsDeleted = 0";
+                $sqlReports = "SELECT * FROM tblreports 
+                                WHERE ExamSession = :examSession 
+                                AND ClassName = :className 
+                                AND ExamName = :examName 
+                                AND StudentName = :studentName 
+                                AND FIND_IN_SET(Subjects, :assignedSubjects)
+                                AND IsDeleted = 0";
                 $stmtReports = $dbh->prepare($sqlReports);
                 $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                 $stmtReports->bindParam(':className', $className, PDO::PARAM_INT);
                 $stmtReports->bindParam(':examName', $examName, PDO::PARAM_STR);
                 $stmtReports->bindParam(':studentName', $studentName, PDO::PARAM_INT);
+                $stmtReports->bindParam(':assignedSubjects', $assignedSubjects['AssignedSubjects'], PDO::PARAM_STR);
                 $stmtReports->execute();
                 $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
@@ -98,13 +112,6 @@ else
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
             $employeeID = $_SESSION['sturecmsEMPid'];
-            
-            // Fetch subjects assigned to the teacher from tblemployees
-            $sqlAssignedSubjects = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :employeeID AND IsDeleted = 0";
-            $queryAssignedSubjects = $dbh->prepare($sqlAssignedSubjects);
-            $queryAssignedSubjects->bindParam(':employeeID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
-            $queryAssignedSubjects->execute();
-            $assignedSubjects = $queryAssignedSubjects->fetch(PDO::FETCH_ASSOC);
             
             // Fetch only the assigned subjects from tblsubjects
             $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . $assignedSubjects['AssignedSubjects'] . ") AND IsDeleted = 0";
@@ -269,9 +276,6 @@ else
                                                     }
                                                     ?>
                                                 </div>
-                                                <div class="d-flex justify-content-center mb-3">
-                                                    <button class="btn btn-success" id="print-btn" type="button">Print</button>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -301,7 +305,6 @@ else
                     <script src="js/typeahead.js"></script>
                     <script src="js/select2.js"></script>
                     <script src="./js/resultGeneration.js"></script>
-                    <script src="./js/printReportCard.js"></script>
                     <!-- End custom js for this page -->
                 </body>
                 </html>

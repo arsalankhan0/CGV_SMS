@@ -3,9 +3,12 @@ session_start();
 // error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) {
+if (strlen($_SESSION['sturecmsaid']) == 0) 
+{
     header('location:logout.php');
-} else {
+} 
+else 
+{
     $eid = $_GET['editid'];
     $examid = $_GET['examid'];
 
@@ -18,9 +21,17 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
     $insertFlag = true;
 
     try {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if (isset($_POST['submit'])) {
-                foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') 
+        {
+            if (isset($_POST['submit'])) 
+            {
+                foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) 
+                {
+                    // Set default values for disabled fields
+                    $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
+                    $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
+                    $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
+
                     // Check if the entry already exists
                     $checkDuplicateSql = "SELECT * FROM tblmaxmarks WHERE ClassID = :classID AND ExamID = :examID AND SessionID = :sessionID AND SubjectID = :subjectID";
                     $checkDuplicateQuery = $dbh->prepare($checkDuplicateSql);
@@ -33,9 +44,28 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                     if ($checkDuplicateQuery->rowCount() > 0) 
                     {
                         $insertFlag = false;
-                        echo "<script>alert('Duplicate entry found');</script>";
-                        break;
+                        $updateMaxMarksSql = "UPDATE tblmaxmarks 
+                                                SET TheoryMaxMarks = :theoryMaxMarks, 
+                                                    PracticalMaxMarks = :practicalMaxMarks, 
+                                                    VivaMaxMarks = :vivaMaxMarks 
+                                                WHERE ClassID = :classID 
+                                                AND ExamID = :examID 
+                                                AND SessionID = :sessionID 
+                                                AND SubjectID = :subjectID";
+                        $updateMaxMarksQuery = $dbh->prepare($updateMaxMarksSql);
+                        $updateMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->execute();
                     }
+                }
+                if (!$insertFlag) 
+                {
+                    echo "<script>alert('Added Successfully');</script>";
                 }
 
                 if ($insertFlag) 
@@ -57,17 +87,13 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                         $insertMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
-
-                        // Set default values for disabled fields
-                        $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
-                        $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
-                        $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
-
                         $insertMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
-
                         $insertMaxMarksQuery->execute();
+
+
+
                     }
 
                     echo "<script>alert('Added Successfully');</script>";
@@ -93,8 +119,8 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
     } 
     catch (PDOException $e) 
     {
-        echo "<script>alert('Ops! Something went wrong.');</script>";
-        echo $e->getMessage();
+        echo "<script>alert('Ops! Something went wrong.".$e->getMessage()."');</script>";
+        // echo $e->getMessage();
     }
 ?>
 
@@ -115,6 +141,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/remove-spinner.css" />
 </head>
 <body>
 <div class="container-scroller">
@@ -184,10 +211,32 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         $disabledTheory = (!in_array('theory', $subjectTypes) || $published) ? 'disabled' : '';
                                                         $disabledPractical = (!in_array('practical', $subjectTypes) || $published) ? 'disabled' : '';
                                                         $disabledViva = (!in_array('viva', $subjectTypes) || $published) ? 'disabled' : '';
+
+
+                                                        // Fetch existing record from tblmaxmarks
+                                                        $getMaxMarksSql = "SELECT TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks 
+                                                                            FROM tblmaxmarks 
+                                                                            WHERE ClassID = :classID 
+                                                                            AND ExamID = :examID 
+                                                                            AND SessionID = :sessionID 
+                                                                            AND SubjectID = :subjectID";
+                                                        $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
+                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->execute();
+                                                        $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                        $theoryMaxMarks = ($maxMarksData) ? $maxMarksData['TheoryMaxMarks'] : 0;
+                                                        $practicalMaxMarks = ($maxMarksData) ? $maxMarksData['PracticalMaxMarks'] : 0;
+                                                        $vivaMaxMarks = ($maxMarksData) ? $maxMarksData['VivaMaxMarks'] : 0;
+
                                                         ?>
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 name="theory[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $theoryMaxMarks; ?>"
                                                                 <?php echo $disabledTheory;
                                                                 ?>
                                                                 >
@@ -195,6 +244,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 name="practical[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $practicalMaxMarks; ?>"
                                                                 <?php echo $disabledPractical; 
                                                                 ?>
                                                                 >
@@ -202,6 +252,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 name="viva[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $vivaMaxMarks; ?>"
                                                                 <?php echo $disabledViva; 
                                                                 ?>
                                                                 >
