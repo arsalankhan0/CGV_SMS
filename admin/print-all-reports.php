@@ -34,24 +34,6 @@ else
         $vivaMaxMarksTotal = 0;
         $vivaObtMarksTotal = 0;
 
-        foreach ($allReports as $report) 
-        {
-            // Adding individual subject marks
-            $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
-            $theoryObtMarksTotal += $report['TheoryMarksObtained'];
-            $pracMaxMarksTotal += $report['PracticalMaxMarks'];
-            $pracObtMarksTotal += $report['PracticalMarksObtained'];
-            $vivaMaxMarksTotal += $report['VivaMaxMarks'];
-            $vivaObtMarksTotal += $report['VivaMarksObtained'];
-        }
-
-        // Calculate grand total and total max marks
-        $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
-        $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
-
-        // Calculate percentage
-        $percentage = ($grandTotal / $totalMaxMarks) * 100;
-
         if (!$allReports) 
         {
             echo "<script>alert('No data found for the selected criteria.');</script>";
@@ -70,24 +52,35 @@ else
 </head>
 <body>
     <div class="container-scroller">
-        <div class="container-fluid page-body-wrapper">
+        <div class="container-fluid page-body-wrapper d-flex flex-column">
             <?php
-            foreach ($allReports as $report) 
-            {
-                // Fetch student details
-                $studentDetailsSql = "SELECT * FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
-                $studentDetailsQuery->bindParam(':studentID', $report['StudentName'], PDO::PARAM_INT);
-                $studentDetailsQuery->execute();
-                $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
+                $groupedReports = [];
 
-                // Fetch Class Details
-                $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
-                $studentClassQuery = $dbh->prepare($studentClassSql);
-                $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
-                $studentClassQuery->execute();
-                $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
+                foreach ($allReports as $report) {
+                    // Assuming StudentName is the key to group by
+                    $studentName = $report['StudentName'];
 
+                    if (!isset($groupedReports[$studentName])) {
+                        $groupedReports[$studentName] = [];
+                    }
+
+                    $groupedReports[$studentName][] = $report;
+                }
+
+                foreach ($groupedReports as $studentName => $studentReports) {
+                    // Fetch student details
+                    $studentDetailsSql = "SELECT * FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                    $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
+                    $studentDetailsQuery->bindParam(':studentID', $studentReports[0]['StudentName'], PDO::PARAM_INT);
+                    $studentDetailsQuery->execute();
+                    $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
+
+                    // Fetch Class Details
+                    $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
+                    $studentClassQuery = $dbh->prepare($studentClassSql);
+                    $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
+                    $studentClassQuery->execute();
+                    $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
             ?>
                 <div class="card">
                     <div class="card-body" id="report-card">
@@ -104,6 +97,7 @@ else
                                         echo htmlentities($exam['ExamName']);
                                     }
                                     ?>
+                            </strong>
                         </h4>
 
                         <div class="d-flex flex-column">
@@ -148,12 +142,33 @@ else
                                 </thead>
                                 <tbody>
                                     <?php
+                                    foreach ($studentReports as $report) 
+                                    {
+                                        
                                     $subjectID = $report['Subjects'];
                                     $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
                                     $querySubjectsName = $dbh->prepare($sqlSubjectsName);
                                     $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
                                     $querySubjectsName->execute();
                                     $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
+
+                                    // Adding individual subject marks
+                                    $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
+                                    $theoryObtMarksTotal += $report['TheoryMarksObtained'];
+                                    $pracMaxMarksTotal += $report['PracticalMaxMarks'];
+                                    $pracObtMarksTotal += $report['PracticalMarksObtained'];
+                                    $vivaMaxMarksTotal += $report['VivaMaxMarks'];
+                                    $vivaObtMarksTotal += $report['VivaMarksObtained'];
+                            
+                                    // Calculate grand total and total max marks
+                                    $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
+                                    $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
+                                    
+                                    // Calculate percentage
+                                    $percentage = ($grandTotal / $totalMaxMarks) * 100;
+                                    
+                                    
+                                    
                                     ?>
                                     <tr>
                                         <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
@@ -162,9 +177,10 @@ else
                                         <td><?php echo htmlentities($report['PracticalMaxMarks']); ?></td>
                                         <td><?php echo htmlentities($report['PracticalMarksObtained']); ?></td>
                                         <td><?php echo htmlentities($report['VivaMaxMarks']); ?></td>
-                                        <td><?php echo htmlentities($report['VivaMarksObtained']); ?></td>
+                                        <td><?php echo htmlentities($report['VivaMarksObtained']); ?></td> 
                                     </tr>
                                     <?php
+                                    }
                                     ?>
                                     <tr class=" table-secondary">
                                         <td class="font-weight-bold">TOTAL</td>

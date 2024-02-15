@@ -93,7 +93,7 @@ else
                                             <th class="font-weight-bold">S.No</th>
                                             <th class="font-weight-bold">Session Name</th>
                                             <th class="font-weight-bold">Status</th>
-                                            <th class="font-weight-bold">Action</th>
+                                            <!-- <th class="font-weight-bold">Action</th> -->
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -139,11 +139,11 @@ else
                                                         }
                                                         ?>
                                                     </td>
-                                                    <td>
+                                                    <!-- <td>
                                                         <a href="manage-session.php?delid=<?php echo ($row->session_id); ?>"
                                                             onclick="return confirm('Do you really want to Delete ?');">
                                                             <i class="icon-trash"></i></a></div>
-                                                    </td>
+                                                    </td> -->
                                                 </tr>
                                                 <?php $cnt = $cnt + 1;
                                             }

@@ -119,7 +119,7 @@ else
                                             </select>
                                         </div>
                                     </div>
-                                    <button type="submit" name="filter" class="btn btn-primary">Filter</button>
+                                    <button type="submit" name="filter" class="btn btn-primary">Search</button>
                                 </form>
                                 
                                 <?php
@@ -156,7 +156,6 @@ else
                                     $querySelectedExamName->execute();
                                     $filteredExamName = $querySelectedExamName->fetch(PDO::FETCH_ASSOC);
                                     
-
                                     
                                     if (!empty($filteredReports)) 
                                     {

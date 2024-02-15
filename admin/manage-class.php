@@ -31,11 +31,12 @@ else
               <input type="hidden" name="confirmDelete" value="1">
             </form>
             <script>
-              if (confirm("There are associated records with this class. Are you sure you want to delete it?")) 
-              {
-                  document.getElementById("deleteForm").submit();
-              }
-            </script>';
+              // if (confirm("There are associated records with this class. Are you sure you want to delete it?")) 
+              // {
+              //     document.getElementById("deleteForm").submit();
+              // }
+              alert("There are associated records with this class. Please remove the class from associated record first to delete this class");
+              </script>';
 
     } 
     else 

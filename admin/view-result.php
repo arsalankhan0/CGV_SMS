@@ -90,6 +90,7 @@ else
                                                 }
                                                 ?>
                                             </select>
+                                            
                                         </div>
 
                                         <!-- Select Class -->
@@ -132,7 +133,7 @@ else
                                             </select>
                                         </div>
                                     </div>
-                                    <button type="submit" name="filter" class="btn btn-primary">Filter</button>
+                                    <button type="submit" name="filter" class="btn btn-primary">Search</button>
                                 </form>
                                     <?php
                                     if (isset($_POST['filter'])) 
@@ -160,6 +161,7 @@ else
                                         $sqlSelectedExamName = "SELECT * FROM tblexamination WHERE ID = :selectedExamID AND IsDeleted = 0";
                                         $querySelectedExamName = $dbh->prepare($sqlSelectedExamName);
                                         $querySelectedExamName->bindParam(':selectedExamID', $selectedExamID, PDO::PARAM_STR);
+                                        // $querySelectedExamName->bindParam(':sessionID', , PDO::PARAM_STR);
                                         $querySelectedExamName->execute();
                                         $filteredExamName = $querySelectedExamName->fetch(PDO::FETCH_ASSOC);
 
@@ -170,9 +172,19 @@ else
                                         $querySelectedSessionName->execute();
                                         $filteredSessionName = $querySelectedSessionName->fetch(PDO::FETCH_ASSOC);
                                         
-
+                                        // Check if Result is published
+                                        $checkResultPublishedSql = "SELECT IsResultPublished, session_id FROM tblexamination 
+                                                                            WHERE ID = :selectedExamID 
+                                                                            AND IsResultPublished = 1
+                                                                            AND session_id = :selectedSession
+                                                                            AND IsDeleted = 0";
+                                        $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+                                        $checkResultPublishedQuery->bindParam(':selectedExamID', $selectedExamID, PDO::PARAM_STR);
+                                        $checkResultPublishedQuery->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
+                                        $checkResultPublishedQuery->execute();
+                                        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
                                         
-                                        if (!empty($filteredReports)) 
+                                        if (!empty($filteredReports) && $publishedResult) 
                                         {
                                             // Display message indicating the filtered results
                                             echo "<div class='d-flex justify-content-between align-items-center'>";
@@ -221,7 +233,7 @@ else
                                         else 
                                         {
                                             // Display message indicating the filtered results
-                                            echo "<strong>No results found for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-danger'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span> and <span class='text-danger'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
+                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-danger'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span> and <span class='text-danger'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
                                         }
                                     }
                                     ?>
