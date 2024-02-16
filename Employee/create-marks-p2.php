@@ -365,13 +365,13 @@ else
 
                                 <form class="forms-sample" method="post">
                                     
-                                    <div class="table-responsive">
                                         <?php 
                                             if ($publishedResult) 
                                             {
                                                 echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
                                             }
                                         ?>
+                                    <div class="table-responsive">
                                         <table class="table text-center table-bordered">
                                                 <tr>
                                                     <th rowspan="3">Student Name</th>

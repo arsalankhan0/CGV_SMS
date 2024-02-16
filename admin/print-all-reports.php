@@ -26,13 +26,7 @@ else
         $stmtReports->execute();
         $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
-        // Initialize variables for totals
-        $theoryMaxMarksTotal = 0;
-        $theoryObtMarksTotal = 0;
-        $pracMaxMarksTotal = 0;
-        $pracObtMarksTotal = 0;
-        $vivaMaxMarksTotal = 0;
-        $vivaObtMarksTotal = 0;
+        
 
         if (!$allReports) 
         {
@@ -56,7 +50,10 @@ else
             <?php
                 $groupedReports = [];
 
-                foreach ($allReports as $report) {
+                foreach ($allReports as $report) 
+                {
+
+
                     // Assuming StudentName is the key to group by
                     $studentName = $report['StudentName'];
 
@@ -142,33 +139,39 @@ else
                                 </thead>
                                 <tbody>
                                     <?php
+                                    
+                                    // Initialize variables for totals
+                                    $theoryMaxMarksTotal = 0;
+                                    $theoryObtMarksTotal = 0;
+                                    $pracMaxMarksTotal = 0;
+                                    $pracObtMarksTotal = 0;
+                                    $vivaMaxMarksTotal = 0;
+                                    $vivaObtMarksTotal = 0;
+
                                     foreach ($studentReports as $report) 
                                     {
-                                        
-                                    $subjectID = $report['Subjects'];
-                                    $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
-                                    $querySubjectsName = $dbh->prepare($sqlSubjectsName);
-                                    $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
-                                    $querySubjectsName->execute();
-                                    $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
+                                        $subjectID = $report['Subjects'];
+                                        $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
+                                        $querySubjectsName = $dbh->prepare($sqlSubjectsName);
+                                        $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                                        $querySubjectsName->execute();
+                                        $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
 
-                                    // Adding individual subject marks
-                                    $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
-                                    $theoryObtMarksTotal += $report['TheoryMarksObtained'];
-                                    $pracMaxMarksTotal += $report['PracticalMaxMarks'];
-                                    $pracObtMarksTotal += $report['PracticalMarksObtained'];
-                                    $vivaMaxMarksTotal += $report['VivaMaxMarks'];
-                                    $vivaObtMarksTotal += $report['VivaMarksObtained'];
-                            
-                                    // Calculate grand total and total max marks
-                                    $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
-                                    $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
-                                    
-                                    // Calculate percentage
-                                    $percentage = ($grandTotal / $totalMaxMarks) * 100;
-                                    
-                                    
-                                    
+                                        // Adding individual subject marks
+                                        $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
+                                        $theoryObtMarksTotal += $report['TheoryMarksObtained'];
+                                        $pracMaxMarksTotal += $report['PracticalMaxMarks'];
+                                        $pracObtMarksTotal += $report['PracticalMarksObtained'];
+                                        $vivaMaxMarksTotal += $report['VivaMaxMarks'];
+                                        $vivaObtMarksTotal += $report['VivaMarksObtained'];
+                                
+                                        // Calculate grand total and total max marks
+                                        $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
+                                        $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
+                                        
+                                        // Calculate percentage
+                                        $percentage = ($grandTotal / $totalMaxMarks) * 100;
+                                        
                                     ?>
                                     <tr>
                                         <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
