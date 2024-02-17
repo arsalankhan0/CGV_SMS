@@ -64,7 +64,8 @@ else
                     $groupedReports[$studentName][] = $report;
                 }
 
-                foreach ($groupedReports as $studentName => $studentReports) {
+                foreach ($groupedReports as $studentName => $studentReports) 
+                {
                     // Fetch student details
                     $studentDetailsSql = "SELECT * FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                     $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
@@ -139,7 +140,9 @@ else
                                 </thead>
                                 <tbody>
                                     <?php
-                                    
+                                    // A flag to check if the student has passed in all subjects
+                                    $allSubjectsPassed = true;
+
                                     // Initialize variables for totals
                                     $theoryMaxMarksTotal = 0;
                                     $theoryObtMarksTotal = 0;
@@ -171,6 +174,12 @@ else
                                         
                                         // Calculate percentage
                                         $percentage = ($grandTotal / $totalMaxMarks) * 100;
+
+                                        // Check if the student has passed in this subject
+                                        if ($report['IsPassed'] != 1) 
+                                        {
+                                            $allSubjectsPassed = false;
+                                        }
                                         
                                     ?>
                                     <tr>
@@ -184,6 +193,8 @@ else
                                     </tr>
                                     <?php
                                     }
+                                    // Set $resultText based on the overall result
+                                    $resultText = $allSubjectsPassed ? "<span class='text-success font-weight-bold'>PASS</span>" : "<span class='text-danger font-weight-bold'>FAIL</span>";
                                     ?>
                                     <tr class=" table-secondary">
                                         <td class="font-weight-bold">TOTAL</td>
@@ -200,12 +211,14 @@ else
                                         <td class="font-weight-bold">TOTAL MAX MARKS</td>
                                         <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
                                         <td class="font-weight-bold">PERCENTAGE</td>
+                                        <td class="font-weight-bold" colspan="2">RESULT</td>
                                     </tr>
                                     <tr class=" table-secondary">
                                         <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
                                         <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
                                         <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
                                         <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
+                                        <td id="result" colspan="2"><?php echo $resultText; ?></td>
                                     </tr>
                                 </tbody>
                             </table>

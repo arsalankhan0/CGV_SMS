@@ -54,15 +54,6 @@ else
                             $selectedClassIds[] = $classId;
                         }
                     }
-                    // // Insert subject with comma-separated class IDs and active session ID
-                    // $cName = implode(",", $selectedClassIds);
-                    // $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID) VALUES (:subjectName, :cName, :sessionID)";
-                    // $query = $dbh->prepare($sql);
-                    // $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                    // $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    // $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                    // $query->execute();
-                    // $LastInsertId = $dbh->lastInsertId();
 
                     // Fetch selected subject types
                     $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];

@@ -31,6 +31,7 @@ else
                     $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
                     $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
                     $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
+                    $passMarks = $_POST['passMarks'][$subjectId];
 
                     // Check if the entry already exists
                     $checkDuplicateSql = "SELECT * FROM tblmaxmarks WHERE ClassID = :classID AND ExamID = :examID AND SessionID = :sessionID AND SubjectID = :subjectID";
@@ -47,7 +48,8 @@ else
                         $updateMaxMarksSql = "UPDATE tblmaxmarks 
                                                 SET TheoryMaxMarks = :theoryMaxMarks, 
                                                     PracticalMaxMarks = :practicalMaxMarks, 
-                                                    VivaMaxMarks = :vivaMaxMarks 
+                                                    VivaMaxMarks = :vivaMaxMarks,
+                                                    PassingPercentage = :passPercent
                                                 WHERE ClassID = :classID 
                                                 AND ExamID = :examID 
                                                 AND SessionID = :sessionID 
@@ -60,6 +62,7 @@ else
                         $updateMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
                         $updateMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
                         $updateMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':passPercent', $passMarks, PDO::PARAM_INT);
                         $updateMaxMarksQuery->execute();
                     }
                 }
@@ -80,8 +83,8 @@ else
                         $subjectDetails = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
 
                         // Insert into tblmaxmarks table
-                        $insertMaxMarksSql = "INSERT INTO tblmaxmarks (ClassID, ExamID, SessionID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks) 
-                                        VALUES (:classID, :examID, :sessionID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks)";
+                        $insertMaxMarksSql = "INSERT INTO tblmaxmarks (ClassID, ExamID, SessionID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage) 
+                                        VALUES (:classID, :examID, :sessionID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks, :passPercent)";
                         $insertMaxMarksQuery = $dbh->prepare($insertMaxMarksSql);
                         $insertMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
@@ -90,6 +93,7 @@ else
                         $insertMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':passPercent', $passMarks, PDO::PARAM_INT);
                         $insertMaxMarksQuery->execute();
 
 
@@ -190,6 +194,7 @@ else
                                                     <th class="font-weight-bold">Max Marks (Theory)</th>
                                                     <th class="font-weight-bold">Max Marks (Practical)</th>
                                                     <th class="font-weight-bold">Max Marks (Viva)</th>
+                                                    <th class="font-weight-bold">Pass Marks (%)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -211,10 +216,20 @@ else
                                                         $disabledTheory = (!in_array('theory', $subjectTypes) || $published) ? 'disabled' : '';
                                                         $disabledPractical = (!in_array('practical', $subjectTypes) || $published) ? 'disabled' : '';
                                                         $disabledViva = (!in_array('viva', $subjectTypes) || $published) ? 'disabled' : '';
+                                                        $disabledPassMarks = ($published) ? 'disabled' : '';
+
+                                                        // Fetch the Default Passing Marks
+                                                        $passPercentID = 1; 
+                                                        $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent
+                                                                                WHERE ID = :id";
+                                                        $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
+                                                        $defaultPassMarksQuery->bindParam(':id', $passPercentID, PDO::PARAM_INT);
+                                                        $defaultPassMarksQuery->execute();
+                                                        $defaultPassMarks = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
 
 
                                                         // Fetch existing record from tblmaxmarks
-                                                        $getMaxMarksSql = "SELECT TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks 
+                                                        $getMaxMarksSql = "SELECT TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage 
                                                                             FROM tblmaxmarks 
                                                                             WHERE ClassID = :classID 
                                                                             AND ExamID = :examID 
@@ -231,6 +246,7 @@ else
                                                         $theoryMaxMarks = ($maxMarksData) ? $maxMarksData['TheoryMaxMarks'] : 0;
                                                         $practicalMaxMarks = ($maxMarksData) ? $maxMarksData['PracticalMaxMarks'] : 0;
                                                         $vivaMaxMarks = ($maxMarksData) ? $maxMarksData['VivaMaxMarks'] : 0;
+                                                        $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
 
                                                         ?>
                                                         <td>
@@ -255,6 +271,13 @@ else
                                                                 value="<?php echo $vivaMaxMarks; ?>"
                                                                 <?php echo $disabledViva; 
                                                                 ?>
+                                                                >
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
+                                                                name="passMarks[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $passingPercent;?>"
+                                                                <?php echo $disabledPassMarks;?>
                                                                 >
                                                         </td>
                                                     </tr>

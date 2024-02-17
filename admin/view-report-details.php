@@ -204,6 +204,9 @@ else
                                                                 </thead>
                                                                 <tbody>
                                                                     <?php
+                                                                    // A flag to check if the student has passed in all subjects
+                                                                    $allSubjectsPassed = true;
+
                                                                     foreach ($reports as $report) 
                                                                     {
                                                                         $subjectID = $report['Subjects'];
@@ -212,7 +215,13 @@ else
                                                                         $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
                                                                         $querySubjectsName->execute();
                                                                         $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
+
                                                                         
+                                                                        // Check if the student has passed in this subject
+                                                                        if ($report['IsPassed'] != 1) 
+                                                                        {
+                                                                            $allSubjectsPassed = false;
+                                                                        }
                                                                         ?>
                                                                         <tr>
                                                                             <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
@@ -224,6 +233,16 @@ else
                                                                             <td><?php echo htmlentities($report['VivaMarksObtained']); ?></td>
                                                                         </tr>
                                                                         <?php
+                                                                    }
+                                                            
+                                                                    // Set $resultText based on the overall result
+                                                                    if ($allSubjectsPassed) 
+                                                                    {
+                                                                        $resultText = "<span class='text-success font-weight-bold'>PASS</span>";
+                                                                    } 
+                                                                    else 
+                                                                    {
+                                                                        $resultText = "<span class='text-danger font-weight-bold'>FAIL</span>";
                                                                     }
                                                                     ?>
                                                                     <tr class=" table-secondary">
@@ -241,12 +260,14 @@ else
                                                                         <td class="font-weight-bold">TOTAL MAX MARKS</td>
                                                                         <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
                                                                         <td class="font-weight-bold">PERCENTAGE</td>
+                                                                        <td class="font-weight-bold" colspan="2">RESULT</td>
                                                                     </tr>
                                                                     <tr class=" table-secondary">
                                                                         <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
                                                                         <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
                                                                         <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
                                                                         <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
+                                                                        <td id="result" colspan="2"><?php echo $resultText; ?></td>
                                                                     </tr>
                                                                     
                                                                 </tbody>
