@@ -3,7 +3,7 @@ session_start();
 // error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsEMPid']) == 0) 
+if (strlen($_SESSION['sturecmsaid']) == 0) 
 {
     header('location:logout.php');
 } 
@@ -16,8 +16,6 @@ else
     $sessionQuery->execute();
     $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
 
-    
-    
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,19 +76,9 @@ else
                                             <label for="class">Select Class:</label>
                                             <select name="class" id="class" class="form-control">
                                                 <?php
-                                                $teacherID = $_SESSION['sturecmsEMPid'];
-
-                                                // Fetch classes assigned to the teacher
-                                                $sqlClasses = "SELECT DISTINCT AssignedClasses FROM tblemployees WHERE ID = :teacherID AND IsDeleted = 0";
-                                                $queryClasses = $dbh->prepare($sqlClasses);
-                                                $queryClasses->bindParam(':teacherID', $teacherID, PDO::PARAM_STR);
-                                                $queryClasses->execute();
-                                                $assignedClasses = $queryClasses->fetch(PDO::FETCH_COLUMN);
-
-                                                $classIDs = explode(',', $assignedClasses);
 
                                                 // Fetch class names based on class IDs
-                                                $sqlClassNames = "SELECT DISTINCT ID, ClassName, Section FROM tblclass WHERE ID IN (" . implode(',', $classIDs) . ") AND IsDeleted = 0";
+                                                $sqlClassNames = "SELECT DISTINCT ID, ClassName, Section FROM tblclass WHERE IsDeleted = 0";
                                                 $queryClassNames = $dbh->prepare($sqlClassNames);
                                                 $queryClassNames->execute();
                                                 $classes = $queryClassNames->fetchAll(PDO::FETCH_ASSOC);
@@ -151,7 +139,6 @@ else
                                         $checkResultPublishedQuery->execute();
                                         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
 // *****************SOMETHING IS MISSING HERE. I WANT TO CHECK WHETHER FINAL RESULT IS PUBLISHED OR NOT BUT I DON'T KNOW WHICH EXAM IS FINAL. *************** (NEEDS DISCUSSION)
-                                            
                                         if (!empty($filteredReports) && $publishedResult) 
                                         {
                                             echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSection) . "</span></strong>";
@@ -370,7 +357,7 @@ try
                     if ($duplicateCount > 0) 
                     {
                         $duplicateEntry = true;
-                        break; 
+                        break;
                     }
                 }
 
@@ -383,14 +370,31 @@ try
                     // If no duplicate entries found, proceed with promotion
                     foreach ($_POST['selectedStudents'] as $selectedStudentID) 
                     {
+                        // Store previous information in tblstudenthistory
+                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
+                        $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryStudentDetails->execute();
+                        $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
+
                         $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
                                                 VALUES (:studentID, :sessionID, :classID, :section)";
                         $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
                         $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
                         $queryPromoteStudent->execute();
+
+                        // Update class, section, and session in tblstudent
+                        $sqlUpdateStudent = "UPDATE tblstudent SET StudentClass = :classID, StudentSection = :section, SessionID = :sessionID
+                                            WHERE ID = :studentID";
+                        $queryUpdateStudent = $dbh->prepare($sqlUpdateStudent);
+                        $queryUpdateStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
+                        $queryUpdateStudent->execute();
                     }
 
                     echo "<script>alert('Selected Students have been promoted successfully!');</script>";

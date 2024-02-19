@@ -62,6 +62,17 @@
               </div>
             </li>
             <li class="nav-item">
+                <a class="nav-link" data-toggle="collapse" href="#promotion" aria-expanded="false" aria-controls="promotion">
+                    <span class="menu-title">Promotion</span>
+                    <i class="icon-badge menu-icon"></i>
+                </a>
+                <div class="collapse" id="promotion">
+                    <ul class="nav flex-column sub-menu">
+                        <li class="nav-item"> <a class="nav-link" href="promote-students.php">Promote Students</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-sessions" aria-expanded="false" aria-controls="ui-sessions">
                 <span class="menu-title">Session Management</span>
                 <i class="icon-clock menu-icon"></i>

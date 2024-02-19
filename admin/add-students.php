@@ -8,6 +8,11 @@ include('includes/dbconnection.php');
   } 
   else
   {
+    // Fetch active session from tblsessions
+    $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $activeSessionQuery = $dbh->prepare($activeSessionSql);
+    $activeSessionQuery->execute();
+    $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
     try
     {  
       if(isset($_POST['submit']))
@@ -46,7 +51,7 @@ include('includes/dbconnection.php');
             {
               $image=md5($image).time().$extension;
               move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-              $sql = "insert into tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image) values(:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image)";
+              $sql = "insert into tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image,SessionID) values(:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
               $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
@@ -64,6 +69,7 @@ include('includes/dbconnection.php');
               $query->bindParam(':uname',$uname,PDO::PARAM_STR);
               $query->bindParam(':password',$password,PDO::PARAM_STR);
               $query->bindParam(':image',$image,PDO::PARAM_STR);
+              $query->bindParam(':sessionID',$activeSession,PDO::PARAM_STR);
               $query->execute();
               $LastInsertId=$dbh->lastInsertId();
               if ($LastInsertId>0) 

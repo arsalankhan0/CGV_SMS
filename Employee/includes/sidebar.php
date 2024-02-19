@@ -60,7 +60,6 @@
             <div class="collapse" id="promotion">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item"> <a class="nav-link" href="promote-students.php">Promote Students</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="demote-students.php"> Demote Students</a></li>
                 </ul>
             </div>
         </li>
