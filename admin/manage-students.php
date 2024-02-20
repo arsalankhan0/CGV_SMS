@@ -12,10 +12,27 @@ else
     if (isset($_GET['delid'])) 
     {
         $rid = intval($_GET['delid']);
-        $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID=:rid";
+
+        // Check whether the record is from tblstudenthistory or tblstudent
+        $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
+        $checkHistoryQuery = $dbh->prepare($checkHistorySql);
+        $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+        $checkHistoryQuery->execute();
+        $isHistoryRecord = $checkHistoryQuery->fetchColumn();
+
+        if ($isHistoryRecord) 
+        {
+            $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
+        } 
+        else 
+        {
+            $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+        }
+
         $query = $dbh->prepare($sql);
         $query->bindParam(':rid', $rid, PDO::PARAM_STR);
         $query->execute();
+        
         echo "<script>alert('Data deleted');</script>";
         echo "<script>window.location.href = 'manage-students.php'</script>";
     }

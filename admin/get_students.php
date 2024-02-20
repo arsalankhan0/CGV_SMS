@@ -39,7 +39,7 @@ SELECT
 FROM tblstudenthistory
 JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
 JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-WHERE tblstudenthistory.SessionID = :sessionId
+WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
 ";
 
 $studentQuery = $dbh->prepare($studentSql);
@@ -118,7 +118,8 @@ function getClassName($classID)
                         <td><?php echo htmlentities($student->DateofAdmission); ?></td>
                         <td>
                             <div>
-                                <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>"><i class="icon-eye"></i></a>
+                                <!-- <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>"><i class="icon-eye"></i></a> -->
+                                <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-eye"></i></a>
                                 || <a href="manage-students.php?delid=<?php echo ($student->ID); ?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
                             </div>
                         </td>
