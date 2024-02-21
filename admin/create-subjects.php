@@ -9,6 +9,12 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
     try 
     {
         if (isset($_POST['submit'])) 
@@ -22,11 +28,6 @@ else
             } 
             else 
             {
-                // Get the active session ID
-                $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-                $sessionQuery = $dbh->prepare($getSessionSql);
-                $sessionQuery->execute();
-                $sessionID = $sessionQuery->fetchColumn();
 
                 $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName AND IsDeleted = 0 AND SessionID = :sessionID";
                 $checkQuery = $dbh->prepare($checkSql);
@@ -171,7 +172,7 @@ else
                                                 ?>
                                             </select>
                                         </div>
-
+                                        
                                         <div class="form-group">
                                             <label>Subject Type</label>
                                             <div class="checkbox-group d-flex justify-content-start">

@@ -5,9 +5,19 @@ include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
     header('location:logout.php');
-} else {
-    if (isset($_POST['submit'])) {
-        try {
+} 
+else 
+{
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
+    if (isset($_POST['submit'])) 
+    {
+        try 
+        {
             $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
             $role = filter_var($_POST['role'], FILTER_SANITIZE_STRING);
@@ -162,8 +172,9 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                             <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
                                                 <?php
                                                 // Fetch options for subjects from tblsubjects
-                                                $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
+                                                $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
+                                                $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                 $subjectQuery->execute();
                                                 $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
 

@@ -29,10 +29,11 @@ else
         $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
     
         // Check if Result is published
-        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId 
-                                AND IsResultPublished = 1
-                                AND session_id = :session_id
-                                AND IsDeleted = 0";
+        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination 
+                                    WHERE ID = :examId 
+                                    AND IsResultPublished = 1
+                                    AND session_id = :session_id
+                                    AND IsDeleted = 0";
         $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
         $checkResultPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
         $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
@@ -60,8 +61,8 @@ else
             {
                 $assignedSubjectsIDs = explode(',', $assignedSubjects);
 
-                // Fetch subjects for the selected class
-                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND SessionID = $sessionID AND IsDeleted = 0";
+                // Fetch assigned subjects
+                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND IsDeleted = 0";
                 $subjectQuery = $dbh->prepare($subjectSql);
                 $subjectQuery->execute();
                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);

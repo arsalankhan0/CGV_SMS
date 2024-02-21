@@ -10,7 +10,8 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 else 
 {
 
-    try {
+    try 
+    {
         if (isset($_POST['submit'])) 
         {
             $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);

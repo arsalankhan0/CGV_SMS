@@ -9,8 +9,16 @@ if (!isset($_SESSION['sturecmsaid']) || strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
     try
     {
+        $dbh->beginTransaction();
+
         if (isset($_POST['submit'])) 
         {
             $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
@@ -84,10 +92,12 @@ else
                     {
                         echo '<script>alert("Employee has been added.");</script>';
                         echo "<script>window.location.href ='add-employees.php'</script>";
+                        
+                        $dbh->commit();
                     } 
                     else 
                     {
-                        echo '<script>alert("Something Went Wrong. Please try again.");</script>';
+                        echo '<script>alert("Something Went Wrong. Please try again.");</sc>';
                     }
                 }
             } 
@@ -99,7 +109,8 @@ else
     }
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
+        $dbh->rollBack();
+        echo '<script>alert("Ops! An Error occurred.'.$e->getMessage().'")</script>';
         // error_log($e->getMessage()); //-->This is only for debugging purpose
     }
 ?>
@@ -184,13 +195,30 @@ else
                                             ?>
                                         </select>
                                     </div>
+                                    <!-- <div class="form-group" id="assignSubjectsSection">
+                                        <label for="exampleInputName1">Assign Subjects</label>
+                                        <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
+                                            <?php
+                                            // Fetch options for subjects from tblsubjects
+                                            // $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
+                                            // $subjectQuery = $dbh->prepare($subjectSql);
+                                            // $subjectQuery->execute();
+                                            // $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                            // foreach ($subjectResults as $subject) {
+                                            //     echo "<option value='" . htmlentities($subject['ID']) . "'>" . htmlentities($subject['SubjectName']) . "</option>";
+                                            // }
+                                            ?>
+                                        </select>
+                                    </div> -->
                                     <div class="form-group" id="assignSubjectsSection">
                                         <label for="exampleInputName1">Assign Subjects</label>
                                         <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
                                             <?php
                                             // Fetch options for subjects from tblsubjects
-                                            $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
+                                            $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID";
                                             $subjectQuery = $dbh->prepare($subjectSql);
+                                            $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                             $subjectQuery->execute();
                                             $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
 

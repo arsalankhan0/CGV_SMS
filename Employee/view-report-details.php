@@ -97,7 +97,8 @@ else
 
                 if (!$reports) 
                 {
-                    echo "<script>alert('No data found for the selected student, class, and exam.');</script>";
+                    echo "<script>alert('No data found for the selected student, class, and exam.'); window.location.href='view-students-list.php';</script>";
+
                 }
             } 
             catch (PDOException $e) 

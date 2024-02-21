@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid'] == 0)) 
@@ -219,6 +219,12 @@ else
 </body>
 </html>
 <?php
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
     if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
     {
         $session_id = $_GET['session_id'];
@@ -233,6 +239,13 @@ else
         $queryActive = $dbh->prepare($updateActive);
         $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
         $queryActive->execute();
+
+        // And Here we reset the published exam, result and session_id to 0 in tblexamination 
+        $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0 WHERE session_id = :activeSession";
+        $resetPublished = $dbh->prepare($resetPublishedSql);
+        $resetPublished->bindParam(':activeSession', $sessionID, PDO::PARAM_INT);
+        $resetPublished->execute();
+
         // echo "<script>alert('Active session set successfully.');</script>";
         echo "<script>window.location.href ='manage-session.php'</script>";
     }

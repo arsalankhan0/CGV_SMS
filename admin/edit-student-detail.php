@@ -3,17 +3,22 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) {
+if (strlen($_SESSION['sturecmsaid']) == 0) 
+{
     header('location:logout.php');
-} else {
-    try {
+} 
+else 
+{
+    try 
+    {
         // Fetch current active session ID
         $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
         $activeSessionQuery = $dbh->prepare($activeSessionSql);
         $activeSessionQuery->execute();
         $activeSessionID = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
 
-        if (isset($_POST['submit'])) {
+        if (isset($_POST['submit'])) 
+        {
             $stuname = $_POST['stuname'];
             $stuemail = $_POST['stuemail'];
             $stuclass = $_POST['stuclass'];
@@ -60,7 +65,9 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
             $query->execute();
             echo '<script>alert("Student has been updated")</script>';
         }
-    } catch (PDOException $e) {
+    } 
+    catch (PDOException $e) 
+    {
         echo "<script>alert('Ops! Something went wrong');</script>";
     }
 
@@ -161,7 +168,8 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                     } else {
                                                         ?>
                                                         <option value="<?php echo htmlentities($row->ClassID); ?>"
-                                                                selected>Select
+                                                                selected>
+                                                                Select
                                                         </option>
                                                         <?php
                                                     }
@@ -187,7 +195,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                     <?php
                                                     $selectedSection = htmlentities($row->StudentSection);
 
-                                                    // Array of sections (A-F) - you can customize this based on your sections
+                                                    // Array of sections (A-F)
                                                     $sections = ['A', 'B', 'C', 'D', 'E', 'F'];
 
                                                     // Loop through sections and generate options
@@ -237,7 +245,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Student Photo</label>
                                                 <img src="images/<?php echo $row->Image; ?>" width="100" height="100"
-                                                      value="<?php echo $row->Image; ?>"><?php if ($row->SessionID === $activeSessionID) echo '<a href="changeimage.php?editid=' . $row->ID . '"> &nbsp; Edit Image</a>' ?>
+                                                        value="<?php echo $row->Image; ?>"><?php if ($row->SessionID === $activeSessionID) echo '<a href="changeimage.php?editid=' . $row->ID . '"> &nbsp; Edit Image</a>' ?>
                                             </div>
                                             <h3>Parents/Guardian's details</h3>
                                             <div class="form-group">
