@@ -9,7 +9,9 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 } 
 else 
 {
-
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
     try 
     {
         if (isset($_POST['submit'])) 
@@ -19,7 +21,8 @@ else
 
             if (empty($examName) || empty($classIDs)) 
             {
-                echo '<script>alert("Please enter Exam Name and select at least one class")</script>';
+                $msg = "Please enter Exam Name and select at least one class";
+                $dangerAlert = true;
             } 
             else 
             {
@@ -31,7 +34,8 @@ else
 
                 if ($examId > 0) 
                 {
-                    echo '<script>alert("Exam already exists. Please update the existing exam.")</script>';
+                    $msg = "Exam already exists! Please update the existing exam.";
+                    $dangerAlert = true;
                 } 
                 else 
                 {
@@ -43,16 +47,17 @@ else
                     $query->bindParam(':classNames', $classNames, PDO::PARAM_STR);
                     $query->execute();
 
-                    echo '<script>alert("Exam Name has been added.")</script>';
-                    echo "<script>window.location.href ='add-exam.php'</script>";
+                    $msg = "Exam has been added successfully.";
+                    $successAlert = true;
                 }
             }
         }
     } 
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
         // error_log($e->getMessage()); //-->This is only for debugging purpose
+        $msg = "Ops! An Error occurred.";
+        $dangerAlert = true;
     }
 
 ?>
@@ -100,6 +105,29 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Add Exam</h4>
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                 <form class="forms-sample" method="post">
                                     <div class="form-group">
                                         <label for="exampleInputName1">Exam Name</label>
@@ -156,6 +184,7 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>

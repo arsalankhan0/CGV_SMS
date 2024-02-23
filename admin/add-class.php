@@ -11,6 +11,10 @@ else
 {
     try
     {
+      $successAlert = false;
+      $dangerAlert = false;
+      $msg = "";
+
       if (isset($_POST['submit'])) 
       {
           $cname = $_POST['cname'];
@@ -32,18 +36,20 @@ else
 
           if ($LastInsertId > 0) 
           {
-              echo '<script>alert("Class has been added.")</script>';
-              echo "<script>window.location.href ='add-class.php'</script>";
+              $successAlert = true;
+              $msg = "Class has been added successfully";
           } 
           else 
           {
-              echo '<script>alert("Something Went Wrong. Please try again")</script>';
+              $dangerAlert = true;
+              $msg = "Something went wrong. Please try again later!";
           }
       }
     }
     catch(PDOException $e)
     {
-      echo '<script>alert("Ops! An error occurred!")</script>';
+      $dangerAlert = true;
+      $msg = "Ops! An error occurred.";
       // error_log($e->getMessage()); //-->This is only for debugging purpose  
     }
 ?>
@@ -64,7 +70,6 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    
   </head>
   <body>
     <div class="container-scroller">
@@ -93,7 +98,31 @@ else
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Add Class</h4>
                     <form class="forms-sample" method="post">
-                      
+                      <!-- Dismissible Alert messages -->
+                      <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+
+
                       <div class="form-group">
                         <label for="exampleInputName1">Class Name</label>
                         <input type="text" name="cname" value="" class="form-control" required='true'>
@@ -141,6 +170,7 @@ else
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html>

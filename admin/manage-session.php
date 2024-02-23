@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid'] == 0)) 
@@ -9,33 +9,34 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 } 
 else 
 {
-    if (isset($_GET['delid'])) 
-    {
-        $session_id = $_GET['delid'];
     
-        // Here we are checking if the session to be deleted is active
-        $checkActive = "SELECT is_active FROM tblsessions WHERE session_id = :session_id";
-        $queryCheckActive = $dbh->prepare($checkActive);
-        $queryCheckActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-        $queryCheckActive->execute();
-        $isActiveResult = $queryCheckActive->fetch(PDO::FETCH_ASSOC);
+    // if (isset($_GET['delid'])) 
+    // {
+    //     $session_id = $_GET['delid'];
     
-        // Here we are checking for active session
-        if ($isActiveResult['is_active'] == 1) 
-        {
-            echo "<script>alert('Cannot delete the active session. Set another session as active first.');</script>";
-        } 
-        else 
-        {
-            $deleteSession = "UPDATE tblsessions SET IsDeleted = 1 WHERE session_id = :session_id";
-            $queryDelete = $dbh->prepare($deleteSession);
-            $queryDelete->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-            $queryDelete->execute();
+    //     // Here we are checking if the session to be deleted is active
+    //     $checkActive = "SELECT is_active FROM tblsessions WHERE session_id = :session_id";
+    //     $queryCheckActive = $dbh->prepare($checkActive);
+    //     $queryCheckActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+    //     $queryCheckActive->execute();
+    //     $isActiveResult = $queryCheckActive->fetch(PDO::FETCH_ASSOC);
     
-            echo "<script>alert('Session deleted successfully.');</script>";
-            echo "<script>window.location.href ='manage-session.php'</script>";
-        }
-    }
+    //     // Here we are checking for active session
+    //     if ($isActiveResult['is_active'] == 1) 
+    //     {
+    //         echo "<script>alert('Cannot delete the active session. Set another session as active first.');</script>";
+    //     } 
+    //     else 
+    //     {
+    //         $deleteSession = "UPDATE tblsessions SET IsDeleted = 1 WHERE session_id = :session_id";
+    //         $queryDelete = $dbh->prepare($deleteSession);
+    //         $queryDelete->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+    //         $queryDelete->execute();
+    
+    //         echo "<script>alert('Session deleted successfully.');</script>";
+    //         echo "<script>window.location.href ='manage-session.php'</script>";
+    //     }
+    // }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -190,6 +191,25 @@ else
     </div>
     <!-- page-body-wrapper ends -->
 </div>
+    <!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                Do you really want to set this session as active?
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="sessionid">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- container-scroller -->
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
@@ -206,7 +226,7 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <!-- End custom js for this page -->
-<script>
+<!-- <script>
     function setActive(sessionId) 
     {
         let confirmation = confirm('Do you really want to set this session as active?');
@@ -215,7 +235,33 @@ else
             window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId;
         }
     }
+</script> -->
+<script>
+    function setActive(sessionId) 
+    {
+        // Get the modal element
+        var modal = $('#confirmationModal');
+
+        // Get the input field for session ID
+        var sessionIdInput = $('#sessionid');
+
+        // Set the session ID in the modal
+        sessionIdInput.val(sessionId);
+
+        // Display the modal
+        modal.modal('show');
+
+        // Handle confirmation in the modal
+        $('#confirmButton').on('click', function () {
+            let sessionId = sessionIdInput.val();
+
+            window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId;
+
+            modal.modal('hide');
+        });
+    }
 </script>
+
 </body>
 </html>
 <?php
@@ -225,29 +271,29 @@ else
     $sessionQuery->execute();
     $sessionID = $sessionQuery->fetchColumn();
 
-    if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
-    {
-        $session_id = $_GET['session_id'];
+        if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
+        {
+            $session_id = $_GET['session_id'];
 
-        // Here we are setting all sessions to inactive
-        $updateInactive = "UPDATE tblsessions SET is_active = 0";
-        $queryInactive = $dbh->prepare($updateInactive);
-        $queryInactive->execute();
+            // Here we are setting all sessions to inactive
+            $updateInactive = "UPDATE tblsessions SET is_active = 0";
+            $queryInactive = $dbh->prepare($updateInactive);
+            $queryInactive->execute();
 
-        // And here we Set the selected session to active
-        $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
-        $queryActive = $dbh->prepare($updateActive);
-        $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-        $queryActive->execute();
+            // And here we Set the selected session to active
+            $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
+            $queryActive = $dbh->prepare($updateActive);
+            $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+            $queryActive->execute();
 
-        // And Here we reset the published exam, result and session_id to 0 in tblexamination 
-        $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0 WHERE session_id = :activeSession";
-        $resetPublished = $dbh->prepare($resetPublishedSql);
-        $resetPublished->bindParam(':activeSession', $sessionID, PDO::PARAM_INT);
-        $resetPublished->execute();
+            // And Here we reset the published exam, result and session_id to 0 in tblexamination 
+            $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+            $resetPublished = $dbh->prepare($resetPublishedSql);
+            $resetPublished->bindParam(':activeSession', $sessionID, PDO::PARAM_INT);
+            $resetPublished->execute();
 
-        // echo "<script>alert('Active session set successfully.');</script>";
-        echo "<script>window.location.href ='manage-session.php'</script>";
-    }
+            // echo "<script>alert('Active session set successfully.');</script>";
+            echo "<script>window.location.href ='manage-session.php'</script>";
+        }
 }
 ?>

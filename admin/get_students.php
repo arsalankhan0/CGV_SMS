@@ -1,5 +1,12 @@
 <?php
+// error_reporting(0);
 include('includes/dbconnection.php');
+
+// Fetch active session from tblsessions
+$activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+$activeSessionQuery = $dbh->prepare($activeSessionSql);
+$activeSessionQuery->execute();
+$activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
 
 // Get the selected session ID from the AJAX request
 $sessionId = $_GET['session_id'];
@@ -13,6 +20,7 @@ $studentSql = "SELECT
     tblstudent.StudentClass, 
     tblstudent.StudentSection, 
     tblstudent.DateofAdmission,
+    tblstudent.SessionID,
     tblclass.ClassName,
     tblclass.Section as ClassSection,
     NULL as HistoricalClass,
@@ -32,6 +40,7 @@ SELECT
     tblstudenthistory.ClassID as StudentClass, 
     tblstudenthistory.Section as StudentSection,
     tblstudent.DateofAdmission,
+    tblstudenthistory.SessionID as SessionID,
     tblclass.ClassName,
     tblclass.Section as ClassSection,
     tblstudenthistory.ClassID as HistoricalClass,
@@ -41,7 +50,6 @@ JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
 JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
 WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
 ";
-
 $studentQuery = $dbh->prepare($studentSql);
 $studentQuery->bindParam(':sessionId', $sessionId, PDO::PARAM_STR);
 $studentQuery->execute();
@@ -118,8 +126,11 @@ function getClassName($classID)
                         <td><?php echo htmlentities($student->DateofAdmission); ?></td>
                         <td>
                             <div>
-                                <!-- <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>"><i class="icon-eye"></i></a> -->
-                                <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-eye"></i></a>
+                                <?php if ($student->SessionID != $activeSession) { ?>
+                                    <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-eye"></i></a>
+                                <?php } else { ?>
+                                    <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-pencil"></i></a>
+                                <?php } ?>
                                 || <a href="manage-students.php?delid=<?php echo ($student->ID); ?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
                             </div>
                         </td>

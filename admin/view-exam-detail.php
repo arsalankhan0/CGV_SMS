@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -9,35 +9,51 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = false;
+
     $eid = $_GET['editid'];
 
-     // Code for deletion
-    if (isset($_GET['delid'])) {
-        $rid = intval($_GET['delid']);
-        $classIdToDelete = $_GET['classid']; // Get the specific class ID to delete
+    try
+    {
+        // Code for deletion
+        if(isset($_POST['confirmDelete']))
+        {
+            $rid = intval($_POST['deleteID']);
+            $classIdToDelete = $_POST['classID']; // Get the specific class ID to delete
 
-        // Fetch the current class names
-        $fetchSql = "SELECT ClassName FROM tblexamination WHERE ID = :rid";
-        $fetchQuery = $dbh->prepare($fetchSql);
-        $fetchQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $fetchQuery->execute();
-        $fetchResult = $fetchQuery->fetch(PDO::FETCH_ASSOC);
+            // Fetch the current class names
+            $fetchSql = "SELECT ClassName FROM tblexamination WHERE ID = :rid";
+            $fetchQuery = $dbh->prepare($fetchSql);
+            $fetchQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $fetchQuery->execute();
+            $fetchResult = $fetchQuery->fetch(PDO::FETCH_ASSOC);
 
-        if ($fetchResult) {
-            $classNames = explode(",", $fetchResult['ClassName']);
-            $classNames = array_diff($classNames, array($classIdToDelete));
-            $newClassName = implode(",", $classNames);
+            if ($fetchResult) 
+            {
+                $classNames = explode(",", $fetchResult['ClassName']);
+                $classNames = array_diff($classNames, array($classIdToDelete));
+                $newClassName = implode(",", $classNames);
 
-            // Update the ClassName column to remove the specified class ID
-            $updateSql = "UPDATE tblexamination SET ClassName = :newClassName WHERE ID = :rid";
-            $updateQuery = $dbh->prepare($updateSql);
-            $updateQuery->bindParam(':newClassName', $newClassName, PDO::PARAM_STR);
-            $updateQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $updateQuery->execute();
+                // Update the ClassName column to remove the specified class ID
+                $updateSql = "UPDATE tblexamination SET ClassName = :newClassName WHERE ID = :rid";
+                $updateQuery = $dbh->prepare($updateSql);
+                $updateQuery->bindParam(':newClassName', $newClassName, PDO::PARAM_STR);
+                $updateQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+                $updateQuery->execute();
 
-            echo "<script>alert('Class deleted');</script>";
-            echo "<script>window.location.href = 'view-exam-detail.php?editid=$eid'</script>";
+                // echo "<script>alert('Class deleted');</script>";
+                // echo "<script>window.location.href = 'view-exam-detail.php?editid=$eid'</script>";
+                $successAlert = true;
+                $msg = "Class deleted successfully.";
+            }
         }
+    }
+    catch(PDOException $e)
+    {
+        $dangerAlert = true;
+        $msg = "Ops! Something went wrong.";
     }
     
 ?>
@@ -102,6 +118,30 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">View Classes</h4>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                if ($successAlert) 
+                                {
+                                    ?>
+                                    <!-- Success -->
+                                    <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php 
+                                }
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+
                                 <a href="add-more-classes.php?editid=<?php echo $eid;?>">Manage Classes <i class="icon-plus"></i></a>
                                 <div class="table-responsive border rounded p-1">
                                     <table class="table">
@@ -155,9 +195,10 @@ else
                                                                         <td><?php echo htmlentities($cnt); ?></td>
                                                                         <td><?php echo htmlentities($classInfo['ClassName']); ?></td>
                                                                         <td>
-                                                                            <a href="manage-exam-subject.php?editid=<?php echo htmlentities($classInfo['ID']); ?>&examid=<?php echo htmlentities($row->ID); ?>"><i class="icon-eye"></i></a>
+                                                                            <a href="manage-exam-subject.php?editid=<?php echo htmlentities($classInfo['ID']); ?>&examid=<?php echo htmlentities($row->ID); ?>"><i class="icon-pencil"></i></a>
                                                                             || 
-                                                                            <a href="view-exam-detail.php?editid=<?php echo htmlentities($row->ID); ?>&delid=<?php echo ($row->ID); ?>&classid=<?php echo htmlentities($classId); ?>" onclick="return confirm('Do you really want to Delete ?');">
+                                                                            
+                                                                            <a href="#" onclick="setDeleteId(<?php echo $row->ID; ?>, '<?php echo htmlentities($classId); ?>')" data-toggle="modal" data-target="#confirmationModal">
                                                                                 <i class="icon-trash"></i>
                                                                             </a>
                                                                         </td>
@@ -206,6 +247,30 @@ else
     <!-- page-body-wrapper ends -->
 </div>
 <!-- container-scroller -->
+        <!-- Confirmation Modal (Delete) -->
+        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this Class?
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteForm" action="" method="post">
+                    <input type="hidden" name="deleteID" id="examID">
+                    <input type="hidden" name="classID" id="classID">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+
+
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
@@ -220,7 +285,15 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
+    <script>
+        function setDeleteId(id, classId) 
+        {
+            document.getElementById('examID').value = id;
+            document.getElementById('classID').value = classId;
+        }
+    </script>
 </body>
 </html>
 <?php

@@ -9,6 +9,10 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     $eid = $_GET['editid'];
     $examid = $_GET['examid'];
 
@@ -68,7 +72,8 @@ else
                 }
                 if (!$insertFlag) 
                 {
-                    echo "<script>alert('Added Successfully');</script>";
+                    $successAlert = true;
+                    $msg = "Max Marks assigned successfully.";
                 }
 
                 if ($insertFlag) 
@@ -99,10 +104,8 @@ else
 
 
                     }
-
-                    echo "<script>alert('Added Successfully');</script>";
-                    echo "<script>window.location.href = 'manage-exam-subject.php?editid=$eid&examid=$examid'</script>";
-                    exit();
+                    $successAlert = true;
+                    $msg = "Max Marks assigned successfully.";
                 }
             }
         }
@@ -123,8 +126,8 @@ else
     } 
     catch (PDOException $e) 
     {
-        echo "<script>alert('Ops! Something went wrong.".$e->getMessage()."');</script>";
-        // echo $e->getMessage();
+        $dangerAlert = true;
+        $msg = "Ops! Something went wrong.";
     }
 ?>
 
@@ -186,6 +189,29 @@ else
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Assign Max Marks</h4>
                                 <form method="POST">
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                     <div class="table-responsive border rounded p-1">
                                         <table class="table">
                                             <thead>
@@ -320,6 +346,7 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>

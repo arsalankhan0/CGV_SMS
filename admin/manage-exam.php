@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'])==0) 
 {
@@ -8,6 +8,10 @@ if (strlen($_SESSION['sturecmsaid'])==0)
 } 
 else
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Get the active session ID
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
@@ -15,15 +19,47 @@ else
     $sessionID = $sessionQuery->fetchColumn();
 
     // Code for deletion
-    if(isset($_GET['delid']))
+    if(isset($_POST['confirmDelete']))
     {
-        $rid=intval($_GET['delid']);
-        $sql = "UPDATE tblexamination SET IsDeleted = 1 WHERE ID = :rid";
-        $query=$dbh->prepare($sql);
-        $query->bindParam(':rid',$rid,PDO::PARAM_STR);
-        $query->execute();
-        echo "<script>alert('Data deleted');</script>"; 
-        echo "<script>window.location.href = 'manage-exam.php'</script>";     
+        $rid = intval($_POST['examID']);
+
+        // Check if the exam is published
+        $checkPublishedSql = "SELECT IsPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+        $checkPublishedQuery->bindParam(':examId', $rid, PDO::PARAM_STR);
+        $checkPublishedQuery->execute();
+        $examPublished = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+        if ($examPublished && $examPublished['IsPublished'] == 1) 
+        {
+            $msg = "Cannot delete the published exam!";
+            $dangerAlert = true;
+        } 
+        else 
+        {
+            // Check if there are records in tblreports for this exam
+            $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE ExamName = :examName";
+            $checkReportsQuery = $dbh->prepare($checkReportsSql);
+            $checkReportsQuery->bindParam(':examName', $rid, PDO::PARAM_STR);
+            $checkReportsQuery->execute();
+            $reportCount = $checkReportsQuery->fetchColumn();
+
+            if ($reportCount > 0) 
+            {
+                $msg = "Cannot delete exam as there are records associated with it!";
+                $dangerAlert = true;
+            } 
+            else 
+            {
+                $sql = "UPDATE tblexamination SET IsDeleted = 1 WHERE ID = :rid";
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+                $query->execute();
+
+                $msg = "Exam deleted successfully.";
+                $successAlert = true;
+            }
+        }
     }
     if (isset($_POST['publish'])) 
     {
@@ -39,8 +75,8 @@ else
     
         if ($publish && $publish['IsPublished'] === 1 && $publish['session_id'] === $sessionID) 
         {
-            echo "<script>alert('Exam Already published');</script>";
-            echo "<script>window.location.href = 'manage-exam.php'</script>";
+            $msg = "Exam Already published!";
+            $dangerAlert = true;
         } 
         else 
         {
@@ -51,8 +87,8 @@ else
             $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
             $updateQuery->execute();
     
-            echo "<script>alert('Exam Published Successfully');</script>";
-            echo "<script>window.location.href = 'manage-exam.php'</script>";
+            $msg = "Exam published successfully.";
+            $successAlert = true;
         }
     }
     if (isset($_POST['publish_result'])) 
@@ -69,8 +105,8 @@ else
 
         if ($resultPublished && $resultPublished['IsResultPublished'] == 1) 
         {
-            echo "<script>alert('Result Already Published');</script>";
-            echo "<script>window.location.href = 'manage-exam.php'</script>";
+            $msg = "Result Already Published!";
+            $dangerAlert = true;
         } 
         else 
         {
@@ -90,13 +126,13 @@ else
                 $updatePublishResultQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
                 $updatePublishResultQuery->execute();
 
-                echo "<script>alert('Result Published Successfully');</script>";
-                echo "<script>window.location.href = 'manage-exam.php'</script>";
+                $msg = "Result Published Successfully.";
+                $successAlert = true;
             } 
             else 
             {
-                echo "<script>alert('Please Publish the exam first!');</script>";
-                echo "<script>window.location.href = 'manage-exam.php'</script>";
+                $msg = "Please Publish the Exam first!";
+                $dangerAlert = true;
             }
         }
     }
@@ -149,6 +185,30 @@ else
                                     <h4 class="card-title mb-sm-0">Manage Exam</h4>
                                     <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Exams</a>
                                 </div>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                if ($successAlert) 
+                                {
+                                    ?>
+                                    <!-- Success -->
+                                    <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php 
+                                }
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+
                                 <div class="table-responsive border rounded p-1">
                                     <table class="table">
                                         <thead>
@@ -234,14 +294,52 @@ else
                                                             <td><?php  echo htmlentities($row->CreationDate);?></td>
                                                             <td>
                                                                 <div><a href="view-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
-                                                                            || <a href="manage-exam.php?delid=<?php echo ($row->ID);?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
+                                                                            || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                                                                    <i class="icon-trash"></i>
+                                                                                </a>
                                                                         </div>
                                                                     </td> 
                                                                     <td>
                                                                         <form method="post" action="">
                                                                             <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
-                                                                            <button type="submit" name="publish" class="btn-sm btn-dark">Publish</button>
-                                                                            <button type="submit" name="publish_result" class="btn-sm btn-dark">Publish Result</button>
+                                                                            <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmPublishModal">Publish</button>
+                                                                            <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmResultModal">Publish Result</button>
+                                                                            <!-- Confirmation Modal (Publish Exam) -->
+                                                                            <div class="modal fade" id="confirmPublishModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                                                <div class="modal-dialog">
+                                                                                    <div class="modal-content">
+                                                                                    <div class="modal-header">
+                                                                                        <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        Are you sure you want to Publish <strong><?php echo $row->ExamName; ?></strong> Exam ?
+                                                                                    </div>
+                                                                                    <div class="modal-footer">
+                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                                        <button type="submit" class="btn btn-primary" name="publish">Publish</button>
+                                                                                    </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <!-- Confirmation Modal (Publish Result) -->
+                                                                            <div class="modal fade" id="confirmResultModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                                                <div class="modal-dialog">
+                                                                                    <div class="modal-content">
+                                                                                    <div class="modal-header">
+                                                                                        <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        Are you sure you want to Publish Result of <strong><?php echo $row->ExamName; ?></strong> ?
+                                                                                    </div>
+                                                                                    <div class="modal-footer">
+                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                                        <button type="submit" class="btn btn-primary" name="publish_result">Publish</button>
+                                                                                    </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                         </form>  
                                                                     </td>                                                                      
                                                                     
@@ -281,6 +379,29 @@ else
     <!-- page-body-wrapper ends -->
     </div>
     <!-- container-scroller -->
+        <!-- Confirmation Modal (Delete) -->
+        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this record?
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteForm" action="" method="post">
+                    <input type="hidden" name="examID" id="examID">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+
+
     <!-- plugins:js -->
     <script src="vendors/js/vendor.bundle.base.js"></script>
     <!-- endinject -->
@@ -296,7 +417,14 @@ else
     <!-- endinject -->
     <!-- Custom js for this page -->
     <script src="./js/dashboard.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
+    <script>
+        function setDeleteId(id) 
+        {
+            document.getElementById('examID').value = id;
+        }
+    </script>
 </body>
 </html>
 <?php 

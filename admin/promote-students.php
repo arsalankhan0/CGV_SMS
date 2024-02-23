@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -9,12 +9,124 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
 
     // Get the active session ID and name
     $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
     $sessionQuery->execute();
     $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
+
+try 
+{
+        
+    // Promote selected students
+    if (isset($_POST['promote'])) 
+    {
+        $selectedPromoteClass = $_POST['promoteClass'];
+        $selectedPromoteSection = $_POST['promoteSection'];
+        $selectedPromoteSession = $_POST['promoteSession'];
+
+        // Check if the selected promotion class and session match the current active class and session
+        $currentActiveClass = $filteredClassName['ClassName'];
+        $currentActiveSession = $session['session_id'];
+
+        if ($selectedPromoteClass == $currentActiveClass && $selectedPromoteSession == $currentActiveSession) 
+        {
+            // echo "<script>alert('Cannot promote students to the same class and session!');</script>";
+            $dangerAlert = true;
+            $msg = "Cannot promote students to the same class and session!";
+        } 
+        else 
+        {
+            if (isset($_POST['selectedStudents'])) 
+            {
+                // Check for duplicate entries
+                $duplicateEntry = false;
+
+                foreach ($_POST['selectedStudents'] as $selectedStudentID) 
+                {
+                    $sqlCheckDuplicate = "SELECT COUNT(*) FROM tblstudenthistory 
+                                            WHERE StudentID = :studentID 
+                                            AND SessionID = :sessionID 
+                                            AND ClassID = :classID 
+                                            AND Section = :section";
+                    $queryCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
+                    $queryCheckDuplicate->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                    $queryCheckDuplicate->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
+                    $queryCheckDuplicate->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
+                    $queryCheckDuplicate->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                    $queryCheckDuplicate->execute();
+                    $duplicateCount = $queryCheckDuplicate->fetchColumn();
+
+                    if ($duplicateCount > 0) 
+                    {
+                        $duplicateEntry = true;
+                        break;
+                    }
+                }
+
+                if ($duplicateEntry) 
+                {
+                    // echo "<script>alert('Selected students already promoted to the specified class and session!');</script>";
+                    $dangerAlert = true;
+                    $msg = "Selected students already promoted to the specified class and session!";
+                } 
+                else 
+                {
+                    // If no duplicate entries found, proceed with promotion
+                    foreach ($_POST['selectedStudents'] as $selectedStudentID) 
+                    {
+                        // Store previous information in tblstudenthistory
+                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
+                        $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryStudentDetails->execute();
+                        $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
+
+                        $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
+                                                VALUES (:studentID, :sessionID, :classID, :section)";
+                        $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
+                        $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
+                        $queryPromoteStudent->execute();
+
+                        // Update class, section, and session in tblstudent
+                        $sqlUpdateStudent = "UPDATE tblstudent SET StudentClass = :classID, StudentSection = :section, SessionID = :sessionID
+                                            WHERE ID = :studentID";
+                        $queryUpdateStudent = $dbh->prepare($sqlUpdateStudent);
+                        $queryUpdateStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                        $queryUpdateStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
+                        $queryUpdateStudent->execute();
+                    }
+
+                    // echo "<script>alert('Selected Students have been promoted successfully!');</script>";
+                    $successAlert = true;
+                    $msg = "Selected students have been promoted successfully.";
+                }
+            } 
+            else 
+            {
+                // echo "<script>alert('Please select at least one student for promotion!');</script>";
+                $dangerAlert = true;
+                $msg = "Please select at least one student for promotion!";
+            }
+        }
+    }
+} 
+catch (PDOException $e) 
+{
+    // echo "<script>alert('Ops! An error occurred while promoting students: " . $e->getMessage() . "');</script>";
+    $dangerAlert = true;
+    $msg = "Ops! An error occurred while promoting students.";
+}
+
 
 ?>
 <!DOCTYPE html>
@@ -67,7 +179,29 @@ else
                                         Session: <span class="border border-secondary px-3 py-2"><?php echo $session['session_name']; ?></span>
                                     </div>
                                 </div>
-                                
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                 <!-- Filter this Form -->
                                 <form method="post" class="mb-3">
                                     <div class="form-row">
@@ -123,7 +257,7 @@ else
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                        // Fetch ClassName from tblclass
+                                        // // Fetch ClassName from tblclass
                                         $sqlSelectedClassName = "SELECT * FROM tblclass WHERE ID = :selectedClass AND IsDeleted = 0";
                                         $querySelectedClassName = $dbh->prepare($sqlSelectedClassName);
                                         $querySelectedClassName->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
@@ -138,11 +272,30 @@ else
                                         $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
                                         $checkResultPublishedQuery->execute();
                                         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-// *****************SOMETHING IS MISSING HERE. I WANT TO CHECK WHETHER FINAL RESULT IS PUBLISHED OR NOT BUT I DON'T KNOW WHICH EXAM IS FINAL. *************** (NEEDS DISCUSSION)
                                         if (!empty($filteredReports) && $publishedResult) 
                                         {
                                             echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSection) . "</span></strong>";
                                             echo "<form method='POST' id='promoteForm' class='mt-3'>";
+                                            ?>
+                                            <!-- Confirmation Modal (Update) -->
+                                            <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Are you sure you want to Promote Selected Students?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary" name="promote">Promote</button>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php
                                             echo "<h4 class='text-center'>Promote Selected Students To </h4>";
                                             echo "<hr>";
                                             echo "<div class='row mt-3'>";
@@ -188,7 +341,7 @@ else
 
                                             // Promote button
                                             echo "<div class='col-md-3 mb-3 d-flex align-items-end'>";
-                                            echo "<button class='border-0 btn btn-primary' type='submit' name='promote'>Promote</button>";
+                                            echo "<button class='border-0 btn btn-primary' type='button'data-toggle='modal' data-target='#confirmationModal'>Promote</button>";
                                             echo "</div>";
                                             echo "</div>";
 
@@ -263,7 +416,9 @@ else
                                 }
                                 catch(PDOException $e)
                                 {
-                                    echo "<script>alert('Ops! An error occurred while fetching students.');</script>";
+                                    // echo "<script>alert('Ops! An error occurred while fetching students.');</script>";
+                                    $dangerAlert = true;
+                                    $msg = "Ops! An error occurred while fetching students.";
                                 }
                                 ?>
                             </div>
@@ -298,15 +453,16 @@ else
 <script src="./js/dashboard.js"></script>
 <script src="./js/populateSections.js"></script>
 <script src="./js/promoteStudentCheckBoxes.js"></script>
+<script src="./js/manageAlert.js"></script>
 <script>
-    document.getElementById('promoteForm').addEventListener('submit', (event) => {
+    // document.getElementById('promoteForm').addEventListener('submit', (event) => {
 
-        let confirmPromotion = confirm('Are you sure you want to promote these students?');
-        if (!confirmPromotion) 
-        {
-            event.preventDefault();
-        }
-    });
+    //     let confirmPromotion = confirm('Are you sure you want to promote these students?');
+    //     if (!confirmPromotion) 
+    //     {
+    //         event.preventDefault();
+    //     }
+    // });
 </script>
 
 <!-- End custom js for this page -->
@@ -314,103 +470,6 @@ else
 </body>
 </html>
 <?php
-
-try 
-{
-    // Promote selected students
-    if (isset($_POST['promote'])) 
-    {
-        $selectedPromoteClass = $_POST['promoteClass'];
-        $selectedPromoteSection = $_POST['promoteSection'];
-        $selectedPromoteSession = $_POST['promoteSession'];
-
-        // Check if the selected promotion class and session match the current active class and session
-        $currentActiveClass = $filteredClassName['ClassName'];
-        $currentActiveSession = $session['session_id'];
-
-        if ($selectedPromoteClass == $currentActiveClass && $selectedPromoteSession == $currentActiveSession) 
-        {
-            echo "<script>alert('Cannot promote students to the same class and session!');</script>";
-        } 
-        else 
-        {
-            if (isset($_POST['selectedStudents'])) 
-            {
-                // Check for duplicate entries
-                $duplicateEntry = false;
-
-                foreach ($_POST['selectedStudents'] as $selectedStudentID) 
-                {
-                    $sqlCheckDuplicate = "SELECT COUNT(*) FROM tblstudenthistory 
-                                            WHERE StudentID = :studentID 
-                                            AND SessionID = :sessionID 
-                                            AND ClassID = :classID 
-                                            AND Section = :section";
-                    $queryCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
-                    $queryCheckDuplicate->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
-                    $queryCheckDuplicate->execute();
-                    $duplicateCount = $queryCheckDuplicate->fetchColumn();
-
-                    if ($duplicateCount > 0) 
-                    {
-                        $duplicateEntry = true;
-                        break;
-                    }
-                }
-
-                if ($duplicateEntry) 
-                {
-                    echo "<script>alert('Selected students already promoted to the specified class and session!');</script>";
-                } 
-                else 
-                {
-                    // If no duplicate entries found, proceed with promotion
-                    foreach ($_POST['selectedStudents'] as $selectedStudentID) 
-                    {
-                        // Store previous information in tblstudenthistory
-                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                        $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
-                        $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryStudentDetails->execute();
-                        $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
-
-                        $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
-                                                VALUES (:studentID, :sessionID, :classID, :section)";
-                        $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
-                        $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
-                        $queryPromoteStudent->execute();
-
-                        // Update class, section, and session in tblstudent
-                        $sqlUpdateStudent = "UPDATE tblstudent SET StudentClass = :classID, StudentSection = :section, SessionID = :sessionID
-                                            WHERE ID = :studentID";
-                        $queryUpdateStudent = $dbh->prepare($sqlUpdateStudent);
-                        $queryUpdateStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
-                        $queryUpdateStudent->execute();
-                    }
-
-                    echo "<script>alert('Selected Students have been promoted successfully!');</script>";
-                }
-            } 
-            else 
-            {
-                echo "<script>alert('Please select at least one student for promotion!');</script>";
-            }
-        }
-    }
-} 
-catch (PDOException $e) 
-{
-    echo "<script>alert('Ops! An error occurred while promoting students: " . $e->getMessage() . "');</script>";
-}
 
 
 }

@@ -173,18 +173,19 @@ else
                                         $filteredSessionName = $querySelectedSessionName->fetch(PDO::FETCH_ASSOC);
                                         
                                         // Check if Result is published
-                                        $checkResultPublishedSql = "SELECT IsResultPublished, session_id FROM tblexamination 
-                                                                            WHERE ID = :selectedExamID 
-                                                                            AND IsResultPublished = 1
-                                                                            AND session_id = :selectedSession
-                                                                            AND IsDeleted = 0";
-                                        $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-                                        $checkResultPublishedQuery->bindParam(':selectedExamID', $selectedExamID, PDO::PARAM_STR);
-                                        $checkResultPublishedQuery->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
-                                        $checkResultPublishedQuery->execute();
-                                        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+                                        // $checkResultPublishedSql = "SELECT IsResultPublished, session_id FROM tblexamination 
+                                        //                                     WHERE ID = :selectedExamID 
+                                        //                                     AND IsResultPublished = 1
+                                        //                                     AND session_id = :selectedSession
+                                        //                                     AND IsDeleted = 0";
+                                        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+                                        // $checkResultPublishedQuery->bindParam(':selectedExamID', $selectedExamID, PDO::PARAM_STR);
+                                        // $checkResultPublishedQuery->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
+                                        // $checkResultPublishedQuery->execute();
+                                        // $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
                                         
-                                        if (!empty($filteredReports) && $publishedResult) 
+                                        // if (!empty($filteredReports) && $publishedResult) 
+                                        if (!empty($filteredReports)) 
                                         {
                                             // Display message indicating the filtered results
                                             echo "<div class='d-flex justify-content-between align-items-center'>";

@@ -9,6 +9,10 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     $eid = $_GET['editid'];
 
     try {
@@ -26,18 +30,20 @@ else
                     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
                     $query->execute();
 
-                    echo '<script>alert("Classes has been updated")</script>';
-                    echo "<script>window.location.href ='manage-exam.php'</script>"; 
+                    $successAlert = true;
+                    $msg = "Classes has been updated successfully.";
             } 
             else 
             {
-                echo '<script>alert("Please select at least one class")</script>';
+                $dangerAlert = true;
+                $msg = "Please select at least one class!";
             }
         }
     } 
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
+        $dangerAlert = true;
+        $msg = "Ops! And error occurred.";
     }
 ?>
 
@@ -102,6 +108,29 @@ else
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Manage Classes</h4>
                                 <form class="forms-sample" method="post">
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
                                         <select multiple="multiple" name="classes[]"
@@ -163,6 +192,7 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>

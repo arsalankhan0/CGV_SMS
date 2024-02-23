@@ -107,6 +107,7 @@ else
                                             }
                                             ?>
                                         </select>
+                                        
                                     </div>
                                     <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Students</a>
                                 </div>
@@ -146,7 +147,8 @@ else
 <script src="./js/dashboard.js"></script>
 <script>
     // Function to get and display the student list for the selected session
-    function getSelectedSessionStudents() {
+    function getSelectedSessionStudents() 
+    {
         var selectedSession = document.getElementById("session").value;
 
         // AJAX request

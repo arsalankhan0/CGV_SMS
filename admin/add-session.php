@@ -9,6 +9,10 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 } 
 else 
 {
+  $successAlert = false;
+  $dangerAlert = false;
+  $msg = "";
+
     if (isset($_POST['submit'])) 
     {
         $sessionName = filter_input(INPUT_POST, 'sName', FILTER_SANITIZE_STRING);
@@ -17,7 +21,8 @@ else
 
         if (empty($sessionName) || empty($startDate) || empty($endDate)) 
         {
-            echo '<script>alert("Please fill in all fields.");</script>';
+            $dangerAlert = true;
+            $msg = "Please fill in all fields!";
         } 
         else 
         {
@@ -30,7 +35,8 @@ else
 
             if ($checkSessionQuery->rowCount() > 0) 
             {
-                echo '<script>alert("Duplicate entry!. The session with the same start date and end date already exists.");</script>';
+                $dangerAlert = true;
+                $msg = "Duplicate entry found! The session with the same start and end date already exists.";
             } 
             else 
             {
@@ -46,17 +52,19 @@ else
                     $lastInsertId = $dbh->lastInsertId();
                     if ($lastInsertId > 0) 
                     {
-                        echo '<script>alert("Session created successfully.");</script>';
-                        echo "<script>window.location.href ='add-session.php'</script>";
+                        $successAlert = true;
+                        $msg = "Session created successfully.";
                     } 
                     else 
                     {
-                        echo '<script>alert("Unable to create session!");</script>';
+                        $dangerAlert = true;
+                        $msg = "Unable to create session!";
                     }
                 } 
                 catch (PDOException $e) 
                 {
-                    echo '<script>alert("Error: ' . $e->getMessage() . '");</script>';
+                    $dangerAlert = true;
+                    $msg = "Ops! An error occurred.";
                 }
             }
         }
@@ -109,7 +117,30 @@ else
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Create Session</h4>
                     <form class="forms-sample" method="post">
-                      
+                      <!-- Dismissible Alert messages -->
+                      <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+
                       <div class="form-group">
                         <label for="exampleInputName1">Session Name</label>
                         <input type="text" name="sName" value="" class="form-control" placeholder="eg: 2021-2022" required='true'>
@@ -153,6 +184,7 @@ else
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html>

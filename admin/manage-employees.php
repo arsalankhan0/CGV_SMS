@@ -115,7 +115,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                     <td>
                                                         <div>
                                                             <a href="edit-employee-detail.php?editid=<?php echo htmlentities($row->ID); ?>"><i
-                                                                        class="icon-eye"></i></a>
+                                                                        class="icon-pencil"></i></a>
                                                             || <a href="manage-employees.php?delid=<?php echo ($row->ID); ?>"
                                                                     onclick="return confirm('Do you really want to Delete ?');">
                                                                 <i class="icon-trash"></i></a></div>
