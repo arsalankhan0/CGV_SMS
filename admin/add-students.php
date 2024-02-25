@@ -8,6 +8,10 @@ include('includes/dbconnection.php');
   } 
   else
   {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Fetch active session from tblsessions
     $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $activeSessionQuery = $dbh->prepare($activeSessionSql);
@@ -45,7 +49,9 @@ include('includes/dbconnection.php');
             $allowed_extensions = array(".jpg","jpeg",".png",".gif");
             if(!in_array($extension,$allowed_extensions))
             {
-              echo "<script>alert('Logo has Invalid format. Only jpg / jpeg/ png /gif format allowed');</script>";
+              // echo "<script>alert('Logo has Invalid format. Only jpg / jpeg/ png /gif format allowed');</script>";
+              $dangerAlert = true;
+              $msg = "Invalid file format. Only jpg / jpeg/ png /gif format allowed!";
             }
             else
             {
@@ -74,24 +80,32 @@ include('includes/dbconnection.php');
               $LastInsertId=$dbh->lastInsertId();
               if ($LastInsertId>0) 
               {
-                echo '<script>alert("Student has been added.")</script>';
-                echo "<script>window.location.href ='add-students.php'</script>";
+                // echo '<script>alert("Student has been added.")</script>';
+                // echo "<script>window.location.href ='add-students.php'</script>";
+                $successAlert = true;
+                $msg = "Student has been added successfully.";
               }
               else
               {
-                echo '<script>alert("Something Went Wrong. Please try again")</script>';
+                // echo '<script>alert("Something Went Wrong. Please try again")</script>';
+                $dangerAlert = true;
+                $msg = "Something went wrong! Please try again.";
               }
             }
           }
           else
           {
-            echo "<script>alert('Username or Student Id  already exist. Please try again');</script>";
+            // echo "<script>alert('Username or Student Id  already exist. Please try again');</script>";
+            $dangerAlert = true;
+            $msg = "Username or Student ID already exists! Please try again with different Username or Student ID.";
           }
       }
     }
     catch(PDOException $e)
     {
-      echo "<script>alert('Ops! An error occurred');</script>";
+      // echo "<script>alert('Ops! An error occurred');</script>";4
+      $dangerAlert = true;
+      $msg = "Ops! An error occurred.";
     }
   ?>
 <!DOCTYPE html>
@@ -141,6 +155,31 @@ include('includes/dbconnection.php');
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Add Students</h4>
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
+
+                      <!-- Dismissible Alert messages -->
+                      <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+
                       
                       <div class="form-group">
                         <label for="exampleInputName1">Student Name</label>
@@ -266,6 +305,7 @@ include('includes/dbconnection.php');
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/SectionsForStudent.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

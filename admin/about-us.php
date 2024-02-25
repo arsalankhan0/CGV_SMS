@@ -2,23 +2,38 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) {
+if (strlen($_SESSION['sturecmsaid']==0)) 
+{
   header('location:logout.php');
-  } else{
-   if(isset($_POST['submit']))
+} 
+else
+{
+  $successAlert = false;
+  $dangerAlert = false;
+  $msg = "";
+
+  try
   {
- $pagetitle=$_POST['pagetitle'];
-$pagedes=$_POST['pagedes'];
-$sql="update tblpage set PageTitle=:pagetitle,PageDescription=:pagedes where  PageType='aboutus'";
-$query=$dbh->prepare($sql);
-$query->bindParam(':pagetitle',$pagetitle,PDO::PARAM_STR);
-$query->bindParam(':pagedes',$pagedes,PDO::PARAM_STR);
+    if(isset($_POST['submit']))
+    {
+      $pagetitle=$_POST['pagetitle'];
+      $pagedes=$_POST['pagedes'];
+      $sql="update tblpage set PageTitle=:pagetitle,PageDescription=:pagedes where  PageType='aboutus'";
+      $query=$dbh->prepare($sql);
+      $query->bindParam(':pagetitle',$pagetitle,PDO::PARAM_STR);
+      $query->bindParam(':pagedes',$pagedes,PDO::PARAM_STR);
+      $query->execute();
 
-$query->execute();
-echo '<script>alert("About us has been updated")</script>';
-
-
+      $successAlert = true;
+      $msg = "About Us has been updated successfully.";
+    }
   }
+  catch(PDOException $e)
+  {
+    $dangerAlert = true;
+    $msg = "Ops! An error occurred while updating About Us content.";
+  }
+
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,19 +82,43 @@ echo '<script>alert("About us has been updated")</script>';
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Update About Us</h4>
-                   
+                    <!-- Dismissible Alert messages -->
+                    <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+
                     <form class="forms-sample" method="post">
                       <?php
 
-$sql="SELECT * from  tblpage where PageType='aboutus'";
-$query = $dbh -> prepare($sql);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>      
+                      $sql="SELECT * from  tblpage where PageType='aboutus'";
+                      $query = $dbh -> prepare($sql);
+                      $query->execute();
+                      $results=$query->fetchAll(PDO::FETCH_OBJ);
+                      $cnt=1;
+                      if($query->rowCount() > 0)
+                      {
+                      foreach($results as $row)
+                      {               
+                        ?>      
                       <div class="form-group">
                         <label for="exampleInputName1">Page Title:</label>
                         <input type="text" name="pagetitle" value="<?php  echo $row->PageTitle;?>" class="form-control" required='true'>
@@ -89,8 +128,25 @@ foreach($results as $row)
                         <textarea type="text" name="pagedes" class="form-control" required='true'><?php  echo $row->PageDescription;?></textarea>
                       </div>
                       <?php $cnt=$cnt+1;}} ?>
-                      <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
-                     
+                      <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
+                        <!-- Confirmation Modal (Update) -->
+                        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              </div>
+                              <div class="modal-body">
+                                Are you sure you want to update the content of About Us?
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary" name="submit">Update</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     </form>
                   </div>
                 </div>
@@ -121,6 +177,7 @@ foreach($results as $row)
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

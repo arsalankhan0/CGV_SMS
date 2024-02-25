@@ -9,78 +9,67 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     try 
     {
+        $eid = $_GET['editid'];
+
         if (isset($_POST['submit'])) 
         {
-            $eid = $_GET['editid'];
             $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-            if (empty($classes)) 
+            // Fetch IDs of selected classes
+            $selectedClassIds = [];
+            foreach ($classes as $className) 
             {
-                echo '<script>alert("Please select at least one class")</script>';
-            } 
-            else 
-            {
-                // Fetch IDs of selected classes
-                $selectedClassIds = [];
-                foreach ($classes as $className) 
+                $classSql = "SELECT ID FROM tblclass WHERE ID = :className";
+                $classQuery = $dbh->prepare($classSql);
+                $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                $classQuery->execute();
+                $classId = $classQuery->fetchColumn();
+
+                if ($classId) 
                 {
-                    $classSql = "SELECT ID FROM tblclass WHERE ID = :className";
-                    $classQuery = $dbh->prepare($classSql);
-                    $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                    $classQuery->execute();
-                    $classId = $classQuery->fetchColumn();
-
-                    if ($classId) 
-                    {
-                        $selectedClassIds[] = $classId;
-                    }
-                }                
-
-                // Fetch selected subject types
-                $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
-
-                if (empty($subjectTypes)) 
-                {
-                    echo '<script>alert("Please select at least one subject type")</script>';
-                } 
-                else 
-                {
-                    $cName = implode(",", $selectedClassIds);
-                    $subjectTypeString = implode(",", $subjectTypes);
-
-                    $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes WHERE ID=:eid";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
-                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-
-                    $query->execute();
-
-                    echo '<script>alert("Subject has been updated.")</script>';
-                    echo "<script>window.location.href ='manage-subjects.php'</script>"; 
+                    $selectedClassIds[] = $classId;
                 }
-            }
-        } 
-        else
-        {
-            $eid = $_GET['editid'];
+            }                
 
-            // Fetching subject details
-            $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
-            $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
-            $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-            $subjectDetailsQuery->execute();
-            $subjectDetailsRow = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
-            $selectedClasses = explode(",", $subjectDetailsRow['ClassName']);
-            $selectedSubjectTypes = explode(",", $subjectDetailsRow['SubjectType']);
-        }
+            // Fetch selected subject types
+            $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+
+            $cName = implode(",", $selectedClassIds);
+            $subjectTypeString = implode(",", $subjectTypes);
+
+            $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes WHERE ID=:eid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+            $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
+            $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+
+            $query->execute();
+
+            $successAlert = true;
+            $msg = "Subject has been updated successfully.";
+        } 
     } 
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.'. $e->getMessage() .'")</script>';
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred.";
     }
+
+    // Fetching subject details
+    $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
+    $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
+    $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $subjectDetailsQuery->execute();
+    $subjectDetailsRow = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
+            
+    $selectedClasses = explode(",", $subjectDetailsRow['ClassName']);
+    $selectedSubjectTypes = explode(",", $subjectDetailsRow['SubjectType']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -127,25 +116,49 @@ else
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title" style="text-align: center;">Update Subject</h4>
-                                    <form class="forms-sample" method="post">
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
 
-                                    <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"><?php echo $subjectDetailsRow['SubjectName']; ?></span> subject</label>
-                                        <select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">
-                                            <?php
-                                            $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
-                                            $classQuery = $dbh->prepare($classSql);
-                                            $classQuery->execute();
-                                            $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+                                    <form class="forms-sample" id="form" method="post">
 
-                                            foreach ($classResults as $class) 
-                                            {
-                                                $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
-                                                echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
+                                        <div class="form-group">
+                                            <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"><?php echo $subjectDetailsRow['SubjectName']; ?></span> subject</label>
+                                            <select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">
+                                                <?php
+                                                $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                                $classQuery = $dbh->prepare($classSql);
+                                                $classQuery->execute();
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($classResults as $class) 
+                                                {
+                                                    $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
 
                                         <div class="form-group">
                                             <label>Subject Type</label>
@@ -171,7 +184,26 @@ else
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
+                                        <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
+
+                                        <!-- Confirmation Modal (Update) -->
+                                        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to update <?php echo $subjectDetailsRow['SubjectName']; ?> Subject?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary" id="submit" name="submit">Update</button>
+                                                </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -204,5 +236,6 @@ else
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
     <script src="./js/dataBinding.js"></script>
+    <script src="./js/manageAlert.js"></script>
   </body>
 </html><?php }  ?>

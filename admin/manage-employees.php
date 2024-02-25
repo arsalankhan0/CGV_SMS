@@ -3,18 +3,35 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) {
+if (strlen($_SESSION['sturecmsaid']) == 0) 
+{
     header('location:logout.php');
-} else {
-    // Code for deletion
-    if (isset($_GET['delid'])) {
-        $rid = intval($_GET['delid']);
-        $sql = "UPDATE tblemployees SET IsDeleted = 1 WHERE ID=:rid";
-        $query = $dbh->prepare($sql);
-        $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $query->execute();
-        echo "<script>alert('Data deleted');</script>";
-        echo "<script>window.location.href = 'manage-employees.php'</script>";
+} 
+else 
+{
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
+    try
+    {
+        if (isset($_POST['confirmDelete'])) 
+        {
+            $rid = intval($_POST['employeeID']);
+
+            $sql = "UPDATE tblemployees SET IsDeleted = 1 WHERE ID=:rid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $query->execute();
+
+            $successAlert = true;
+            $msg = "Record deleted successfully.";
+        }
+    }
+    catch(PDOException $e)
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while deleting the record.";
     }
 ?>
 
@@ -66,6 +83,30 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                     <h4 class="card-title mb-sm-0">Manage Employees</h4>
                                     <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Employees</a>
                                 </div>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                if ($successAlert) 
+                                {
+                                    ?>
+                                    <!-- Success -->
+                                    <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php 
+                                }
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+
                                 <div class="table-responsive border rounded p-1">
                                     <table class="table">
                                         <thead>
@@ -116,9 +157,13 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         <div>
                                                             <a href="edit-employee-detail.php?editid=<?php echo htmlentities($row->ID); ?>"><i
                                                                         class="icon-pencil"></i></a>
-                                                            || <a href="manage-employees.php?delid=<?php echo ($row->ID); ?>"
+                                                            <!-- || <a href="manage-employees.php?delid=<?php echo ($row->ID); ?>"
                                                                     onclick="return confirm('Do you really want to Delete ?');">
-                                                                <i class="icon-trash"></i></a></div>
+                                                                <i class="icon-trash"></i></a> -->
+                                                                || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                                                <i class="icon-trash"></i>
+                                                            </a>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <?php $cnt = $cnt + 1;
@@ -167,6 +212,27 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
     <!-- page-body-wrapper ends -->
 </div>
 <!-- container-scroller -->
+    <!-- Confirmation Modal (Delete) -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this Employee?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" action="" method="post">
+                <input type="hidden" name="employeeID" id="employeeID">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
@@ -182,7 +248,14 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
+<script>
+    function setDeleteId(id) 
+    {
+        document.getElementById('employeeID').value = id;
+    }
+</script>
 </body>
 </html>
 <?php } ?>

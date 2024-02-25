@@ -42,51 +42,53 @@ include('includes/dbconnection.php');
 <?php include_once('includes/header.php');?>
 <div class="banner">
   <div class="container">
-  <script src="js/responsiveslides.min.js"></script>
- <script>
-    $(function () {
-      $("#slider").responsiveSlides({
-        auto: true,
-        nav: true,
-        speed: 500,
-        namespace: "callbacks",
-        pager: true,
-      });
-    });
-  </script>
-<div class="slider">
-       <div class="callbacks_container">
-        <ul class="rslides" id="slider">
-         <li>     
-          <h3>Student Management System</h3>      
-           <p>Registered Students can Login Here</p>             
-          <div class="readmore">
-          <a href="user/login.php">Student Login<i class="glyphicon glyphicon-menu-right"> </i></a>
-          </div>
-         </li>
-
- 
-        </ul>
+      <script src="js/responsiveslides.min.js"></script>
+      <script>
+          $(function () {
+            $("#slider").responsiveSlides({
+              auto: true,
+              nav: true,
+              speed: 500,
+              namespace: "callbacks",
+              pager: true,
+            });
+          });
+      </script>
+      <div class="slider">
+        <div class="callbacks_container">
+          <ul class="rslides" id="slider">
+          <li>     
+            <h3>Student Management System</h3>      
+            <p>Registered Students can Login Here</p>             
+            <div class="readmore">
+            <a href="user/login.php">Student Login<i class="glyphicon glyphicon-menu-right"> </i></a>
+            </div>
+          </li>
+          </ul>
+        </div>
       </div>
-    </div>
-</div>      
-  </div>
+  </div>      
+</div>
+
 <div class="welcome">
 	<div class="container">
 		<?php
-$sql="SELECT * from tblpage where PageType='aboutus'";
-$query = $dbh -> prepare($sql);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
+      $sql="SELECT * from tblpage where PageType='aboutus'";
+      $query = $dbh -> prepare($sql);
+      $query->execute();
+      $results=$query->fetchAll(PDO::FETCH_OBJ);
 
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
-		<h2><?php  echo htmlentities($row->PageTitle);?></h2>
-		<p><?php  echo ($row->PageDescription);?></p><?php $cnt=$cnt+1;}} ?>
-	</div>
+      $cnt=1;
+      if($query->rowCount() > 0)
+      {
+        foreach($results as $row)
+        {               ?>
+            <h2><?php  echo htmlentities($row->PageTitle);?></h2>
+            <p><?php  echo ($row->PageDescription);?></p><?php $cnt=$cnt+1;
+        }
+      } 
+      ?>
+  </div>
 </div>
 <!--/welcome-->
 
@@ -96,25 +98,27 @@ foreach($results as $row)
 	<div class="container">
 			<div class="testimonial-nfo">
         <h3>Public Notices</h3>
-         <marquee  style="height:350px;" direction ="up" onmouseover="this.stop();" onmouseout="this.start();">
+        <marquee  style="height:350px;" direction ="up" onmouseover="this.stop();" onmouseout="this.start();">
 				<?php
-$sql="SELECT * from tblpublicnotice";
-$query = $dbh -> prepare($sql);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
+          $sql="SELECT * from tblpublicnotice WHERE IsDeleted = 0";
+          $query = $dbh -> prepare($sql);
+          $query->execute();
+          $results=$query->fetchAll(PDO::FETCH_OBJ);
 
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
-
- 
-		<a href="view-public-notice.php?viewid=<?php echo htmlentities ($row->ID);?>" target="_blank" style="color:#fff;">
-          <?php  echo htmlentities($row->NoticeTitle);?>(<?php  echo htmlentities($row->CreationDate);?>)</a>
-          <hr /><br />
-				    
-			<?php $cnt=$cnt+1;}} ?>
+          $cnt=1;
+          if($query->rowCount() > 0)
+          {
+            foreach($results as $row)
+            {               
+                ?>
+              <a href="view-public-notice.php?viewid=<?php echo htmlentities ($row->ID);?>" target="_blank" style="color:#fff;">
+                  <?php  echo htmlentities($row->NoticeTitle);?>(<?php  echo htmlentities($row->CreationDate);?>)
+              </a>
+                  <hr /><br />
+              <?php $cnt=$cnt+1;
+            }
+          } 
+    ?>
 	</marquee></div>
 	</div>
 </div>

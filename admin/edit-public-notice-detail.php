@@ -2,28 +2,45 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) {
+if (strlen($_SESSION['sturecmsaid']==0)) 
+{
   header('location:logout.php');
-  } else{
-   if(isset($_POST['submit']))
+} 
+else
+{
+  $successAlert = false;
+  $dangerAlert = false;
+  $msg = "";
+
+  try
   {
- $nottitle=$_POST['nottitle'];
- $notmsg=$_POST['notmsg'];
- $eid=$_GET['editid'];
-$sql="update tblpublicnotice set NoticeTitle=:nottitle,NoticeMessage=:notmsg where ID=:eid";
-$query=$dbh->prepare($sql);
-$query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
-$query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
-$query->bindParam(':eid',$eid,PDO::PARAM_STR);
- $query->execute();
-  echo '<script>alert("Notice has been updated")</script>';
-}
+    if(isset($_POST['submit']))
+    {
+      $nottitle=$_POST['nottitle'];
+      $notmsg=$_POST['notmsg'];
+      $eid=$_GET['editid'];
+
+      $sql="update tblpublicnotice set NoticeTitle=:nottitle,NoticeMessage=:notmsg where ID=:eid";
+      $query=$dbh->prepare($sql);
+      $query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
+      $query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
+      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
+      $query->execute();
+
+      $successAlert = true;
+      $msg = "Notice has been updated successfully.";
+    }
+  }
+  catch(PDOException $e)
+  {
+    $dangerAlert = true;
+    $msg = "Ops! An error occurred while updating public notice.";
+  }
 
   ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
-   
     <title>Student  Management System|| Update Notice</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -43,7 +60,7 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
   <body>
     <div class="container-scroller">
       <!-- partial:partials/_navbar.html -->
-     <?php include_once('includes/header.php');?>
+      <?php include_once('includes/header.php');?>
       <!-- partial -->
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -66,31 +83,75 @@ $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Update Notice</h4>
-                   
+                    <!-- Dismissible Alert messages -->
+                    <?php 
+                        if ($successAlert) 
+                        {
+                          ?>
+                          <!-- Success -->
+                          <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <?php echo $msg; ?>
+                          </div>
+                        <?php 
+                        }
+                        if($dangerAlert)
+                        { 
+                        ?>
+                          <!-- Danger -->
+                          <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <?php echo $msg; ?>
+                          </div>
+                        <?php
+                        }
+                        ?>
+
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       <?php
-$eid=$_GET['editid'];
-$sql="SELECT * from tblpublicnotice where ID=:eid";
-$query = $dbh -> prepare($sql);
-$query->bindParam(':eid',$eid,PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Notice Title</label>
-                        <input type="text" name="nottitle" value="<?php  echo htmlentities($row->NoticeTitle);?>" class="form-control" required='true'>
+                      $eid=$_GET['editid'];
+                      $sql="SELECT * from tblpublicnotice where ID=:eid";
+                      $query = $dbh -> prepare($sql);
+                      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
+                      $query->execute();
+                      $results=$query->fetchAll(PDO::FETCH_OBJ);
+                      $cnt=1;
+                      if($query->rowCount() > 0)
+                      {
+                        foreach($results as $row)
+                        {               ?>
+                          <div class="form-group">
+                            <label for="exampleInputName1">Notice Title</label>
+                            <input type="text" name="nottitle" value="<?php  echo htmlentities($row->NoticeTitle);?>" class="form-control" required='true'>
+                          </div>
+                          <div class="form-group">
+                            <label for="exampleInputName1">Notice Message</label>
+                            <textarea name="notmsg" value="" class="form-control" required='true'><?php  echo htmlentities($row->NoticeMessage);?></textarea>
+                          </div>
+                          <?php $cnt=$cnt+1;
+                        }
+                      } 
+                      ?>
+                          <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
+                      <!-- Confirmation Modal (Update) -->
+                      <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              </div>
+                              <div class="modal-body">
+                                Are you sure you want to update this Public Notice?
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary" name="submit">Update</button>
+                              </div>
+                            </div>
+                          </div>
                       </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Notice Message</label>
-                        <textarea name="notmsg" value="" class="form-control" required='true'><?php  echo htmlentities($row->NoticeMessage);?></textarea>
-                      </div>
-                   <?php $cnt=$cnt+1;}} ?>
-                      <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
-                     
+                    
                     </form>
                   </div>
                 </div>
@@ -99,7 +160,7 @@ foreach($results as $row)
           </div>
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
-         <?php include_once('includes/footer.php');?>
+          <?php include_once('includes/footer.php');?>
           <!-- partial -->
         </div>
         <!-- main-panel ends -->
@@ -121,6 +182,7 @@ foreach($results as $row)
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

@@ -2,30 +2,47 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) {
+if (strlen($_SESSION['sturecmsaid']==0)) 
+{
   header('location:logout.php');
-  } else{
-   if(isset($_POST['submit']))
-  {
- $nottitle=$_POST['nottitle'];
+} 
+else
+{
+  $successAlert = false;
+  $dangerAlert = false;
+  $msg = "";
 
- $notmsg=$_POST['notmsg'];
-$sql="insert into tblpublicnotice(NoticeTitle,NoticeMessage)values(:nottitle,:notmsg)";
-$query=$dbh->prepare($sql);
-$query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
-$query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
- $query->execute();
-   $LastInsertId=$dbh->lastInsertId();
-   if ($LastInsertId>0) {
-    echo '<script>alert("Notice has been added.")</script>';
-echo "<script>window.location.href ='add-public-notice.php'</script>";
-  }
-  else
+  try
+  {
+    if(isset($_POST['submit']))
     {
-         echo '<script>alert("Something Went Wrong. Please try again")</script>';
+      $nottitle=$_POST['nottitle'];
+
+      $notmsg=$_POST['notmsg'];
+      $sql="insert into tblpublicnotice(NoticeTitle,NoticeMessage)values(:nottitle,:notmsg)";
+      $query=$dbh->prepare($sql);
+      $query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
+      $query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
+      $query->execute();
+      $LastInsertId=$dbh->lastInsertId();
+      if ($LastInsertId>0) 
+      {
+          $successAlert = true;
+          $msg = "Notice has been added successfully.";
+      }
+      else
+      {
+          $dangerAlert = true;
+          $msg = "Something went wrong! Please try again.";
+      }
     }
-}
-  ?>
+  }
+  catch(PDOException $e)
+  {
+    $dangerAlert = true;
+    $msg = "Ops! An error occurred while adding public notice.";
+  }
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -72,7 +89,30 @@ echo "<script>window.location.href ='add-public-notice.php'</script>";
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Add Notice</h4>
-                   
+                    <!-- Dismissible Alert messages -->
+                      <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
                       
                       <div class="form-group">
@@ -116,6 +156,7 @@ echo "<script>window.location.href ='add-public-notice.php'</script>";
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -9,6 +9,10 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Get the active session ID
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
@@ -24,7 +28,8 @@ else
 
             if (empty($subjectName) || empty($classes)) 
             {
-                echo '<script>alert("Please enter Subject Name and select at least one class")</script>';
+                $dangerAlert = true;
+                $msg = "Please enter Subject Name and select at least one class!";
             } 
             else 
             {
@@ -36,8 +41,10 @@ else
                 $checkQuery->execute();
                 $subjectId = $checkQuery->fetchColumn();
                 
-                if ($subjectId > 0) {
-                    echo '<script>alert("Subject already exists in the current session. Please update the existing subject.")</script>';
+                if ($subjectId > 0) 
+                {
+                    $dangerAlert = true;
+                    $msg = "Subject already exists in the current session! Please update the existing subject.";
                 }
                 else 
                 {
@@ -62,7 +69,8 @@ else
                     // Check if at least one subject type is selected
                     if (empty($subjectTypes)) 
                     {
-                        echo '<script>alert("Please select at least one subject type")</script>';
+                        $dangerAlert = true;
+                        $msg = "Please select at least one subject type!";
                     } 
                     else 
                     {
@@ -81,12 +89,13 @@ else
 
                         if ($LastInsertId > 0) 
                         {
-                            echo '<script>alert("Subject has been created.")</script>';
-                            echo "<script>window.location.href ='create-subjects.php'</script>";
+                            $successAlert = true;
+                            $msg = "Subject has been created successfully!";
                         } 
                         else 
                         {
-                            echo '<script>alert("Something Went Wrong. Please try again")</script>';
+                            $dangerAlert = true;
+                            $msg = "Something went wrong! Please try again later.";
                         }
                     }
                 }
@@ -95,7 +104,8 @@ else
     }
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.'. $e->getMessage() .'")</script>';
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred.";
     }
 ?>
 <!DOCTYPE html>
@@ -141,6 +151,29 @@ else
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title" style="text-align: center;">Create Subjects</h4>
+                                        <!-- Dismissible Alert messages -->
+                                        <?php 
+                                        if ($successAlert) 
+                                        {
+                                            ?>
+                                            <!-- Success -->
+                                            <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                            </div>
+                                        <?php 
+                                        }
+                                        if($dangerAlert)
+                                        { 
+                                        ?>
+                                            <!-- Danger -->
+                                            <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                            </div>
+                                        <?php
+                                        }
+                                        ?>
                                     <form class="forms-sample" method="post">
                                         <div class="form-group">
                                             <label for="exampleInputName1">Subject Name</label>
@@ -230,5 +263,6 @@ else
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
     <script src="./js/dataBinding.js"></script>
+    <script src="./js/manageAlert.js"></script>
   </body>
 </html><?php }  ?>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || strlen($_SESSION['sturecmsaid']) == 0) 
@@ -9,6 +9,10 @@ if (!isset($_SESSION['sturecmsaid']) || strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Get the active session ID
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
@@ -49,7 +53,8 @@ else
 
                 if (!in_array($extension, $allowed_extensions)) 
                 {
-                    echo "<script>alert('Image has Invalid format. Only jpg / jpeg / png / gif format allowed');</script>";
+                    $dangerAlert = true;
+                    $msg = "Image has Invalid format! Only jpg / jpeg / png / gif format are allowed.";
                 } 
                 else 
                 {
@@ -90,28 +95,31 @@ else
 
                     if ($lastInsertId > 0) 
                     {
-                        echo '<script>alert("Employee has been added.");</script>';
-                        echo "<script>window.location.href ='add-employees.php'</script>";
-                        
+                        $successAlert = true;
+                        $msg = "Employee has been added successfully.";
+
                         $dbh->commit();
                     } 
                     else 
                     {
-                        echo '<script>alert("Something Went Wrong. Please try again.");</sc>';
+                        $dangerAlert = true;
+                        $msg = "Something went wrong! Please try again.";
                     }
                 }
             } 
             else 
             {
-                echo "<script>alert('Username or Employee ID already exists. Please try again.');</script>";
+                $dangerAlert = true;
+                $msg = "Username or Employee ID already exists! Please try with different Username or Employee ID.";
             }
         }
     }
     catch (PDOException $e) 
     {
         $dbh->rollBack();
-        echo '<script>alert("Ops! An Error occurred.'.$e->getMessage().'")</script>';
         // error_log($e->getMessage()); //-->This is only for debugging purpose
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred.";
     }
 ?>
 <!DOCTYPE html>
@@ -159,6 +167,30 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Add Employees</h4>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                if ($successAlert) 
+                                {
+                                    ?>
+                                    <!-- Success -->
+                                    <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php 
+                                }
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+
                                 <form class="forms-sample" method="post" enctype="multipart/form-data">
                                     <div class="form-group">
                                         <label for="exampleInputName1">Employee Name</label>
@@ -308,6 +340,7 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/showMoreInput.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

@@ -9,6 +9,9 @@ if (strlen($_SESSION['sturecmsaid']) == 0)
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
     try 
     {
         // Fetch current active session ID
@@ -63,12 +66,16 @@ else
             $query->bindParam(':address', $address, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
             $query->execute();
-            echo '<script>alert("Student has been updated")</script>';
+            $successAlert = true;
+            $msg = "Student has been updated successfully.";
+            
         }
+        
     } 
     catch (PDOException $e) 
     {
-        echo "<script>alert('Ops! Something went wrong');</script>";
+        $dangerAlert = true;
+        $msg = "Ops! Something went wrong.";
     }
 
 
@@ -116,6 +123,29 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Update Students</h4>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                if ($successAlert) 
+                                {
+                                    ?>
+                                    <!-- Success -->
+                                    <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php 
+                                }
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
 
                                 <form class="forms-sample" method="post" enctype="multipart/form-data">
                                     <?php
@@ -126,7 +156,7 @@ else
                                     } 
                                     else 
                                     {
-                                        $sql = "SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblstudent.SessionID,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
+                                        $sql = "SELECT tblstudent.ID as ID, tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblstudent.SessionID,tblclass.ClassName,tblclass.Section, tblclass.ID as ClassID, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
                                     }
 
                                     $query = $dbh->prepare($sql);
@@ -299,10 +329,28 @@ else
                                                 <input type="Password" name="password"
                                                         value="<?php echo htmlentities($row->Password); ?>"
                                                         class="form-control" readonly='true'>
-                                            </div><?php echo ($row->SessionID != $activeSessionID) ? '' : '<button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>' ?>
+                                            </div><?php echo ($row->SessionID != $activeSessionID) ? '' : '<button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>' ?>
 
                                         <?php }
                                     } ?>
+                                <!-- Confirmation Modal (Update) -->
+                                <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to update this Student?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary" name="submit">Update</button>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 </form>
                             </div>
                         </div>
@@ -334,6 +382,7 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <script src="./js/SectionsForStudent.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html><?php } ?>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'] == 0)) 
 {
@@ -8,33 +8,47 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 } 
 else 
 {
+
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Code for deletion
-    if (isset($_GET['delid'])) 
+    if (isset($_POST['confirmDelete'])) 
     {
-        $rid = intval($_GET['delid']);
+        $rid = intval($_POST['studentID']);
 
-        // Check whether the record is from tblstudenthistory or tblstudent
-        $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
-        $checkHistoryQuery = $dbh->prepare($checkHistorySql);
-        $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $checkHistoryQuery->execute();
-        $isHistoryRecord = $checkHistoryQuery->fetchColumn();
+        try
+        {
+            // Check whether the record is from tblstudenthistory or tblstudent
+            $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
+            $checkHistoryQuery = $dbh->prepare($checkHistorySql);
+            $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkHistoryQuery->execute();
+            $isHistoryRecord = $checkHistoryQuery->fetchColumn();
 
-        if ($isHistoryRecord) 
+            if ($isHistoryRecord) 
+            {
+                $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
+            } 
+            else 
+            {
+                $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+            }
+
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $query->execute();
+            
+            $successAlert = true;
+            $msg = "Student deleted successfully.";
+        }
+        catch(PDOException $e)
         {
-            $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
-        } 
-        else 
-        {
-            $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+            $dangerAlert = true;
+            $msg = "Ops! Something went wrong while deleting the student.";
         }
 
-        $query = $dbh->prepare($sql);
-        $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $query->execute();
-        
-        echo "<script>alert('Data deleted');</script>";
-        echo "<script>window.location.href = 'manage-students.php'</script>";
     }
      // Fetch sessions from tblsessions
     $sessionSql = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
@@ -89,6 +103,7 @@ else
                                 <div class="d-sm-flex align-items-center mb-4">
                                     <h4 class="card-title mb-sm-0 mr-2">Manage Students</h4>
                                     <div class="d-flex justify-content-center align-items-center">
+                                
                                         <select name="session" class="form-control" id="session" onchange="getSelectedSessionStudents()">
                                             <?php
                                             // Fetch active session from tblsessions
@@ -111,7 +126,31 @@ else
                                     </div>
                                     <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Students</a>
                                 </div>
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                 <div id="student-list-container">
+                                    
                                     <!-- TABLE WILL BE DYNAMICALLY POPULATED BASED ON SELECTED SESSION -->
                                 </div>
                                 
@@ -130,6 +169,7 @@ else
     <!-- page-body-wrapper ends -->
 </div>
 <!-- container-scroller -->
+
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
@@ -145,6 +185,7 @@ else
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
+<script src="./js/manageAlert.js"></script>
 <script>
     // Function to get and display the student list for the selected session
     function getSelectedSessionStudents() 
@@ -167,6 +208,14 @@ else
 
     // Call the function on page load to display the student list for the default selected session
     window.onload = getSelectedSessionStudents;
+
+
+    function setDeleteId(id) 
+    {
+        document.getElementById('studentID').value = id;
+    }
+
+
 </script>
 
 <!-- End custom js for this page -->

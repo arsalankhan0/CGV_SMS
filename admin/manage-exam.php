@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'])==0) 
 {
@@ -12,129 +12,158 @@ else
     $dangerAlert = false;
     $msg = "";
 
+    $examPublished = false;
+    $resultPublished = false;
+
     // Get the active session ID
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
     $sessionQuery->execute();
     $sessionID = $sessionQuery->fetchColumn();
 
-    // Code for deletion
-    if(isset($_POST['confirmDelete']))
+    try
     {
-        $rid = intval($_POST['examID']);
-
-        // Check if the exam is published
-        $checkPublishedSql = "SELECT IsPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
-        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
-        $checkPublishedQuery->bindParam(':examId', $rid, PDO::PARAM_STR);
-        $checkPublishedQuery->execute();
-        $examPublished = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
-
-        if ($examPublished && $examPublished['IsPublished'] == 1) 
+        // Code for deletion
+        if(isset($_POST['confirmDelete']))
         {
-            $msg = "Cannot delete the published exam!";
-            $dangerAlert = true;
-        } 
-        else 
-        {
-            // Check if there are records in tblreports for this exam
-            $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE ExamName = :examName";
-            $checkReportsQuery = $dbh->prepare($checkReportsSql);
-            $checkReportsQuery->bindParam(':examName', $rid, PDO::PARAM_STR);
-            $checkReportsQuery->execute();
-            $reportCount = $checkReportsQuery->fetchColumn();
+            $rid = intval($_POST['examID']);
 
-            if ($reportCount > 0) 
+            // Check if the exam is published
+            $checkPublishedSql = "SELECT IsPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+            $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+            $checkPublishedQuery->bindParam(':examId', $rid, PDO::PARAM_STR);
+            $checkPublishedQuery->execute();
+            $examPublished = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+            if ($examPublished && $examPublished['IsPublished'] == 1) 
             {
-                $msg = "Cannot delete exam as there are records associated with it!";
+                $msg = "Cannot delete the published exam!";
                 $dangerAlert = true;
             } 
             else 
             {
-                $sql = "UPDATE tblexamination SET IsDeleted = 1 WHERE ID = :rid";
-                $query = $dbh->prepare($sql);
-                $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-                $query->execute();
+                // Check if there are records in tblreports for this exam
+                $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE ExamName = :examName";
+                $checkReportsQuery = $dbh->prepare($checkReportsSql);
+                $checkReportsQuery->bindParam(':examName', $rid, PDO::PARAM_STR);
+                $checkReportsQuery->execute();
+                $reportCount = $checkReportsQuery->fetchColumn();
 
-                $msg = "Exam deleted successfully.";
-                $successAlert = true;
+                if ($reportCount > 0) 
+                {
+                    $msg = "Cannot delete exam as there are records associated with it!";
+                    $dangerAlert = true;
+                } 
+                else 
+                {
+                    $sql = "UPDATE tblexamination SET IsDeleted = 1 WHERE ID = :rid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+                    $query->execute();
+
+                    $msg = "Exam deleted successfully.";
+                    $successAlert = true;
+                }
             }
         }
     }
-    if (isset($_POST['publish'])) 
+    catch(PDOException $e)
     {
-        // Get values from the submitted form
-        $examId = $_POST['exam_id'];
-    
-        // Check if already published
-        $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
-        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
-        $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
-        $checkPublishedQuery->execute();
-        $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
-    
-        if ($publish && $publish['IsPublished'] === 1 && $publish['session_id'] === $sessionID) 
-        {
-            $msg = "Exam Already published!";
-            $dangerAlert = true;
-        } 
-        else 
-        {
-            // Update IsPublished
-            $updateSql = "UPDATE tblexamination SET IsPublished = 1, session_id = :session_id WHERE ID = :examId";
-            $updateQuery = $dbh->prepare($updateSql);
-            $updateQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-            $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
-            $updateQuery->execute();
-    
-            $msg = "Exam published successfully.";
-            $successAlert = true;
-        }
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while deleting the exam.";
     }
-    if (isset($_POST['publish_result'])) 
+
+    try
     {
-        // Get values from the submitted form
-        $examId = $_POST['exam_id'];
-
-        // Check if result is already published
-        $checkResultPublishedSql = "SELECT IsResultPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
-        $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-        $checkResultPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
-        $checkResultPublishedQuery->execute();
-        $resultPublished = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-
-        if ($resultPublished && $resultPublished['IsResultPublished'] == 1) 
+        if (isset($_POST['publish'])) 
         {
-            $msg = "Result Already Published!";
-            $dangerAlert = true;
-        } 
-        else 
-        {
-            // Check if exam is published
+            // Get values from the submitted form
+            $examId = $_POST['exam_id'];
+        
+            // Check if already published
             $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
             $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
             $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
             $checkPublishedQuery->execute();
             $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
-
-            if ($publish && $publish['IsPublished'] == 1 && $publish['session_id'] == $sessionID) 
+        
+            if ($publish && $publish['IsPublished'] === 1 && $publish['session_id'] === $sessionID) 
             {
-                // Update IsResultPublished
-                $updatePublishResultSql = "UPDATE tblexamination SET IsResultPublished = 1, session_id = :session_id WHERE ID = :examId";
-                $updatePublishResultQuery = $dbh->prepare($updatePublishResultSql);
-                $updatePublishResultQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-                $updatePublishResultQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
-                $updatePublishResultQuery->execute();
-
-                $msg = "Result Published Successfully.";
-                $successAlert = true;
+                $msg = "Exam Already published!";
+                $dangerAlert = true;
             } 
             else 
             {
-                $msg = "Please Publish the Exam first!";
-                $dangerAlert = true;
+                // Update IsPublished
+                $updateSql = "UPDATE tblexamination SET IsPublished = 1, session_id = :session_id WHERE ID = :examId";
+                $updateQuery = $dbh->prepare($updateSql);
+                $updateQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+                $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+                $updateQuery->execute();
+        
+                $msg = "Exam published successfully.";
+                $successAlert = true;
             }
         }
+    }
+    catch(PDOException $e)
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while publishing the exam.";
+    }
+
+    try
+    {
+        if (isset($_POST['publish_result'])) 
+        {
+            // Get values from the submitted form
+            $examId = $_POST['exam_id'];
+
+            // Check if result is already published
+            $checkResultPublishedSql = "SELECT IsResultPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+            $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+            $checkResultPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+            $checkResultPublishedQuery->execute();
+            $resultPublished = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+            if ($resultPublished && $resultPublished['IsResultPublished'] == 1) 
+            {
+                $msg = "Result Already Published!";
+                $dangerAlert = true;
+            } 
+            else 
+            {
+                // Check if exam is published
+                $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+                $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+                $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+                $checkPublishedQuery->execute();
+                $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($publish && $publish['IsPublished'] == 1 && $publish['session_id'] == $sessionID) 
+                {
+                    // Update IsResultPublished
+                    $updatePublishResultSql = "UPDATE tblexamination SET IsResultPublished = 1, session_id = :session_id WHERE ID = :examId";
+                    $updatePublishResultQuery = $dbh->prepare($updatePublishResultSql);
+                    $updatePublishResultQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+                    $updatePublishResultQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+                    $updatePublishResultQuery->execute();
+
+                    $msg = "Result Published Successfully.";
+                    $successAlert = true;
+                } 
+                else 
+                {
+                    $msg = "Please Publish the Exam first!";
+                    $dangerAlert = true;
+                }
+            }
+        }
+    }
+    catch(PDOException $e)
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while publishing the result.";
     }
 ?>
 <!DOCTYPE html>
@@ -249,6 +278,18 @@ else
                                                 {
                                                     foreach($results as $row)
                                                     {
+                                                        // Check if the exam is published
+                                                        $checkPublishedSql = "SELECT IsPublished, IsResultPublished FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+                                                        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+                                                        $checkPublishedQuery->bindParam(':examId', $row->ID, PDO::PARAM_STR);
+                                                        $checkPublishedQuery->execute();
+                                                        $publishStatus = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                        if ($publishStatus) 
+                                                        {
+                                                            $examPublished = $publishStatus['IsPublished'] == 1;
+                                                            $resultPublished = $publishStatus['IsResultPublished'] == 1;
+                                                        }
                                                         ?>   
                                                         <tr>
                                                             <td><?php echo htmlentities($cnt);?></td>
@@ -302,10 +343,42 @@ else
                                                                     <td>
                                                                         <form method="post" action="">
                                                                             <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
-                                                                            <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmPublishModal">Publish</button>
-                                                                            <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmResultModal">Publish Result</button>
+                                                                            <?php
+                                                                            if($examPublished)
+                                                                            {
+                                                                            ?>
+                                                                                <button type="button" class="btn-sm btn-secondary text-muted font-weight-bold border-0" disabled>
+                                                                                    Exam Published
+                                                                                </button>
+                                                                            <?php
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                            ?>
+                                                                                <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmPublishModal_<?php echo $row->ID; ?>">
+                                                                                    publish Exam
+                                                                                </button>
+                                                                            <?php   
+                                                                            }
+                                                                            if($resultPublished)
+                                                                            {
+                                                                            ?>
+                                                                                <button type="button" class="btn-sm btn-secondary text-muted font-weight-bold border-0" disabled>
+                                                                                    Result Published
+                                                                                </button>
+                                                                            <?php
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                            ?>
+                                                                                <button type="button" class="btn-sm btn-dark" data-toggle="modal" data-target="#confirmResultModal_<?php echo $row->ID; ?>">
+                                                                                    Publish Result
+                                                                                </button>
+                                                                            <?php
+                                                                            }
+                                                                            ?>
                                                                             <!-- Confirmation Modal (Publish Exam) -->
-                                                                            <div class="modal fade" id="confirmPublishModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                                            <div class="modal fade" id="confirmPublishModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                                                                                 <div class="modal-dialog">
                                                                                     <div class="modal-content">
                                                                                     <div class="modal-header">
@@ -323,7 +396,7 @@ else
                                                                                 </div>
                                                                             </div>
                                                                             <!-- Confirmation Modal (Publish Result) -->
-                                                                            <div class="modal fade" id="confirmResultModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                                            <div class="modal fade" id="confirmResultModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                                                                                 <div class="modal-dialog">
                                                                                     <div class="modal-content">
                                                                                     <div class="modal-header">

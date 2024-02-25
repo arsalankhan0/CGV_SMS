@@ -226,16 +226,6 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <!-- End custom js for this page -->
-<!-- <script>
-    function setActive(sessionId) 
-    {
-        let confirmation = confirm('Do you really want to set this session as active?');
-        if (confirmation) 
-        {
-            window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId;
-        }
-    }
-</script> -->
 <script>
     function setActive(sessionId) 
     {

@@ -90,6 +90,7 @@ function getClassName($classID)
     return $className ? $className : "N/A";
 }
 ?>
+
 <div class="table-responsive border rounded p-1">
     <table class="table">
         <thead>
@@ -126,12 +127,24 @@ function getClassName($classID)
                         <td><?php echo htmlentities($student->DateofAdmission); ?></td>
                         <td>
                             <div>
-                                <?php if ($student->SessionID != $activeSession) { ?>
+                                <?php if ($student->SessionID != $activeSession) 
+                                { 
+                                    ?>
                                     <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-eye"></i></a>
-                                <?php } else { ?>
+                                <?php 
+                                } 
+                                else 
+                                { 
+                                    ?>
                                     <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-pencil"></i></a>
-                                <?php } ?>
-                                || <a href="manage-students.php?delid=<?php echo ($student->ID); ?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a>
+                                <?php 
+                                } 
+                                ?>
+                                || 
+                                <!-- <a href="manage-students.php?delid=<?php echo ($student->ID); ?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a> -->
+                                <a href="" onclick="setDeleteId(<?php echo ($student->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                    <i class="icon-trash"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -159,3 +172,26 @@ function getClassName($classID)
         <li><a href="?pageno=<?php echo $total_pages; ?>"><strong style="padding-left: 10px">Last</strong></a></li>
     </ul>
 </div>
+
+<!-- Confirmation Modal (Delete) -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this Student?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" action="" method="post">
+                    <input type="hidden" name="studentID" id="studentID">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                </form>
+            </div>
+            </div>
+        </div>
+</div>
+

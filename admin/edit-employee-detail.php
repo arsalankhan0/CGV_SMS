@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
@@ -8,6 +8,10 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
 } 
 else 
 {
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
     // Get the active session ID
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
@@ -63,9 +67,15 @@ else
 
             $query->execute();
 
-            echo '<script>alert("Employee details have been updated")</script>';
-        } catch (PDOException $e) {
-            echo '<script>alert("Error: ' . $e->getMessage() . '")</script>';
+            // echo '<script>alert("Employee details have been updated")</script>';
+            $successAlert = true;
+            $msg = "Employee details have been updated successfully.";
+        } 
+        catch (PDOException $e) 
+        {
+            // echo '<script>alert("Error: ' . $e->getMessage() . '")</script>';
+            $dangerAlert = true;
+            $msg = "Ops! An error occurred while updating the details.";
         }
     }
 ?>
@@ -116,6 +126,30 @@ else
                     <div class="card">
                     <div class="card-body">
                         <h4 class="card-title" style="text-align: center;">Update Employee</h4>
+                        <!-- Dismissible Alert messages -->
+                        <?php 
+                        if ($successAlert) 
+                        {
+                            ?>
+                            <!-- Success -->
+                            <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <?php echo $msg; ?>
+                            </div>
+                        <?php 
+                        }
+                        if($dangerAlert)
+                        { 
+                        ?>
+                            <!-- Danger -->
+                            <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <?php echo $msg; ?>
+                            </div>
+                        <?php
+                        }
+                        ?>
+
                     
                         <form class="forms-sample" method="post" enctype="multipart/form-data">
                         <?php
@@ -227,7 +261,27 @@ else
                                             <input type="Password" name="password" value="<?php echo htmlentities($row->Password); ?>" class="form-control" readonly='true'>
                                         </div>
                                         <?php $cnt=$cnt+1;}} ?>
-                        <button type="submit" class="btn btn-primary mr-2" name="submit">Update</button>
+
+                                        <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
+                                        
+                                        <!-- Confirmation Modal (Update) -->
+                                        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to update this Employee?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary" name="submit">Update</button>
+                                                </div>
+                                                </div>
+                                            </div>
+                                        </div>
                         </form>
                     </div>
                     </div>
@@ -259,6 +313,7 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/showMoreInput.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
     </body>
 </html>
