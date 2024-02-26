@@ -171,12 +171,38 @@ else
                               if($query->rowCount() > 0)
                               {
                                 foreach($results as $row)
-                                {               ?>   
+                                {    
+                                  // Fetch SectionName based on Section ID
+                                  $sectionId = $row->Section;
+                                  $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :sectionId";
+                                  $sectionQuery = $dbh->prepare($sectionSql);
+                                  $sectionQuery->bindParam(':sectionId', $sectionId, PDO::PARAM_STR);
+                                  $sectionQuery->execute();
+                                  $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+                                            ?>   
                                   <tr>
                                   
                                     <td><?php echo htmlentities($cnt);?></td>
                                     <td><?php  echo htmlentities($row->ClassName);?></td>
-                                    <td><?php  echo htmlentities($row->Section);?></td>
+                                    <td><?php  
+                                            // Fetch all SectionNames based on Section IDs
+                                            $sectionIds = explode(',', $row->Section);
+                                            $sectionNames = [];
+
+                                            foreach ($sectionIds as $sectionId) 
+                                            {
+                                                $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :sectionId";
+                                                $sectionQuery = $dbh->prepare($sectionSql);
+                                                $sectionQuery->bindParam(':sectionId', $sectionId, PDO::PARAM_STR);
+                                                $sectionQuery->execute();
+                                                $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                // Add SectionName to the array
+                                                $sectionNames[] = htmlentities($sectionRow['SectionName']);
+                                            }
+
+                                            echo implode(', ', $sectionNames);?>
+                                    </td>
                                     <td><?php  echo htmlentities($row->CreationDate);?></td>
                                     <td>
                                       <div><a href="edit-class-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>

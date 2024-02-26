@@ -128,16 +128,20 @@ else
                         <input type="text" name="cname" value="" class="form-control" required='true'>
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputEmail3">Sections</label>
-                        <select name="section[]" multiple="multiple" class="js-example-basic-multiple w-100" required='true'>
-                          <option value="" disabled >Choose Sections</option>
-                          <option value="A">A</option>
-                          <option value="B">B</option>
-                          <option value="C">C</option>
-                          <option value="D">D</option>
-                          <option value="E">E</option>
-                          <option value="F">F</option>
-                        </select>
+                          <label for="exampleInputEmail3">Sections</label>
+                          <select name="section[]" multiple="multiple" class="js-example-basic-multiple w-100" required='true'>
+                              <option value="" disabled>Choose Sections</option>
+                              <?php
+                              // Fetch sections from the database
+                              $sectionQuery = $dbh->query("SELECT ID, SectionName FROM tblsections");
+                              $sections = $sectionQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                              foreach ($sections as $section) 
+                              {
+                                  ?>
+                                  <option value="<?php echo $section['ID']; ?>"><?php echo $section['SectionName']; ?></option>
+                              <?php } ?>
+                          </select>
                       </div>
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                     </form>

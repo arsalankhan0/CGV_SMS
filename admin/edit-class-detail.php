@@ -117,7 +117,6 @@ else
                         $query = $dbh -> prepare($sql);
                         $query->execute();
                         $results=$query->fetchAll(PDO::FETCH_OBJ);
-                        $cnt=1;
                         if($query->rowCount() > 0)
                         {
                             foreach($results as $row)
@@ -131,17 +130,23 @@ else
                                   <label for="exampleInputEmail3">Sections</label>
                                   <?php
                                   $selectedSections = explode(',', $row->Section);
+
+                                  $sectionQuery = "SELECT * FROM tblsections";
+                                  $sectionStmt = $dbh->query($sectionQuery);
+                                  $allSections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
+
                                   ?>
                                   <select name="section[]" class="js-example-basic-multiple w-100" required='true' multiple>
                                       <?php
-                                      $allSections = ['A', 'B', 'C', 'D', 'E', 'F'];
                                       foreach ($allSections as $section) {
-                                          $selected = in_array($section, $selectedSections) ? 'selected' : '';
-                                          echo "<option value='$section' $selected>$section</option>";
+                                          $sectionID = $section['ID'];
+                                          $sectionName = $section['SectionName'];
+                                          $selected = in_array($sectionID, $selectedSections) ? 'selected' : '';
+                                          echo "<option value='$sectionID' $selected>$sectionName</option>";
                                       }
                                       ?>
                                   </select>
-                              </div><?php $cnt=$cnt+1;
+                              </div><?php
                             }
                         } ?>
                       <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>

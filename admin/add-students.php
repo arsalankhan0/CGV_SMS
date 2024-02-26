@@ -214,7 +214,17 @@ include('includes/dbconnection.php');
                       <div class="form-group">
                           <label for="exampleInputEmail3">Student Section</label>
                           <select name="stusection" id="stusection" class="form-control" required='true'>
-                              <!-- Here Sections will be populated based on the selected class -->
+                          <?php
+                             // Fetch sections from the database
+                            $sectionSql = "SELECT ID, SectionName FROM tblsections";
+                            $sectionQuery = $dbh->prepare($sectionSql);
+                            $sectionQuery->execute();
+
+                            while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
+                            {
+                              echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                            }
+                            ?>
                           </select>
                       </div>
 
@@ -304,7 +314,6 @@ include('includes/dbconnection.php');
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
-    <script src="./js/SectionsForStudent.js"></script>
     <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>

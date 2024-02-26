@@ -118,7 +118,7 @@ function getClassName($classID)
                         <td>
                             <?php
                             $displayClass = $student->HistoricalClass ? getClassName($student->HistoricalClass) : getClassName($student->StudentClass);
-                            $displaySection = $student->HistoricalSection ? $student->HistoricalSection : $student->StudentSection;
+                            $displaySection = $student->HistoricalSection ? getSectionName($student->HistoricalSection) : getSectionName($student->StudentSection);
                             echo htmlentities($displayClass . " " . $displaySection);
                             ?>
                         </td>
@@ -141,7 +141,6 @@ function getClassName($classID)
                                 } 
                                 ?>
                                 || 
-                                <!-- <a href="manage-students.php?delid=<?php echo ($student->ID); ?>" onclick="return confirm('Do you really want to Delete ?');"> <i class="icon-trash"></i></a> -->
                                 <a href="" onclick="setDeleteId(<?php echo ($student->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                     <i class="icon-trash"></i>
                                 </a>
@@ -195,3 +194,18 @@ function getClassName($classID)
         </div>
 </div>
 
+<?php
+    // Function to get section name by ID
+    function getSectionName($sectionID)
+    {
+        global $dbh;
+
+        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :sectionID AND IsDeleted = 0";
+        $sectionQuery = $dbh->prepare($sectionSql);
+        $sectionQuery->bindParam(':sectionID', $sectionID, PDO::PARAM_INT);
+        $sectionQuery->execute();
+        $sectionName = $sectionQuery->fetchColumn();
+
+        return $sectionName ? $sectionName : "N/A";
+    }
+?>

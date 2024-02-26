@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -220,20 +220,19 @@ else
                                             <div class="form-group">
                                                 <label for="exampleInputEmail3">Student Section</label>
                                                 <select name="stusection" id="stusection" class="form-control" required='true'
-                                                        <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
+                                                <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
                                                 >
-                                                    <?php
-                                                    $selectedSection = htmlentities($row->StudentSection);
+                                                <?php
+                                                    // Fetch sections from the database
+                                                    $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                    $sectionQuery = $dbh->prepare($sectionSql);
+                                                    $sectionQuery->execute();
 
-                                                    // Array of sections (A-F)
-                                                    $sections = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-                                                    // Loop through sections and generate options
-                                                    foreach ($sections as $section) {
-                                                        $selected = ($selectedSection == $section) ? 'selected' : '';
-                                                        echo "<option value='$section' $selected>$section</option>";
+                                                    while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) {
+                                                        $selected = ($sectionRow['ID'] == $row->StudentSection) ? 'selected' : '';
+                                                        echo "<option value='" . htmlentities($sectionRow['ID']) . "' $selected>" . htmlentities($sectionRow['SectionName']) . "</option>";
                                                     }
-                                                    ?>
+                                                ?>
                                                 </select>
                                             </div>
                                             <div class="form-group">

@@ -37,6 +37,18 @@
             </li>
             
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-basic-section" aria-expanded="false" aria-controls="ui-basic-section">
+                <span class="menu-title">Sections</span>
+                <i class="icon-layers menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-basic-section">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-section.php">Add Section</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-section.php">Manage Sections</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
                 <span class="menu-title">Class</span>
                 <i class="icon-layers menu-icon"></i>

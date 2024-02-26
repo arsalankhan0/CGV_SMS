@@ -177,7 +177,14 @@ else
                                                                         </tr>
                                                                         <tr>
                                                                             <td>Section:</td>
-                                                                            <td><?php echo htmlentities($studentDetails['StudentSection']); ?></td>
+                                                                            <td><?php 
+                                                                             // Fetch sections from the database
+                                                                            $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
+                                                                            $sectionQuery = $dbh->prepare($sectionSql);
+                                                                            $sectionQuery->bindParam(':studentDetails',$studentDetails['StudentSection'], PDO::PARAM_STR);
+                                                                            $sectionQuery->execute();
+                                                                            $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+                                                                            echo htmlentities($sectionRow['SectionName']); ?></td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>

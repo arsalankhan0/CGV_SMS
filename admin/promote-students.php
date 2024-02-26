@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -228,7 +228,17 @@ catch (PDOException $e)
                                         <div class="form-group col-md-6">
                                             <label for="section">Select Section:</label>
                                             <select name="section" id="section" class="form-control">
-                                                <!-- Options will be dynamically populated based on selected class, using JavaScript AJAX-->
+                                                <?php
+                                                     // Fetch sections from the database
+                                                    $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                    $sectionQuery = $dbh->prepare($sectionSql);
+                                                    $sectionQuery->execute();
+
+                                                    while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
+                                                    {
+                                                        echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                                                    }
+                                                ?>
                                             </select>
                                         </div>
                                     </div>
@@ -451,19 +461,8 @@ catch (PDOException $e)
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
-<script src="./js/populateSections.js"></script>
 <script src="./js/promoteStudentCheckBoxes.js"></script>
 <script src="./js/manageAlert.js"></script>
-<script>
-    // document.getElementById('promoteForm').addEventListener('submit', (event) => {
-
-    //     let confirmPromotion = confirm('Are you sure you want to promote these students?');
-    //     if (!confirmPromotion) 
-    //     {
-    //         event.preventDefault();
-    //     }
-    // });
-</script>
 
 <!-- End custom js for this page -->
 
