@@ -37,9 +37,33 @@
             </li>
             
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-basic-role" aria-expanded="false" aria-controls="ui-basic-role">
+                <span class="menu-title">Roles</span>
+                <i class="icon-organization menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-basic-role">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-role.php">Add Role</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-roles.php">Manage Roles</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-basic-permission" aria-expanded="false" aria-controls="ui-basic-permission">
+                <span class="menu-title">Permissions</span>
+                <i class="icon-shield menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-basic-permission">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-permissions.php">Add Permissions</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-permissions.php">Manage Permissions</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-basic-section" aria-expanded="false" aria-controls="ui-basic-section">
                 <span class="menu-title">Sections</span>
-                <i class="icon-layers menu-icon"></i>
+                <i class="icon-notebook menu-icon"></i>
               </a>
               <div class="collapse" id="ui-basic-section">
                 <ul class="nav flex-column sub-menu">

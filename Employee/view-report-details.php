@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -210,7 +210,15 @@ else
                                                                         </tr>
                                                                         <tr>
                                                                             <td>Section:</td>
-                                                                            <td><?php echo htmlentities($studentDetails['StudentSection']); ?></td>
+                                                                            <td><?php 
+                                                                            // Fetch sections of particular student from the database
+                                                                            $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentSection AND IsDeleted = 0";
+                                                                            $sectionQuery = $dbh->prepare($sectionSql);
+                                                                            $sectionQuery->bindParam(':studentSection', $studentDetails['StudentSection'], PDO::PARAM_STR);
+                                                                            $sectionQuery->execute();
+                                                                            $studentSection = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                                            echo htmlentities($studentSection['SectionName']); ?></td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>

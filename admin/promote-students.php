@@ -35,7 +35,6 @@ try
 
         if ($selectedPromoteClass == $currentActiveClass && $selectedPromoteSession == $currentActiveSession) 
         {
-            // echo "<script>alert('Cannot promote students to the same class and session!');</script>";
             $dangerAlert = true;
             $msg = "Cannot promote students to the same class and session!";
         } 
@@ -70,7 +69,6 @@ try
 
                 if ($duplicateEntry) 
                 {
-                    // echo "<script>alert('Selected students already promoted to the specified class and session!');</script>";
                     $dangerAlert = true;
                     $msg = "Selected students already promoted to the specified class and session!";
                 } 
@@ -106,25 +104,22 @@ try
                         $queryUpdateStudent->execute();
                     }
 
-                    // echo "<script>alert('Selected Students have been promoted successfully!');</script>";
                     $successAlert = true;
                     $msg = "Selected students have been promoted successfully.";
                 }
             } 
             else 
             {
-                // echo "<script>alert('Please select at least one student for promotion!');</script>";
                 $dangerAlert = true;
-                $msg = "Please select at least one student for promotion!";
+                $msg = "Please select at least one student to promote!";
             }
         }
     }
 } 
 catch (PDOException $e) 
 {
-    // echo "<script>alert('Ops! An error occurred while promoting students: " . $e->getMessage() . "');</script>";
     $dangerAlert = true;
-    $msg = "Ops! An error occurred while promoting students.";
+    $msg = "Ops! An error occurred while promoting the students.";
 }
 
 
@@ -282,9 +277,28 @@ catch (PDOException $e)
                                         $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
                                         $checkResultPublishedQuery->execute();
                                         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+                                        
+                                        // Check if all results are published
+                                        // $checkResultPublishedSql = "SELECT COUNT(*) as rowCount FROM tblexamination WHERE IsResultPublished = 1
+                                        //                             AND session_id = :session_id
+                                        //                             AND IsDeleted = 0";
+                                        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+                                        // $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
+                                        // $checkResultPublishedQuery->execute();
+                                        // $rowCountResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+
+
+                                        
+                                        // Fetch sections from the database
+                                        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :selectedSection AND IsDeleted = 0";
+                                        $sectionQuery = $dbh->prepare($sectionSql);
+                                        $sectionQuery->bindParam(':selectedSection', $selectedSection, PDO::PARAM_STR);
+                                        $sectionQuery->execute();
+                                        $selectedSec = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+                                        
                                         if (!empty($filteredReports) && $publishedResult) 
                                         {
-                                            echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSection) . "</span></strong>";
+                                            echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
                                             echo "<form method='POST' id='promoteForm' class='mt-3'>";
                                             ?>
                                             <!-- Confirmation Modal (Update) -->
@@ -324,14 +338,19 @@ catch (PDOException $e)
                                             echo "</select>";
                                             echo "</div>";
 
-                                            // Dropdown for sections (hardcoded A-F)
+                                            // Dropdown for sections 
                                             echo "<div class='col-md-3 mb-3'>";
                                             echo "<label for='sectionDropdown'>Select Section:</label>";
                                             echo "<select id='sectionDropdown' name='promoteSection' class='form-control'>";
-                                            $sections = ['A', 'B', 'C', 'D', 'E', 'F']; // You can modify this array as needed
-                                            foreach ($sections as $section) {
-                                                echo "<option value='" . $section . "'>" . $section . "</option>";
-                                            }
+                                            // Fetch sections from the database
+                                                $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                $sectionQuery = $dbh->prepare($sectionSql);
+                                                $sectionQuery->execute();
+
+                                                while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
+                                                {
+                                                    echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                                                }
                                             echo "</select>";
                                             echo "</div>";
 
@@ -420,13 +439,12 @@ catch (PDOException $e)
                                         } 
                                         else 
                                         {
-                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSection) . "</span></strong>";
+                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
                                         }
                                     }
                                 }
                                 catch(PDOException $e)
                                 {
-                                    // echo "<script>alert('Ops! An error occurred while fetching students.');</script>";
                                     $dangerAlert = true;
                                     $msg = "Ops! An error occurred while fetching students.";
                                 }
