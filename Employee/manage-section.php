@@ -1,8 +1,8 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) 
+if (strlen($_SESSION['sturecmsEMPid']==0)) 
 {
     header('location:logout.php');
 } 
@@ -46,6 +46,34 @@ else
         $dangerAlert = true;
     }
 
+
+    // For Role
+    $eid = $_SESSION['sturecmsEMPid'];
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $query = $dbh->prepare($sql);
+    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $query->execute();
+    $results = $query->fetchAll(PDO::FETCH_OBJ);
+
+    $employeeRole = $results[0]->Role;
+
+    // Fetch permissions for the logged-in user
+    $sqlPermissions = "SELECT * FROM tblpermissions WHERE RoleID=:employeeRole";
+    $queryPermissions = $dbh->prepare($sqlPermissions);
+    $queryPermissions->bindParam(':employeeRole', $employeeRole, PDO::PARAM_STR);
+    $queryPermissions->execute();
+    $permissions = $queryPermissions->fetchAll(PDO::FETCH_OBJ);
+
+    $employeePermissions = array();
+
+    // Populate the $employeePermissions array with permission names
+    foreach ($permissions as $permission) 
+    {
+        $employeePermissions[$permission->Name] = array(
+            'UpdatePermission' => $permission->UpdatePermission,
+            'DeletePermission' => $permission->DeletePermission,
+        );
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -125,7 +153,14 @@ else
                                 <th class="font-weight-bold">S.No</th>
                                 <th class="font-weight-bold">Section Name</th>
                                 <th class="font-weight-bold">Creation Date</th>
+                                <?php 
+                                // Check if the user has UpdatePermission or DeletePermission
+                                if ($employeePermissions['Sections']['UpdatePermission'] == 1 || $employeePermissions['Sections']['DeletePermission'] == 1) 
+                                { ?>
+
                                 <th class="font-weight-bold">Action</th>
+                                
+                                <?php } ?>
                                 
                             </tr>
                             </thead>
@@ -163,13 +198,32 @@ else
                                         <td><?php echo htmlentities($cnt);?></td>
                                         <td><?php  echo htmlentities($row->SectionName);?></td>
                                         <td><?php  echo htmlentities($row->CreationDate);?></td>
+                                        <?php 
+                                        // Check if the user has UpdatePermission or DeletePermission
+                                        if ($employeePermissions['Sections']['UpdatePermission'] == 1 || $employeePermissions['Sections']['DeletePermission'] == 1) 
+                                        { ?>
                                         <td>
-                                        <div><a href="edit-section.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>
-                                                            || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
-                                                                    <i class="icon-trash"></i>
-                                                                </a>
-                                        </div>
+                                            <div>
+                                            <?php 
+                                                // Check if the user has UpdatePermission
+                                                if ($employeePermissions['Sections']['UpdatePermission'] == 1) { ?>
+                                                    <a href="edit-section.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>
+                                                <?php 
+                                                } 
+                                                if ($employeePermissions['Sections']['UpdatePermission'] == 1 && $employeePermissions['Sections']['DeletePermission'] == 1) 
+                                                { ?>
+                                                ||
+                                                <?php
+                                                }
+                                                // Check if the user has DeletePermission
+                                                if ($employeePermissions['Sections']['DeletePermission'] == 1) { ?>
+                                                    <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                                        <i class="icon-trash"></i>
+                                                    </a>
+                                                <?php } ?>
+                                            </div>
                                         </td> 
+                                        <?php }?>
                                     </tr>
                                     <?php $cnt=$cnt+1;
                                     }

@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
 {
@@ -8,12 +8,59 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
+
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
+
+    // Code for deletion
+    if (isset($_POST['confirmDelete'])) 
+    {
+        $rid = intval($_POST['studentID']);
+
+        try
+        {
+            // Check whether the record is from tblstudenthistory or tblstudent
+            $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
+            $checkHistoryQuery = $dbh->prepare($checkHistorySql);
+            $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkHistoryQuery->execute();
+            $isHistoryRecord = $checkHistoryQuery->fetchColumn();
+
+            if ($isHistoryRecord) 
+            {
+                $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
+            } 
+            else 
+            {
+                $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+            }
+
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $query->execute();
+            
+            $successAlert = true;
+            $msg = "Student deleted successfully.";
+        }
+        catch(PDOException $e)
+        {
+            $dangerAlert = true;
+            $msg = "Ops! Something went wrong while deleting the student.";
+        }
+
+    }
+     // Fetch sessions from tblsessions
+    $sessionSql = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($sessionSql);
+    $sessionQuery->execute();
+    $sessions = $sessionQuery->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 
-    <title>Student  Management System||| Students</title>
+    <title>Student  Management System|||Manage Students</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -41,11 +88,11 @@ else
         <div class="main-panel">
             <div class="content-wrapper">
                 <div class="page-header">
-                    <h3 class="page-title"> Students </h3>
+                    <h3 class="page-title"> Manage Students </h3>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"> Students</li>
+                            <li class="breadcrumb-item active" aria-current="page"> Manage Students</li>
                         </ol>
                     </nav>
                 </div>
@@ -54,107 +101,59 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-sm-flex align-items-center mb-4">
-                                    <h4 class="card-title mb-sm-0">Students</h4>
+                                    <h4 class="card-title mb-sm-0 mr-2">Manage Students</h4>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                
+                                        <select name="session" class="form-control" id="session" onchange="getSelectedSessionStudents()">
+                                            <?php
+                                            // Fetch active session from tblsessions
+                                            $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+                                            $activeSessionQuery = $dbh->prepare($activeSessionSql);
+                                            $activeSessionQuery->execute();
+                                            $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
+
+                                            // Get the current active session
+                                            $currentActiveSessionID = $activeSession;
+
+                                            foreach ($sessions as $session) 
+                                            {
+                                                $selected = ($currentActiveSessionID == $session['session_id']) ? 'selected' : '';
+                                                echo "<option value='" . $session['session_id'] . "' $selected>" . htmlentities($session['session_name']) . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                        
+                                    </div>
                                     <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Students</a>
                                 </div>
-                                <div class="table-responsive border rounded p-1">
-                                    <table class="table">
-                                        <thead>
-                                        <tr>
-                                            <th class="font-weight-bold">S.No</th>
-                                            <th class="font-weight-bold">Student ID</th>
-                                            <th class="font-weight-bold">Student Class</th>
-                                            <th class="font-weight-bold">Student Name</th>
-                                            <th class="font-weight-bold">Roll No</th>
-                                            <th class="font-weight-bold">Student Email</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php
-                                        if (isset($_GET['pageno'])) {
-                                            $pageno = $_GET['pageno'];
-                                        } else {
-                                            $pageno = 1;
-                                        }
-                                        // Formula for pagination
-                                        $no_of_records_per_page = 15;
-                                        $offset = ($pageno - 1) * $no_of_records_per_page;
-
-                                        $studentSql = "SELECT tblstudent.StuID, tblstudent.ID as sid, tblstudent.StudentName, tblstudent.StudentEmail,tblstudent.StudentClass, tblstudent.RollNo, tblstudent.DateofAdmission FROM tblstudent WHERE tblstudent.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
-                                        $studentQuery = $dbh->prepare($studentSql);
-                                        $studentQuery->execute();
-                                        $students = $studentQuery->fetchAll(PDO::FETCH_OBJ);
-
-                                        $cnt = 1;
-                                        if ($studentQuery->rowCount() > 0) {
-                                            foreach ($students as $student) {
-                                                ?>
-                                                <tr>
-                                                    <td><?php echo htmlentities($cnt); ?></td>
-                                                    <td><?php echo htmlentities($student->StuID); ?></td>
-                                                    <td>
-                                                        <?php
-                                                        $classSql = "SELECT ClassName, Section FROM tblclass WHERE ID = :classId AND IsDeleted = 0";
-                                                        $classQuery = $dbh->prepare($classSql);
-                                                        $classQuery->bindParam(':classId', $student->StudentClass, PDO::PARAM_STR);
-                                                        $classQuery->execute();
-
-                                                        if ($classQuery) 
-                                                        {
-                                                            $classInfo = $classQuery->fetch(PDO::FETCH_ASSOC);
-
-                                                            if ($classInfo) 
-                                                            {
-                                                                echo htmlentities($classInfo['ClassName'] . " " . $classInfo['Section']);
-                                                            }
-
-                                                            if ($classQuery->rowCount() < 1) 
-                                                            {
-                                                                echo "N.A";
-                                                            }
-                                                        } 
-                                                        else 
-                                                        {
-                                                            echo "Error fetching class";
-                                                        }
-                                                        ?>
-                                                    </td>
-                                                    <td><?php echo htmlentities($student->StudentName); ?></td>
-                                                    <td><?php echo htmlentities($student->RollNo); ?></td>
-                                                    <td><?php echo htmlentities($student->StudentEmail); ?></td>
-                                                </tr>
-                                                <?php $cnt = $cnt + 1;
-                                            }
-                                        }
+                                <!-- Dismissible Alert messages -->
+                                <?php 
+                                    if ($successAlert) 
+                                    {
                                         ?>
-                                        </tbody>
-                                    </table>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
+                                <div id="student-list-container">
+                                    
+                                    <!-- TABLE WILL BE DYNAMICALLY POPULATED BASED ON SELECTED SESSION -->
                                 </div>
-                                <div align="left">
-                                    <ul class="pagination">
-                                        <li><a href="?pageno=1"><strong>First></strong></a></li>
-                                        <li class="<?php if ($pageno <= 1) {
-                                            echo 'disabled';
-                                        } ?>">
-                                            <a href="<?php if ($pageno <= 1) {
-                                                echo '#';
-                                            } else {
-                                                echo "?pageno=" . ($pageno - 1);
-                                            } ?>"><strong style="padding-left: 10px">Prev></strong></a>
-                                        </li>
-                                        <li class="<?php if ($pageno >= $total_pages) {
-                                            echo 'disabled';
-                                        } ?>">
-                                            <a href="<?php if ($pageno >= $total_pages) {
-                                                echo '#';
-                                            } else {
-                                                echo "?pageno=" . ($pageno + 1);
-                                            } ?>"><strong style="padding-left: 10px">Next></strong></a>
-                                        </li>
-                                        <li><a href="?pageno=<?php echo $total_pages; ?>"><strong
-                                                        style="padding-left: 10px">Last</strong></a></li>
-                                    </ul>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -170,6 +169,7 @@ else
     <!-- page-body-wrapper ends -->
 </div>
 <!-- container-scroller -->
+
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
@@ -185,6 +185,42 @@ else
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
+<script src="./js/manageAlert.js"></script>
+<script>
+    // Function to get and display the student list for the selected session
+    function getSelectedSessionStudents() 
+    {
+        var selectedSession = document.getElementById("session").value;
+
+        // AJAX request
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                // Update the content of student-list-container
+                document.getElementById("student-list-container").innerHTML = xhr.responseText;
+            }
+        };
+        
+        // Use get_students.php with the selected session ID
+        xhr.open("GET", "get_students.php?session_id=" + selectedSession, true);
+        xhr.send();
+    }
+
+    // Call the function on page load to display the student list for the default selected session
+    window.onload = getSelectedSessionStudents;
+
+
+    function setDeleteId(id) 
+    {
+        document.getElementById('studentID').value = id;
+    }
+
+
+</script>
+
 <!-- End custom js for this page -->
 </body>
-</html><?php } ?>
+</html>
+<?php 
+} 
+?>

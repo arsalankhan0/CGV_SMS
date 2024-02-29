@@ -1,9 +1,9 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsaid']) == 0) 
+if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
 {
     header('location:logout.php');
 } 
@@ -12,46 +12,60 @@ else
     $successAlert = false;
     $dangerAlert = false;
     $msg = "";
+    try 
+    {
+        if (isset($_POST['submit'])) 
+        {
+            $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);
+            $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
 
-    $eid = $_GET['editid'];
-
-    try {
-        if (isset($_POST['submit']) && isset($_GET['editid']) && !empty($_GET['editid'])) {
-
-            $selectedClasses = isset($_POST['classes']) ? $_POST['classes'] : [];
-
-            if (!empty($selectedClasses)) 
+            if (empty($examName) || empty($classIDs)) 
             {
-                    $selectedClassesImploded = implode(",", $selectedClasses);
-
-                    $sql = "UPDATE tblexamination SET ClassName=:cName WHERE ID=:eid";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':cName', $selectedClassesImploded, PDO::PARAM_STR);
-                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-                    $query->execute();
-
-                    $successAlert = true;
-                    $msg = "Classes has been updated successfully.";
+                $msg = "Please enter Exam Name and select at least one class";
+                $dangerAlert = true;
             } 
             else 
             {
-                $dangerAlert = true;
-                $msg = "Please select at least one class!";
+                $checkSql = "SELECT ID FROM tblexamination WHERE IsDeleted = 0 AND ExamName = :examName";
+                $checkQuery = $dbh->prepare($checkSql);
+                $checkQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
+                $checkQuery->execute();
+                $examId = $checkQuery->fetchColumn();
+
+                if ($examId > 0) 
+                {
+                    $msg = "Exam already exists! Please update the existing exam.";
+                    $dangerAlert = true;
+                } 
+                else 
+                {
+                    $classNames = implode(",", $classIDs);
+
+                    $sql = "INSERT INTO tblexamination (ExamName, ClassName) VALUES (:examName, :classNames)";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':examName', $examName, PDO::PARAM_STR);
+                    $query->bindParam(':classNames', $classNames, PDO::PARAM_STR);
+                    $query->execute();
+
+                    $msg = "Exam has been added successfully.";
+                    $successAlert = true;
+                }
             }
         }
     } 
     catch (PDOException $e) 
     {
+        // error_log($e->getMessage()); //-->This is only for debugging purpose
+        $msg = "Ops! An Error occurred.";
         $dangerAlert = true;
-        $msg = "Ops! And error occurred.";
     }
+
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <title>Student Management System|| Manage Classes</title>
+    <title>Student Management System|| Add Exam</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -64,14 +78,12 @@ else
     <!-- inject:css -->
     <!-- endinject -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 <div class="container-scroller">
     <!-- partial:partials/_navbar.html -->
-    <?php
-    include_once('includes/header.php');
-    ?>
+    <?php include_once('includes/header.php'); ?>
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -80,25 +92,11 @@ else
         <div class="main-panel">
             <div class="content-wrapper">
                 <div class="page-header">
-                    <?php
-                    $eid = $_GET['editid'];
-
-                    $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :eid";
-                    $examNameQuery = $dbh->prepare($examNameSql);
-                    $examNameQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-                    $examNameQuery->execute();
-                    $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
-                    $examName = $examNameRow->ExamName;
-
-                    if (isset($examName)) { ?>
-                        <h3 class="page-title"> Manage Classes - Select Classes for '<?php echo $examName; ?>'</h3>
-                    <?php } else { ?>
-                        <h3 class="page-title"> Manage Classes </h3>
-                    <?php } ?>
+                    <h3 class="page-title"> Add Exam </h3>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"> Manage Classes</li>
+                            <li class="breadcrumb-item active" aria-current="page"> Add Exam</li>
                         </ol>
                     </nav>
                 </div>
@@ -106,8 +104,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Manage Classes</h4>
-                                <form class="forms-sample" method="post">
+                                <h4 class="card-title" style="text-align: center;">Add Exam</h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php 
                                     if ($successAlert) 
@@ -131,37 +128,32 @@ else
                                     <?php
                                     }
                                     ?>
+                                <form class="forms-sample" method="post">
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
+                                        <label for="exampleInputName1">Exam Name</label>
+                                        <input type="text" name="examName" value="" class="form-control" required='true'>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleFormControlSelect2">Select Classes for exam</label>
                                         <select multiple="multiple" name="classes[]"
                                                 class="js-example-basic-multiple w-100">
                                             <?php
-                                            $eid = $_GET['editid'];
-                                            $examClassesSql = "SELECT ClassName FROM tblexamination WHERE ID = :eid AND IsDeleted = 0";
-                                            $examClassesQuery = $dbh->prepare($examClassesSql);
-                                            $examClassesQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-                                            $examClassesQuery->execute();
-                                            $examClassesRow = $examClassesQuery->fetch(PDO::FETCH_OBJ);
-                                            $selectedClasses = explode(",", $examClassesRow->ClassName);
+                                            $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
+                                            $query = $dbh->prepare($sql);
+                                            $query->execute();
 
-                                            if ($query->rowCount() > 0) 
-                                            {
-                                                $classSql = "SELECT ID, ClassName, Section FROM tblclass WHERE IsDeleted = 0";
-                                                $classQuery = $dbh->prepare($classSql);
-                                                $classQuery->execute();
-                                                $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($query->rowCount() > 0) {
+                                                $classResults = $query->fetchAll(PDO::FETCH_ASSOC);
 
-                                                foreach ($classResults as $class) 
-                                                {
-                                                    $selected = in_array($class['ID'], $selectedClasses) ? 'selected' : '';
-                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['ClassName']) . "</option>";
+                                                foreach ($classResults as $class) {
+                                                    $classNameWithSection = $class['ClassName'];
+                                                    echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($classNameWithSection) . "</option>";                                                
                                                 }
                                             }
                                             ?>
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Update
-                                    </button>
+                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                 </form>
                             </div>
                         </div>
@@ -196,6 +188,4 @@ else
 <!-- End custom js for this page -->
 </body>
 </html>
-<?php
-}
-?>
+<?php } ?>
