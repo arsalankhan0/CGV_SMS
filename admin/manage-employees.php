@@ -115,6 +115,7 @@ else
                                             <th class="font-weight-bold">Employee ID</th>
                                             <th class="font-weight-bold">Employee Name</th>
                                             <th class="font-weight-bold">Employee Email</th>
+                                            <th class="font-weight-bold">Employee Type</th>
                                             <th class="font-weight-bold">Role</th>
                                             <th class="font-weight-bold">Date of Joining</th>
                                             <th class="font-weight-bold">Action</th>
@@ -151,15 +152,22 @@ else
                                                     <td><?php echo htmlentities($row->EmpID); ?></td>
                                                     <td><?php echo htmlentities($row->Name); ?></td>
                                                     <td><?php echo htmlentities($row->Email); ?></td>
-                                                    <td><?php echo htmlentities($row->Role); ?></td>
+                                                    <td><?php echo htmlentities($row->EmpType); ?></td>
+                                                    <td><?php 
+                                                        // Fetch role name from tblroles table
+                                                        $rolesQuery = "SELECT RoleName FROM tblroles WHERE ID = :roleID";
+                                                        $rolesStmt = $dbh->prepare($rolesQuery);
+                                                        $rolesStmt->bindParam(':roleID', $row->Role, PDO::PARAM_INT);
+                                                        $rolesStmt->execute();
+                                                        $roleName = $rolesStmt->fetch(PDO::FETCH_ASSOC); 
+
+                                                        echo htmlentities($roleName['RoleName']);
+                                                        ?></td>
                                                     <td><?php echo htmlentities($row->DateOfJoining); ?></td>
                                                     <td>
                                                         <div>
                                                             <a href="edit-employee-detail.php?editid=<?php echo htmlentities($row->ID); ?>"><i
                                                                         class="icon-pencil"></i></a>
-                                                            <!-- || <a href="manage-employees.php?delid=<?php echo ($row->ID); ?>"
-                                                                    onclick="return confirm('Do you really want to Delete ?');">
-                                                                <i class="icon-trash"></i></a> -->
                                                                 || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                                                 <i class="icon-trash"></i>
                                                             </a>

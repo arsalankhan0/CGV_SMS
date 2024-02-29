@@ -28,6 +28,7 @@ else
             $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
             $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
             $role = filter_var($_POST['role'], FILTER_SANITIZE_STRING);
+            $empType = filter_var($_POST['empType'], FILTER_SANITIZE_STRING);
             $gender = filter_var($_POST['gender'], FILTER_SANITIZE_STRING);
             $dob = filter_var($_POST['dob'], FILTER_SANITIZE_STRING);
             $empid = filter_var($_POST['empid'], FILTER_SANITIZE_STRING);
@@ -72,11 +73,13 @@ else
                         $selectedSubjects = '';
                     }
 
-                    $sql = "INSERT INTO tblemployees(Name, Email, Role, AssignedClasses, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :assignedClasses, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
+                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':name', $name, PDO::PARAM_STR);
                     $query->bindParam(':email', $email, PDO::PARAM_STR);
                     $query->bindParam(':role', $role, PDO::PARAM_STR);
+                    $query->bindParam(':role', $role, PDO::PARAM_STR);
+                    $query->bindParam(':empType', $empType, PDO::PARAM_INT);
                     $query->bindParam(':assignedClasses', $selectedClasses, PDO::PARAM_STR);
                     $query->bindParam(':assignedSubjects', $selectedSubjects, PDO::PARAM_STR);
                     $query->bindParam(':gender', $gender, PDO::PARAM_STR);
@@ -193,24 +196,22 @@ else
 
                                 <form class="forms-sample" method="post" enctype="multipart/form-data">
                                     <div class="form-group">
-                                        <label for="exampleInputName1">Employee Name</label>
-                                        <input type="text" name="name" class="form-control" required>
+                                        <label for="empName">Employee Name</label>
+                                        <input type="text" name="name" id="empName" class="form-control" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleInputEmail3">Employee Email</label>
-                                        <input type="email" name="email" class="form-control" required>
+                                        <label for="empEmail">Employee Email</label>
+                                        <input type="email" name="email" id="empEmail" class="form-control" required>
                                     </div>
+
                                     <div class="form-group">
-                                        <label for="exampleInputName1">Employee Role</label>
-                                        <select name="role" id="employeeRole" class="form-control" required>
-                                            <option value="">Select Role</option>
+                                        <label for="employeeRole">Employee Type</label>
+                                        <select name="empType" id="employeeRole" class="form-control" required>
+                                            <option value="">--Select--</option>
                                             <option value="Teaching">Teaching</option>
                                             <option value="Non-Teaching">Non-Teaching</option>
                                         </select>
                                     </div>
-
-
-
                                     <div class="form-group" id="assignClassesSection">
                                         <label for="exampleInputName1">Assign Classes</label>
                                         <select name="assignedClasses[]" multiple="multiple" class="js-example-basic-multiple w-100">
@@ -227,22 +228,6 @@ else
                                             ?>
                                         </select>
                                     </div>
-                                    <!-- <div class="form-group" id="assignSubjectsSection">
-                                        <label for="exampleInputName1">Assign Subjects</label>
-                                        <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
-                                            <?php
-                                            // Fetch options for subjects from tblsubjects
-                                            // $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0";
-                                            // $subjectQuery = $dbh->prepare($subjectSql);
-                                            // $subjectQuery->execute();
-                                            // $subjectResults = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
-
-                                            // foreach ($subjectResults as $subject) {
-                                            //     echo "<option value='" . htmlentities($subject['ID']) . "'>" . htmlentities($subject['SubjectName']) . "</option>";
-                                            // }
-                                            ?>
-                                        </select>
-                                    </div> -->
                                     <div class="form-group" id="assignSubjectsSection">
                                         <label for="exampleInputName1">Assign Subjects</label>
                                         <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
@@ -262,6 +247,25 @@ else
                                     </div>
 
 
+                                    <div class="form-group">
+                                        <label for="role">Role</label>
+                                        <select name="role" id="role" class="form-control" required>
+                                            <option value="">--Select--</option>
+
+                                            <?php
+                                            // Fetch roles from tblroles table
+                                            $rolesQuery = "SELECT ID, RoleName FROM tblroles";
+                                            $rolesStmt = $dbh->prepare($rolesQuery);
+                                            $rolesStmt->execute();
+                                            $rolesData = $rolesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                            foreach ($rolesData as $role) 
+                                            {
+                                                echo '<option value="' . $role['ID'] . '">' . $role['RoleName'] . '</option>';
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Gender</label>
                                         <select name="gender" class="form-control" required>

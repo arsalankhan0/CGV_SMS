@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
@@ -25,6 +25,7 @@ else
             $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
             $role = filter_var($_POST['role'], FILTER_SANITIZE_STRING);
+            $empType = filter_var($_POST['empType'], FILTER_SANITIZE_STRING);
             $gender = filter_var($_POST['gender'], FILTER_SANITIZE_STRING);
             $dob = filter_var($_POST['dob'], FILTER_SANITIZE_STRING);
             $fathername = filter_var($_POST['fathername'], FILTER_SANITIZE_STRING);
@@ -38,23 +39,25 @@ else
             $assignedSubjects = isset($_POST['assignedSubjects']) ? implode(',', $_POST['assignedSubjects']) : '';
 
             $sql = "UPDATE tblemployees SET 
-                Name = :name, 
-                Email = :email, 
-                Role = :role, 
-                Gender = :gender, 
-                DOB = :dob, 
-                FatherName = :fathername, 
-                ContactNumber = :contactnumber, 
-                AlternateNumber = :alternatenumber, 
-                Address = :address,
-                AssignedClasses = :assignedClasses,
-                AssignedSubjects = :assignedSubjects
-                WHERE ID = :eid";
+                    Name = :name, 
+                    Email = :email, 
+                    Role = :role,
+                    EmpType = :empType, 
+                    Gender = :gender, 
+                    DOB = :dob, 
+                    FatherName = :fathername, 
+                    ContactNumber = :contactnumber, 
+                    AlternateNumber = :alternatenumber, 
+                    Address = :address,
+                    AssignedClasses = :assignedClasses,
+                    AssignedSubjects = :assignedSubjects
+                    WHERE ID = :eid";
 
             $query = $dbh->prepare($sql);
             $query->bindParam(':name', $name, PDO::PARAM_STR);
             $query->bindParam(':email', $email, PDO::PARAM_STR);
             $query->bindParam(':role', $role, PDO::PARAM_STR);
+            $query->bindParam(':empType', $empType, PDO::PARAM_STR);
             $query->bindParam(':gender', $gender, PDO::PARAM_STR);
             $query->bindParam(':dob', $dob, PDO::PARAM_STR);
             $query->bindParam(':fathername', $fathername, PDO::PARAM_STR);
@@ -67,13 +70,11 @@ else
 
             $query->execute();
 
-            // echo '<script>alert("Employee details have been updated")</script>';
             $successAlert = true;
             $msg = "Employee details have been updated successfully.";
         } 
         catch (PDOException $e) 
         {
-            // echo '<script>alert("Error: ' . $e->getMessage() . '")</script>';
             $dangerAlert = true;
             $msg = "Ops! An error occurred while updating the details.";
         }
@@ -171,19 +172,20 @@ else
                                 <label for="exampleInputName1">Employee Name</label>
                                 <input type="text" name="name" value="<?php echo htmlentities($row->Name); ?>" class="form-control" required='true'>
                             </div>
-                            <div class="form-group">
+                                        <div class="form-group">
                                             <label for="exampleInputName1">Employee Email</label>
                                             <input type="text" name="email" value="<?php echo htmlentities($row->Email); ?>" class="form-control" required='true'>
                                         </div>
+
+
                                         <div class="form-group">
-                                            <label for="exampleInputEmail3">Employee Role</label>
-                                            <select name="role" id="employeeRole" class="form-control" required='true'>
-                                                <option value="Teaching" <?php echo ($row->Role == 'Teaching') ? 'selected' : ''; ?>>Teaching</option>
-                                                <option value="Non-Teaching" <?php echo ($row->Role == 'Non-Teaching') ? 'selected' : ''; ?>>Non-Teaching</option>
+                                            <label for="exampleInputEmail3">Employee Type</label>
+                                            <select name="empType" id="employeeRole" class="form-control" required='true'>
+                                                <option>--Select--</option>
+                                                <option value="Teaching" <?php echo ($row->EmpType == 'Teaching') ? 'selected' : ''; ?>>Teaching</option>
+                                                <option value="Non-Teaching" <?php echo ($row->EmpType == 'Non-Teaching') ? 'selected' : ''; ?>>Non-Teaching</option>
                                             </select>
                                         </div>
-
-
                                         <div class="form-group" id="assignClassesSection">
                                             <label for="exampleInputName1">Assign Classes</label>
                                             <select name="assignedClasses[]" multiple="multiple" class="js-example-basic-multiple w-100">
@@ -219,6 +221,29 @@ else
                                                 ?>
                                             </select>
                                         </div>
+
+
+
+                                        <div class="form-group">
+                                            <label for="exampleInputName1">Employee Role</label>
+                                            <select name="role" id="employeeRole" class="form-control" required>
+                                                <option value="">--Select Role--</option>
+
+                                                <?php
+                                                // Fetch roles from tblroles table
+                                                $rolesQuery = "SELECT ID, RoleName FROM tblroles";
+                                                $rolesStmt = $dbh->prepare($rolesQuery);
+                                                $rolesStmt->execute();
+                                                $rolesData = $rolesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($rolesData as $role) 
+                                                {
+                                                    $selected = ($role['ID'] == $row->Role) ? 'selected' : '';
+                                                    echo '<option value="' . $role['ID'] . '" ' . $selected . '>' . $role['RoleName'] . '</option>';                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        
                                         <div class="form-group">
                                             <label for="exampleInputName1">Gender</label>
                                             <select name="gender" value="" class="form-control" required='true'>

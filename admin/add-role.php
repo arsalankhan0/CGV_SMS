@@ -9,6 +9,20 @@ if (strlen($_SESSION['sturecmsaid']==0))
 } 
 else
 {
+    // Function to get all permissions
+    function getAllPermissions()
+    {
+        return array(
+            'Class',
+            'Sections',
+            'Subjects',
+            'Students',
+            'Examination',
+            'Promotion'
+        );
+    }
+
+
     try
     {
         $successAlert = false;
@@ -43,6 +57,29 @@ else
 
                 if ($LastInsertId > 0) 
                 {
+                    // Insert default permissions for the new role
+                    $permissions = getAllPermissions();
+
+                    foreach ($permissions as $permission) 
+                    {
+                        $view = 1;
+                        $create = 1;
+                        $update = 1;
+                        $delete = 1;
+
+                        $insertPermissionQuery = "INSERT INTO tblpermissions (RoleID, `Name`, ReadPermission, CreatePermission, UpdatePermission, DeletePermission) 
+                                                    VALUES (:roleID, :permissionName, :viewPermission, :createPermission, :updatePermission, :deletePermission)";
+                        $insertPermissionStmt = $dbh->prepare($insertPermissionQuery);
+                        $insertPermissionStmt->bindParam(':roleID', $LastInsertId, PDO::PARAM_INT);
+                        $insertPermissionStmt->bindParam(':permissionName', $permission, PDO::PARAM_STR);
+                        $insertPermissionStmt->bindParam(':viewPermission', $view, PDO::PARAM_INT);
+                        $insertPermissionStmt->bindParam(':createPermission', $create, PDO::PARAM_INT);
+                        $insertPermissionStmt->bindParam(':updatePermission', $update, PDO::PARAM_INT);
+                        $insertPermissionStmt->bindParam(':deletePermission', $delete, PDO::PARAM_INT);
+                        $insertPermissionStmt->execute();
+                    }
+
+
                     $successAlert = true;
                     $msg = "Role has been added successfully";
                 } 

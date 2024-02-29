@@ -98,6 +98,7 @@ function getClassName($classID)
                 <th class="font-weight-bold">S.No</th>
                 <th class="font-weight-bold">Student ID</th>
                 <th class="font-weight-bold">Student Class</th>
+                <th class="font-weight-bold">Student Section</th>
                 <th class="font-weight-bold">Student Name</th>
                 <th class="font-weight-bold">Student Email</th>
                 <th class="font-weight-bold">Admission Date</th>
@@ -119,8 +120,11 @@ function getClassName($classID)
                             <?php
                             $displayClass = $student->HistoricalClass ? getClassName($student->HistoricalClass) : getClassName($student->StudentClass);
                             $displaySection = $student->HistoricalSection ? getSectionName($student->HistoricalSection) : getSectionName($student->StudentSection);
-                            echo htmlentities($displayClass . " " . $displaySection);
+                            echo htmlentities($displayClass);
                             ?>
+                        </td>
+                        <td>
+                            <?php echo htmlentities($displaySection); ?>
                         </td>
                         <td><?php echo htmlentities($student->StudentName); ?></td>
                         <td><?php echo htmlentities($student->StudentEmail); ?></td>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) 
 {
@@ -17,38 +17,53 @@ else
         {
             $rid = $_POST['roleID'];
 
-            $checkExaminationSql = "SELECT COUNT(*) FROM tblexamination WHERE ClassName = :rid";
-            $checkExaminationQuery = $dbh->prepare($checkExaminationSql);
-            $checkExaminationQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $checkExaminationQuery->execute();
-            $examinationRecordCount = $checkExaminationQuery->fetchColumn();
+            // Check if the role is assigned to any employee
+            $checkRoleAssignedQuery = "SELECT COUNT(*) FROM tblemployees WHERE Role = :rid";
+            $checkRoleAssignedStmt = $dbh->prepare($checkRoleAssignedQuery);
+            $checkRoleAssignedStmt->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkRoleAssignedStmt->execute();
+            $roleAssignedCount = $checkRoleAssignedStmt->fetchColumn();
 
-            $checkStudentSql = "SELECT COUNT(*) FROM tblstudent WHERE StudentClass = :rid";
-            $checkStudentQuery = $dbh->prepare($checkStudentSql);
-            $checkStudentQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $checkStudentQuery->execute();
-            $studentRecordCount = $checkStudentQuery->fetchColumn();
+            // Check if the role ID exists in tblpermissions
+            $checkRolePermissionsQuery = "SELECT COUNT(*) FROM tblpermissions WHERE RoleID = :rid";
+            $checkRolePermissionsStmt = $dbh->prepare($checkRolePermissionsQuery);
+            $checkRolePermissionsStmt->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkRolePermissionsStmt->execute();
+            $rolePermissionsCount = $checkRolePermissionsStmt->fetchColumn();
 
-            $checkAssignedClassSql = "SELECT COUNT(*) FROM tblemployees WHERE FIND_IN_SET(:rid, AssignedClasses)";
-            $checkAssignedClassQuery = $dbh->prepare($checkAssignedClassSql);
-            $checkAssignedClassQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $checkAssignedClassQuery->execute();
-            $assignedRecordCount = $checkAssignedClassQuery->fetchColumn();
-
-            if ($examinationRecordCount > 0 || $studentRecordCount > 0 || $assignedRecordCount > 0) 
+            if ($roleAssignedCount > 0) 
             {
                 $msg = "Cannot delete this role! This role is assigned to the employee.";
                 $dangerAlert = true;
             } 
             else 
             {
-                $sql = "UPDATE tblroles SET IsDeleted = 1 WHERE ID = :rid";
-                $query = $dbh->prepare($sql);
-                $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-                $query->execute();
-                
-                $msg = "Role Deleted Successfully!";
-                $successAlert = true;
+                // Delete permissions as well if role ID exists in tblpermissions
+                if ($rolePermissionsCount > 0) 
+                {
+                    $sqlDelPermission = "DELETE FROM tblpermissions WHERE RoleID = :rid";
+                    $queryDelPermission = $dbh->prepare($sqlDelPermission);
+                    $queryDelPermission->bindParam(':rid', $rid, PDO::PARAM_STR);
+                    $queryDelPermission->execute();
+
+                    $sql = "UPDATE tblroles SET IsDeleted = 1 WHERE ID = :rid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+                    $query->execute();
+                    
+                    $msg = "Role and all the permissions assigned to this Role Deleted Successfully!";
+                    $successAlert = true;
+                } 
+                else
+                {
+                    $sql = "UPDATE tblroles SET IsDeleted = 1 WHERE ID = :rid";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+                    $query->execute();
+                    
+                    $msg = "Role Deleted Successfully!";
+                    $successAlert = true;
+                }
             }
         }
     }
@@ -61,7 +76,7 @@ else
 ?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
 
     <title>Student  Management System || Manage Roles</title>
     <!-- plugins:css -->
@@ -219,25 +234,25 @@ else
         </div>
         <!-- Confirmation Modal (Delete) -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this Role?
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" action="" method="post">
-                <input type="hidden" name="roleID" id="roleID">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
-                </form>
-            </div>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this Role?
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteForm" action="" method="post">
+                    <input type="hidden" name="roleID" id="roleID">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                    </form>
+                </div>
+                </div>
             </div>
         </div>
-    </div>
 
 
     <!-- container-scroller -->
@@ -260,6 +275,7 @@ else
     <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
     <script>
+        
         function setDeleteId(id) 
         {
             document.getElementById('roleID').value = id;
