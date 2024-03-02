@@ -1,10 +1,14 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
+
+$dangerAlert = false;
+$msg = "";
 if(isset($_POST['login'])) 
 {
+
   try
   {
     $role = $_POST['role'];
@@ -51,7 +55,9 @@ if(isset($_POST['login']))
         } 
         else
         {
-            echo "<script>alert('Invalid Details');</script>";
+            $msg = "Invalid Credentials!";
+            $dangerAlert = true;
+            
         }
     }
     else
@@ -89,13 +95,15 @@ if(isset($_POST['login']))
       } 
       else 
       {
-          echo "<script>alert('Invalid Details');</script>";
+          $msg = "Invalid Credentials!";
+          $dangerAlert = true;
       }
     }
   }
   catch(PDOException $e)
   {
-    echo "<script>alert('Ops! Something went wrong!');</script>";
+    $msg = "Ops! An Error occurred.";
+    $dangerAlert = true;
   }
 }
 
@@ -131,7 +139,18 @@ if(isset($_POST['login']))
                 <h4>Hello! let's get started</h4>
                 <h6 class="font-weight-light">Sign in to continue.</h6>
                 <form class="pt-0" id="login" method="post" name="login">
-
+                  <!-- Dismissible Alert messages -->
+                  <?php 
+                  if($dangerAlert)
+                  { 
+                  ?>
+                      <!-- Danger -->
+                      <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <?php echo $msg; ?>
+                      </div>
+                  <?php
+                  }?>
                 <div class="d-flex justify-content-end mb-3">
                   <div>
                     <label for="admin" class="px-1">Admin</label><input type="radio" id="admin" name="role" value="admin" <?php if(!isset($_COOKIE["role"]) || $_COOKIE["role"] == "admin") { ?> checked <?php } ?>/>
@@ -178,6 +197,7 @@ if(isset($_POST['login']))
     <!-- inject:js -->
     <script src="js/off-canvas.js"></script>
     <script src="js/misc.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- endinject -->
   </body>
 </html>

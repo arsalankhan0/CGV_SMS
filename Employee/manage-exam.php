@@ -1,13 +1,43 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
+
+// Define permissions array
+$requiredPermissions = array(
+    'manage-exam' => 'Examination',
+);
+
 if (strlen($_SESSION['sturecmsEMPid'])==0) 
 {
     header('location:logout.php');
 } 
 else
 {
+    // Check if the employee has the required permission for this file
+    $eid = $_SESSION['sturecmsEMPid'];
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $query = $dbh->prepare($sql);
+    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $query->execute();
+    $results = $query->fetch(PDO::FETCH_ASSOC);
+
+    $employeeRole = $results['Role'];
+    $requiredPermission = $requiredPermissions['manage-exam']; 
+
+    $sqlPermissions = "SELECT * FROM tblpermissions WHERE RoleID=:employeeRole AND Name=:requiredPermission";
+    $queryPermissions = $dbh->prepare($sqlPermissions);
+    $queryPermissions->bindParam(':employeeRole', $employeeRole, PDO::PARAM_STR);
+    $queryPermissions->bindParam(':requiredPermission', $requiredPermission, PDO::PARAM_STR);
+    $queryPermissions->execute();
+    $permissions = $queryPermissions->fetch(PDO::FETCH_ASSOC);
+
+    if (!$permissions || $permissions['ReadPermission'] != 1) 
+    {
+        echo "<h1>You have no permission to access this page!</h1>";
+        exit;
+    }
+
     $successAlert = false;
     $dangerAlert = false;
     $msg = "";
@@ -379,7 +409,7 @@ else
                                                                     <?php 
                                                                         // Check if the user has UpdatePermission
                                                                         if ($employeePermissions['Examination']['UpdatePermission'] == 1) { ?>
-                                                                            <a href="view-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
+                                                                            <a href="view-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>
                                                                         <?php 
                                                                         } 
                                                                         if ($employeePermissions['Examination']['UpdatePermission'] == 1 && $employeePermissions['Examination']['DeletePermission'] == 1) 

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
@@ -9,6 +9,21 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
+    $eid = $_SESSION['sturecmsEMPid'];
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $query = $dbh->prepare($sql);
+    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $query->execute();
+    $IsAccessible = $query->fetch(PDO::FETCH_ASSOC);
+
+    // Check if the role is "Teaching"
+    if ($IsAccessible['EmpType'] != "Teaching") 
+    {
+        echo "<h1>You have no permission to access this page!</h1>";
+        exit;
+    }
+
+
     // Code for deletion
     if (isset($_GET['delid'])) 
     {

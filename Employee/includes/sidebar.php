@@ -8,25 +8,21 @@
                 </div>
                 <div class="text-wrapper">
                     <?php
+                    error_reporting(0);
+                    
                     $eid = $_SESSION['sturecmsEMPid'];
                     $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
                     $query->execute();
-                    $results = $query->fetchAll(PDO::FETCH_OBJ);
+                    $results = $query->fetch(PDO::FETCH_ASSOC);
+                    ?>
 
-                    if ($query->rowCount() > 0) 
-                    {
-                        foreach ($results as $row) 
-                        { ?>
-                            <p class="profile-name"><?php echo htmlentities($row->Name); ?></p>
-                            <p class="designation"><?php echo htmlentities($row->Email); ?></p>
-                            <?php
-                        }
-                    } 
+                    <p class="profile-name"><?php echo htmlentities($results['Name']); ?></p>
+                    <p class="designation"><?php echo htmlentities($results['Email']); ?></p>
                     
-
-                    $employeeRole = $row->Role;
+                    <?php
+                    $employeeRole = $results['Role'];
 
                     $sqlPermissions = "SELECT * FROM tblpermissions WHERE RoleID=:employeeRole";
                     $queryPermissions = $dbh->prepare($sqlPermissions);
@@ -49,7 +45,6 @@
 
                     //An array of navigation items, Sub Items and their corresponding required permissions
                     $navItems = array(
-                        'Dashboard' => array(),
                         'Class' => array(
                             'Class' => array(
                                 'CreatePermission' => 'Add Class',
@@ -95,7 +90,14 @@
         <li class="nav-item nav-category">
             <span class="nav-link">Dashboard</span>
         </li>
-
+        
+        <li class="nav-item">
+            <a class="nav-link" href="dashboard.php">
+                <span class="menu-title">Dashboard</span>
+                <i class="icon-screen-desktop menu-icon"></i>
+            </a>
+        </li>
+        
         <?php
         foreach ($navItems as $itemName => $itemPermissions) 
         {
@@ -103,13 +105,15 @@
         
             foreach ($itemPermissions as $permission => $subItems) 
             {
-                foreach ($subItems as $subPermission => $subItemName) 
+                if (isset($employeePermissions[$permission]) && is_array($employeePermissions[$permission])) 
                 {
-                    // Check if the employee has the required permission for this sub-item
-                    if ($employeePermissions[$permission][$subPermission] == 1) 
+                    foreach ($subItems as $subPermission => $subItemName) 
                     {
-                        $hasPermission = true;
-                        break;
+                        if (isset($employeePermissions[$permission][$subPermission]) && $employeePermissions[$permission][$subPermission] == 1) 
+                        {
+                            $hasPermission = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -147,7 +151,7 @@
         }
 
         // Check if the role is "Teaching"
-        if ($row->EmpType == "Teaching") 
+        if ($results['EmpType'] == "Teaching") 
         {
         ?>
         <li class="nav-item">
@@ -162,6 +166,8 @@
                 </ul>
             </div>
         </li>
-        <?php } ?>
+        <?php 
+        } 
+        ?>
     </ul>
 </nav>

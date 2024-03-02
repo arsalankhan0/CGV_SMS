@@ -24,7 +24,8 @@ else
 
     $insertFlag = true;
 
-    try {
+    try 
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') 
         {
             if (isset($_POST['submit'])) 
@@ -127,7 +128,7 @@ else
     catch (PDOException $e) 
     {
         $dangerAlert = true;
-        $msg = "Ops! Something went wrong.";
+        $msg = "Ops! An error occurred.";
     }
 ?>
 
@@ -225,14 +226,18 @@ else
                                             </thead>
                                             <tbody>
                                                 <?php
+                                                $eid = $_GET['editid'];
+
                                                 $subjectSql = "SELECT * FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
                                                 $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
                                                 $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                                                 $subjectQuery->execute();
                                                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+                                                
 
-                                                foreach ($subjects as $subject) {
+                                                foreach ($subjects as $subject) 
+                                                {
                                                     ?>
                                                     <tr>
                                                         <td><?php echo htmlentities($subject['SubjectName']); ?></td>

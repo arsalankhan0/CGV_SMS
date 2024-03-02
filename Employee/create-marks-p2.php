@@ -9,6 +9,23 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
+    $eid = $_SESSION['sturecmsEMPid'];
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $query = $dbh->prepare($sql);
+    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $query->execute();
+    $IsAccessible = $query->fetch(PDO::FETCH_ASSOC);
+
+    // Check if the role is "Teaching"
+    if ($IsAccessible['EmpType'] != "Teaching") 
+    {
+        echo "<h1>You have no permission to access this page!</h1>";
+        exit;
+    }
+
+    $msg = "";
+    $successAlert = false;
+    $dangerAlert = false;
 
         // Get the active session ID
         $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
@@ -131,7 +148,8 @@ else
             } 
             else 
             {
-                echo '<script>alert("No subjects assigned to the teacher.")</script>';
+                // echo '<script>alert("No subjects assigned to the teacher.")</script>';
+                echo '<h2>No Subjects assigned to the teacher!</h2>';
             }
             if (isset($_POST['submit'])) 
             {
@@ -325,12 +343,16 @@ else
                         }
                     }
                     $dbh->commit();
-                    echo '<script>alert("Marks assigned successfully.")</script>';
+                    // echo '<script>alert("Marks assigned successfully.")</script>';
+                    $msg = "Marks assigned successfully.";
+                    $successAlert = true;
                 } 
                 catch (PDOException $e) 
                 {
                     $dbh->rollBack();
-                    echo '<script>alert("Ops! An error occurred.'.$e->getMessage().'")</script>';
+                    // echo '<script>alert("Ops! An error occurred.'.$e->getMessage().'")</script>';
+                    $msg = "Ops! An error occurred.";
+                    $dangerAlert = true;
                 }
             }
             
@@ -400,6 +422,30 @@ else
                                         echo htmlentities($exam['ExamName']);
                                     }
                                     ?></strong></h4>
+
+                                    <!-- Dismissible Alert messages -->
+                                    <?php 
+                                    if ($successAlert) 
+                                    {
+                                        ?>
+                                        <!-- Success -->
+                                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                        </div>
+                                    <?php 
+                                    }
+                                    if($dangerAlert)
+                                    { 
+                                    ?>
+                                        <!-- Danger -->
+                                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
 
                                 <form class="forms-sample" method="post">
                                     
@@ -565,10 +611,28 @@ else
                                     </div>
                                     <div class="pt-3">
                                         <button class="btn btn-primary mr-2"  
-                                            <?php echo ($publishedResult) ? 'disabled' : 'type="submit" name="submit"'; ?>
+                                            <?php echo ($publishedResult) ? 'disabled' : 'type="button" data-toggle="modal" data-target="#confirmationModal" '; ?>
                                         >
                                             Assign Marks
                                         </button>
+                                    </div>
+                                    <!-- Confirmation Modal (Update) -->
+                                    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to assign given marks to the students?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary" name="submit">Assign</button>
+                                            </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -607,6 +671,7 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>
