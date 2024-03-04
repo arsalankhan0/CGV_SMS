@@ -120,9 +120,9 @@ else
     catch (PDOException $e) 
     {
         $dbh->rollBack();
-        // error_log($e->getMessage()); //-->This is only for debugging purpose
         $dangerAlert = true;
         $msg = "Ops! An error occurred.";
+        echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
 ?>
 <!DOCTYPE html>

@@ -43,6 +43,7 @@ else
   {
     $dangerAlert = true;
     $msg = "Ops! An error occurred while adding a notice.";
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
   }
   ?>
 <!DOCTYPE html>

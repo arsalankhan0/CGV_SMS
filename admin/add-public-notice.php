@@ -41,6 +41,7 @@ else
   {
     $dangerAlert = true;
     $msg = "Ops! An error occurred while adding public notice.";
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
   }
 ?>
 <!DOCTYPE html>

@@ -4,25 +4,39 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) {
   header('location:logout.php');
-  } else{
-    if(isset($_POST['submit']))
+  } 
+  else
   {
-    $adminid=$_SESSION['sturecmsaid'];
-    $AName=$_POST['adminname'];
-  $mobno=$_POST['mobilenumber'];
-  $email=$_POST['email'];
-  $sql="update tbladmin set AdminName=:adminname,MobileNumber=:mobilenumber,Email=:email where ID=:aid";
-     $query = $dbh->prepare($sql);
-     $query->bindParam(':adminname',$AName,PDO::PARAM_STR);
-     $query->bindParam(':email',$email,PDO::PARAM_STR);
-     $query->bindParam(':mobilenumber',$mobno,PDO::PARAM_STR);
-     $query->bindParam(':aid',$adminid,PDO::PARAM_STR);
-$query->execute();
+    $msg = false;
+    $dangerAlert = false;
+    $successAlert = false;
 
-    echo '<script>alert("Your profile has been updated")</script>';
-    echo "<script>window.location.href ='profile.php'</script>";
+    try
+    {
+      if(isset($_POST['submit']))
+      {
+        $adminid=$_SESSION['sturecmsaid'];
+        $AName=$_POST['adminname'];
+        $mobno=$_POST['mobilenumber'];
+        $email=$_POST['email'];
+        $sql="update tbladmin set AdminName=:adminname,MobileNumber=:mobilenumber,Email=:email where ID=:aid";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':adminname',$AName,PDO::PARAM_STR);
+        $query->bindParam(':email',$email,PDO::PARAM_STR);
+        $query->bindParam(':mobilenumber',$mobno,PDO::PARAM_STR);
+        $query->bindParam(':aid',$adminid,PDO::PARAM_STR);
+        $query->execute();
 
-  }
+        $msg = "Your profile has been updated successfully.";
+        $successAlert = true;
+      }
+    }
+    catch(PDOException $e)
+    {
+      $msg = "Ops! An error occurred.";
+      $dangerAlert = true;
+      echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
+    }
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,7 +84,29 @@ $query->execute();
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Admin Profile</h4>
-                   
+                    <!-- Dismissible Alert messages -->
+                    <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
                     <form class="forms-sample" method="post">
                       <?php
 
@@ -135,6 +171,7 @@ foreach($results as $row)
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

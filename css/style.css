@@ -56,7 +56,8 @@ div#bs-example-navbar-collapse-1 {
 }
 /*--header-nav--*/
 .header{
-    background-color: #E1009F;
+    /* background-color: #E1009F; */
+    background-color: #800000;
     border: none;
     padding: .6em 0em 1.8em;
     margin: 0;
@@ -70,8 +71,10 @@ div#bs-example-navbar-collapse-1 {
     margin-bottom: 0 !important;
 }
 .navbar-default {
-    background-color: #E1009F !important;
-    border-color: #E1009F !important;
+    /* background-color: #E1009F !important; */
+    /* border-color: #E1009F !important; */
+    background-color: #800000 !important;
+    border-color: #800000 !important;
 }
 .navbar-header a.navbar-brand {
 	color: #fff;
@@ -110,8 +113,10 @@ ul.nav.navbar-nav.navbar-right.margin-top li{
 	perspective: 1000px;
 }
 .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:focus, .navbar-default .navbar-nav>.open>a:hover {
-	color: #00BFF3;
-	background-color: #0B0354;
+	/* color: #00BFF3; */
+	/* background-color: #0B0354; */
+	color: #800000;
+	background-color: #ffffff;
 }
 .dropdown-menu {
 	background-color: #eee;
@@ -217,7 +222,8 @@ span.glyphicon.glyphicon-search.edit {
 }
 /*-----*/
 ul.nav.navbar-nav.navbar-right.margin-top > li > a:hover{
-  color: #fff !important;
+  /* color: #fff !important; */
+  color: #800000 !important;
   background: transparent;
   -webkit-transition: all 0.3s ease;
   -moz-transition: all 0.3s ease;
@@ -229,7 +235,8 @@ ul.nav.navbar-nav.navbar-right.margin-top > li > a:hover:before{
   content: "";
   width: 100%;
   left: 0;
-  background: #2793FD;
+  /* background: #2793FD; */
+  background: #ffffff;
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
   -o-transition: all 0.5s ease;
@@ -240,7 +247,8 @@ ul.nav.navbar-nav.navbar-right.margin-top > li > a:before{
     position: absolute;
     content: "";
     height: 50%;
-    background: #2793FD;
+    /* background: #2793FD; */
+    background: #ffffff;
     right: 0;
     width: 0%;
         top: 18px;
@@ -254,7 +262,8 @@ ul.nav.navbar-nav.navbar-right.margin-top > li > a:after {
 position: absolute;
     content: "";
     height: 50%;
-    background: #2793FD;
+    /* background: #2793FD; */
+    background: #ffffff;
     right: 0;
     width: 0%;
        bottom: -8px;
@@ -269,7 +278,8 @@ ul.nav.navbar-nav.navbar-right.margin-top > li > a:hover:after{
   content: "";
   width: 100%;
   left: 0;
-  background: #2793FD;
+  /* background: #2793FD; */
+  background: #ffffff;
   -webkit-transition: all 0.35s ease;
   -moz-transition: all 0.35s ease;
   -o-transition: all 0.35s ease;
@@ -310,7 +320,8 @@ position: relative;
     font-weight: 100;
 }
 .rslides a{
-background: #2793FD;
+/* background: #2793FD; */
+background: #800000;
     padding: 15px 17px 15px 20px;
     color: #fff;
     margin-top: 11px;
@@ -322,7 +333,8 @@ background: #2793FD;
 }
 .rslides a:hover{
 		color:#fff;
-	 background-color: #E1009F;
+	 /* background-color: #E1009F; */
+	 background-color: #b22222;
 }
 i.glyphicon.glyphicon-menu-right {
     padding-left: 15px;
@@ -444,6 +456,7 @@ i.arrow {
     display: block;
     color: #fff;
     background: #2793FD;
+    /* background: #800000; */
     padding: 8px 20px;
     font-size: 0.9em;
     transition: 0.5s all;
