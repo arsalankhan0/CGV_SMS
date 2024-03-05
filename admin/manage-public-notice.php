@@ -153,7 +153,7 @@ else
                             <td><?php  echo htmlentities($row->NoticeTitle);?></td>
                             <td><?php  echo htmlentities($row->CreationDate);?></td>
                             <td>
-                              <div><a href="edit-public-notice-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
+                              <div><a href="edit-public-notice-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>
                                                 || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                                       <i class="icon-trash"></i>
                                                     </a>

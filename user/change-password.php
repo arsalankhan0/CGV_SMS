@@ -3,35 +3,75 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsstuid']==0)) {
+if (strlen($_SESSION['sturecmsstuid']==0)) 
+{
   header('location:logout.php');
-  } else{
-if(isset($_POST['submit']))
+} 
+else
 {
-$sid=$_SESSION['sturecmsstuid'];
-$cpassword=md5($_POST['currentpassword']);
-$newpassword=md5($_POST['newpassword']);
-$sql ="SELECT StuID FROM tblstudent WHERE StuID=:sid and Password=:cpassword";
-$query= $dbh -> prepare($sql);
-$query-> bindParam(':sid', $sid, PDO::PARAM_STR);
-$query-> bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
-$query-> execute();
-$results = $query -> fetchAll(PDO::FETCH_OBJ);
+  $msg = "";
+  $successAlert = false;
+  $dangerAlert = false;
 
-if($query -> rowCount() > 0)
-{
-$con="update tblstudent set Password=:newpassword where StuID=:sid";
-$chngpwd1 = $dbh->prepare($con);
-$chngpwd1-> bindParam(':sid', $sid, PDO::PARAM_STR);
-$chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
-$chngpwd1->execute();
+  try
+  {
+    if(isset($_POST['submit']))
+    {
+        $sid=$_SESSION['sturecmsstuid'];
+        $cpassword=md5($_POST['currentpassword']);
+        $newpassword=md5($_POST['newpassword']);
+        $confirmpassword=md5($_POST['confirmpassword']);
+        $sql ="SELECT StuID FROM tblstudent WHERE StuID=:sid and Password=:cpassword";
+        $query= $dbh -> prepare($sql);
+        $query-> bindParam(':sid', $sid, PDO::PARAM_STR);
+        $query-> bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
+        $query-> execute();
+        $results = $query -> fetchAll(PDO::FETCH_OBJ);
 
-echo '<script>alert("Your password successully changed")</script>';
-} else {
-echo '<script>alert("Your current password is wrong")</script>';
+        if (strlen($_POST['newpassword']) < 8) 
+        {
+            $msg = "New password must be at least 8 characters long!";
+            $dangerAlert = true;
+        } 
+        else if(!preg_match('/[a-zA-Z]/', $_POST['newpassword']))
+        {
+            $msg = "New password must contain at least one alphabetic character!";
+            $dangerAlert = true;
+        }
+        else if(!preg_match('/[0-9]/', $_POST['newpassword']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['newpassword']))
+        {
+            $msg = "New password must contain at least one number and one special character!";
+            $dangerAlert = true;
+        }
+        else if ($newpassword != $confirmpassword) 
+        {
+            $msg = "New password and confirm password do not match!";
+            $dangerAlert = true;
+        } 
+        else if($query -> rowCount() > 0)
+        {
+          $con="update tblstudent set Password=:newpassword where StuID=:sid";
+          $chngpwd1 = $dbh->prepare($con);
+          $chngpwd1-> bindParam(':sid', $sid, PDO::PARAM_STR);
+          $chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
+          $chngpwd1->execute();
 
-}
-}
+          $msg = "Your password changed successfully.";
+          $successAlert = true;
+        } 
+        else 
+        {
+          $msg = "Your current password is wrong!";
+          $dangerAlert = true;
+        }
+    }
+  }
+  catch(PDOException $e)
+  {
+    $msg = "Ops! An error occurred.";
+    $dangerAlert = true;
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
+  }
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,19 +92,6 @@ echo '<script>alert("Your current password is wrong")</script>';
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <script type="text/javascript">
-function checkpass()
-{
-if(document.changepassword.newpassword.value!=document.changepassword.confirmpassword.value)
-{
-alert('New Password and Confirm Password field does not match');
-document.changepassword.confirmpassword.focus();
-return false;
-}
-return true;
-}   
-
-</script>
   </head>
   <body>
     <div class="container-scroller">
@@ -92,8 +119,30 @@ return true;
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Change Password</h4>
-                   
-                    <form class="forms-sample" name="changepassword" method="post" onsubmit="return checkpass();">
+                      <!-- Dismissible Alert messages -->
+                      <?php 
+                      if ($successAlert) 
+                      {
+                          ?>
+                          <!-- Success -->
+                          <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                          </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                          <!-- Danger -->
+                          <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                          </div>
+                      <?php
+                      }
+                      ?>
+                    <form class="forms-sample" name="changepassword" method="post">
                       
                       <div class="form-group">
                         <label for="exampleInputName1">Current Password</label>
@@ -109,7 +158,7 @@ return true;
                       </div>
                       
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Change</button>
-                     
+                    
                     </form>
                   </div>
                 </div>
@@ -140,6 +189,7 @@ return true;
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="../Employee/js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

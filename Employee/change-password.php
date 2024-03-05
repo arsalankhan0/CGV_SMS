@@ -9,6 +9,12 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 } 
 else 
 {
+  try
+  {
+    $msg = "";
+    $dangerAlert = false;
+    $successAlert = false;
+
     if (isset($_POST['submit'])) 
     {
         $EMPid = $_SESSION['sturecmsEMPid'];
@@ -23,7 +29,22 @@ else
 
         $result = $query->fetch(PDO::FETCH_ASSOC);
 
-        if ($result && password_verify($currentPassword, $result['Password'])) 
+        if (strlen($_POST['newpassword']) < 8) 
+        {
+            $msg = "New password must be at least 8 characters long!";
+            $dangerAlert = true;
+        } 
+        else if(!preg_match('/[a-zA-Z]/', $_POST['newpassword']))
+        {
+            $msg = "New password must contain at least one alphabetic character!";
+            $dangerAlert = true;
+        }
+        else if(!preg_match('/[0-9]/', $_POST['newpassword']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['newpassword']))
+        {
+            $msg = "New password must contain at least one number and one special character!";
+            $dangerAlert = true;
+        }
+        else if ($result && password_verify($currentPassword, $result['Password'])) 
         {
             if ($newPassword == $confirmPassword) 
             {
@@ -35,18 +56,28 @@ else
                 $chngpwd1->bindParam(':newpassword', $hashedNewPassword, PDO::PARAM_STR);
                 $chngpwd1->execute();
 
-                echo '<script>alert("Your password successfully changed")</script>';
+                $msg = "Your password changed successfully.";
+                $successAlert = true;
             } 
             else 
             {
-                echo '<script>alert("New Password and Confirm Password do not match")</script>';
+                $msg = "New Password and confirm password do not match!";
+                $dangerAlert = true;
             }
         } 
         else 
         {
-            echo '<script>alert("Your current password is wrong")</script>';
+            $msg = "Your current password is wrong!";
+            $dangerAlert = true;
         }
     }
+  }
+  catch(PDOException $e)
+  {
+    $msg = "Ops! An error occurred.";
+    $dangerAlert = true;
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,18 +98,6 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <script type="text/javascript">
-      function checkpass()
-      {
-        if(document.changepassword.newpassword.value!=document.changepassword.confirmpassword.value)
-        {
-          alert('New Password and Confirm Password field does not match');
-          document.changepassword.confirmpassword.focus();
-          return false;
-        }
-        return true;
-      }   
-    </script>
   </head>
   <body>
     <div class="container-scroller">
@@ -106,8 +125,30 @@ else
                 <div class="card">
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Change Password</h4>
-                  
-                    <form class="forms-sample" name="changepassword" method="post" onsubmit="return checkpass();">
+                    <!-- Dismissible Alert messages -->
+                    <?php 
+                      if ($successAlert) 
+                      {
+                        ?>
+                        <!-- Success -->
+                        <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php 
+                      }
+                      if($dangerAlert)
+                      { 
+                      ?>
+                        <!-- Danger -->
+                        <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <?php echo $msg; ?>
+                        </div>
+                      <?php
+                      }
+                      ?>
+                    <form class="forms-sample" name="changepassword" method="post">
                       
                       <div class="form-group">
                         <label for="exampleInputName1">Current Password</label>
@@ -154,6 +195,7 @@ else
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html>

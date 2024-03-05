@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || strlen($_SESSION['sturecmsaid']) == 0) 
@@ -57,6 +57,21 @@ else
                     $dangerAlert = true;
                     $msg = "Image has Invalid format! Only jpg / jpeg / png / gif format are allowed.";
                 } 
+                else if (strlen($_POST['password']) < 8) 
+                {
+                    $msg = "Password must be at least 8 characters long!";
+                    $dangerAlert = true;
+                } 
+                else if(!preg_match('/[a-zA-Z]/', $_POST['password']))
+                {
+                    $msg = "Password must contain at least one alphabetic character!";
+                    $dangerAlert = true;
+                }
+                else if(!preg_match('/[0-9]/', $_POST['password']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['password']))
+                {
+                    $msg = "Password must contain at least one number and one special character!";
+                    $dangerAlert = true;
+                }
                 else 
                 {
                     $image = md5($image) . time() . '.' . $extension;
@@ -312,6 +327,14 @@ else
                                     <div class="form-group">
                                         <label for="exampleInputName1">Password</label>
                                         <input type="password" name="password" class="form-control" required>
+                                        <p class="text-muted mb-0 mt-2">
+                                            Password must:
+                                            <ul class="text-muted">
+                                                <li>Be at least 8 characters long</li>
+                                                <li>Contain at least one alphabetic character</li>
+                                                <li>Contain at least one number and one special character</li>
+                                            </ul>
+                                        </p>
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                 </form>

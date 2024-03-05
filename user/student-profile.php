@@ -1,11 +1,14 @@
 <?php
 session_start();
-//error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsstuid']==0)) {
+if (strlen($_SESSION['sturecmsstuid']==0)) 
+{
   header('location:logout.php');
-  } else{
-   
+} 
+else
+{
+
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,7 +60,33 @@ if (strlen($_SESSION['sturecmsstuid']==0)) {
                     <table border="1" class="table table-bordered mg-b-0">
                       <?php
 $sid=$_SESSION['sturecmsstuid'];
-$sql="SELECT tblstudent.StudentName,tblstudent.StudentEmail,tblstudent.StudentClass,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblclass.ClassName,tblclass.Section from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.StuID=:sid";
+$sql = "SELECT 
+            tblstudent.StudentName,
+            tblstudent.StudentEmail,
+            tblstudent.StudentClass,
+            tblstudent.StudentSection,
+            tblstudent.Gender,
+            tblstudent.DOB,
+            tblstudent.StuID,
+            tblstudent.FatherName,
+            tblstudent.MotherName,
+            tblstudent.ContactNumber,
+            tblstudent.AltenateNumber,
+            tblstudent.Address,
+            tblstudent.UserName,
+            tblstudent.Password,
+            tblstudent.Image,
+            tblstudent.DateofAdmission,
+            tblclass.ClassName,
+            tblsections.SectionName
+        FROM 
+            tblstudent 
+        JOIN 
+            tblclass ON tblclass.ID = tblstudent.StudentClass
+        JOIN 
+            tblsections ON tblsections.ID = tblstudent.StudentSection
+        WHERE 
+            tblstudent.StuID = :sid";
 $query = $dbh -> prepare($sql);
 $query->bindParam(':sid',$sid,PDO::PARAM_STR);
 $query->execute();
@@ -79,7 +108,7 @@ foreach($results as $row)
   </tr>
   <tr class="table-warning">
      <th>Student Class</th>
-    <td><?php  echo $row->ClassName;?> <?php  echo $row->Section;?></td>
+    <td><?php  echo $row->ClassName;?> <?php  echo $row->SectionName;?></td>
      <th>Gender</th>
     <td><?php  echo $row->Gender;?></td>
   </tr>

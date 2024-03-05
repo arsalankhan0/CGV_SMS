@@ -3,26 +3,42 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsEMPid']) == 0) {
+if (strlen($_SESSION['sturecmsEMPid']) == 0) 
+{
     header('location:logout.php');
-} else {
+} 
+else 
+{
     $EMPid = $_SESSION['sturecmsEMPid'];
+    $msg = "";
+    $dangerAlert = false;
+    $successAlert = false;
 
-    if (isset($_POST['submit'])) {
-        $Name = $_POST['name'];
-        $mobno = $_POST['contactnumber'];
-        $email = $_POST['email'];
+    try
+    {
+        if (isset($_POST['submit'])) 
+        {
+            $Name = $_POST['name'];
+            $mobno = $_POST['contactnumber'];
+            $email = $_POST['email'];
 
-        $sql = "UPDATE tblemployees SET Name=:name, ContactNumber=:contactnumber, Email=:email WHERE ID=:eid";
-        $query = $dbh->prepare($sql);
-        $query->bindParam(':name', $Name, PDO::PARAM_STR);
-        $query->bindParam(':email', $email, PDO::PARAM_STR);
-        $query->bindParam(':contactnumber', $mobno, PDO::PARAM_STR);
-        $query->bindParam(':eid', $EMPid, PDO::PARAM_STR);
-        $query->execute();
+            $sql = "UPDATE tblemployees SET Name=:name, ContactNumber=:contactnumber, Email=:email WHERE ID=:eid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':name', $Name, PDO::PARAM_STR);
+            $query->bindParam(':email', $email, PDO::PARAM_STR);
+            $query->bindParam(':contactnumber', $mobno, PDO::PARAM_STR);
+            $query->bindParam(':eid', $EMPid, PDO::PARAM_STR);
+            $query->execute();
 
-        echo '<script>alert("Your profile has been updated")</script>';
-        echo "<script>window.location.href ='profile.php'</script>";
+            $msg = "Your profile has been updated successfully!";
+            $successAlert = true;
+        }
+    }
+    catch(PDOException $e)
+    {
+        $msg = "Ops! An error occurred.";
+        $dangerAlert = true;
+        echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
 ?>
 
@@ -74,6 +90,29 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title" style="text-align: center;">Employee Profile</h4>
+                                        <!-- Dismissible Alert messages -->
+                                        <?php 
+                                        if ($successAlert) 
+                                        {
+                                            ?>
+                                            <!-- Success -->
+                                            <div id="success-alert" class="alert alert-success alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                            </div>
+                                        <?php 
+                                        }
+                                        if($dangerAlert)
+                                        { 
+                                        ?>
+                                            <!-- Danger -->
+                                            <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <?php echo $msg; ?>
+                                            </div>
+                                        <?php
+                                        }
+                                        ?>
                                     <form class="forms-sample" method="post">
                                         <?php
                                         $sql = "SELECT * FROM tblemployees WHERE ID = :eid";
@@ -135,6 +174,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
+    <script src="./js/manageAlert.js"></script>
     <!-- End custom js for this page -->
 </body>
 
