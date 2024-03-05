@@ -6813,7 +6813,12 @@ a.close.disabled {
     -ms-flex-negative: 0;
     flex-shrink: 0; }
   .modal-dialog-scrollable .modal-body {
-    overflow-y: auto; }
+    overflow-y: auto; 
+  }
+  .modal-body
+  {
+    text-wrap: wrap;
+  }
 
 .modal-dialog-centered {
   display: -webkit-box;
@@ -13355,4 +13360,19 @@ dl {
 {
     font-size: 16px;
     font-weight: bold;
+}
+
+
+
+
+
+.loginbtn
+{
+	background-color: #800000 !important;
+	border-color: #800000 !important;
+}
+.loginbtn:hover
+{
+  background-color: #812000 !important;
+	border-color: #800000 !important;
 }

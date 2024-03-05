@@ -24,6 +24,7 @@ $query->execute();
   <head>
    
     <title>Student  Management System|||Search Students</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">

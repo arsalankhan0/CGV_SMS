@@ -94,6 +94,7 @@ else
 <html lang="en">
 <head>
     <title>Student  Management System || Assign Permissions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -179,7 +180,7 @@ else
                                     <button type="button" class="btn btn-primary mr-2" id="fetchPermissions">Assign Permissions</button>
                         </form>
                         <!-- Table to display permissions -->
-                        <div id="permissionsTable" class="table table-responsive mt-3"></div>
+                        <div id="permissionsTable" class="mt-3"></div>
                     </div>
                     </div>
                 </div>
@@ -213,11 +214,11 @@ else
     <script>
  document.addEventListener('DOMContentLoaded', function () {
 
-    // Fetch permissions on button click
+    // Fetch permissions on clicking the button
     document.getElementById('fetchPermissions').addEventListener('click', function () {
         var roleID = document.getElementById('roleSelect').value;
 
-        // Use Fetch API to send an AJAX request to fetch permissions based on the selected role
+        //Fetch API to send an AJAX request to fetch permissions based on the selected role
         fetch('fetch_permissions.php', {
             method: 'POST',
             headers: {

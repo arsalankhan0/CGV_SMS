@@ -12,6 +12,7 @@ if (strlen($_SESSION['sturecmsstuid']==0)) {
   <head>
    
     <title>Student Management System|| View Students Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -51,7 +52,7 @@ if (strlen($_SESSION['sturecmsstuid']==0)) {
           
               <div class="col-12 grid-margin stretch-card">
                 <div class="card">
-                  <div class="card-body">
+                  <div class="card-body table table-responsive">
                     
                     <table border="1" class="table table-bordered mg-b-0">
                       <?php

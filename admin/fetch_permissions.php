@@ -22,8 +22,9 @@ if (isset($_POST['roleID']))
     $fetchPermissionsStmt->execute();
     $currentPermissions = $fetchPermissionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo '<form method="post" action="">
-            <h3 class="text-center">Select Permissions for ' . $RoleName["RoleName"] . '</h3>
+    echo '<h3 class="text-center">Select Permissions for ' . $RoleName["RoleName"] . '</h3>
+            <form method="post" action="">
+            <div class="table table-responsive">
             <input type="hidden" name="roleID" value="' . $roleID . '">
             <table class="table table-bordered">
                 <thead>
@@ -62,7 +63,7 @@ if (isset($_POST['roleID']))
             </tr>';
     }
 
-    echo '</tbody></table>
+    echo '</tbody></table></div>
             <div class="d-flex justify-content-end mt-3">
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmationModal">Add Permissions</button>
             </div>

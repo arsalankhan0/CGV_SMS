@@ -32,6 +32,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
 <head>
 
     <title>Student Management System || Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">

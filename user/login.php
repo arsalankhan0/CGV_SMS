@@ -3,49 +3,63 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if(isset($_POST['login'])) 
-  {
-    $stuid=$_POST['stuid'];
-    $password=md5($_POST['password']);
-    $sql ="SELECT StuID,ID,StudentClass FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
-    $query=$dbh->prepare($sql);
-    $query-> bindParam(':stuid', $stuid, PDO::PARAM_STR);
-    $query-> bindParam(':password', $password, PDO::PARAM_STR);
-    $query-> execute();
-    $results=$query->fetchAll(PDO::FETCH_OBJ);
-    if($query->rowCount() > 0)
-    {
-      foreach ($results as $result) {
-      $_SESSION['sturecmsstuid']=$result->StuID;
-      $_SESSION['sturecmsuid']=$result->ID;
-      $_SESSION['stuclass']=$result->StudentClass;
-    }
+$dangerAlert = false;
+$msg = "";
 
-  if(!empty($_POST["remember"])) 
+try
+{
+  if(isset($_POST['login'])) 
   {
-    //COOKIES for username
-    setcookie ("user_login",$_POST["stuid"],time()+ (10 * 365 * 24 * 60 * 60));
-    //COOKIES for password
-    setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
-    } 
-    else 
-    {
-      if(isset($_COOKIE["user_login"])) 
+      $stuid=$_POST['stuid'];
+      $password=md5($_POST['password']);
+      $sql ="SELECT StuID,ID,StudentClass FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
+      $query=$dbh->prepare($sql);
+      $query-> bindParam(':stuid', $stuid, PDO::PARAM_STR);
+      $query-> bindParam(':password', $password, PDO::PARAM_STR);
+      $query-> execute();
+      $results=$query->fetchAll(PDO::FETCH_OBJ);
+      if($query->rowCount() > 0)
       {
-        setcookie ("user_login","");
-        if(isset($_COOKIE["userpassword"])) 
+        foreach ($results as $result) 
         {
-          setcookie ("userpassword","");
+          $_SESSION['sturecmsstuid']=$result->StuID;
+          $_SESSION['sturecmsuid']=$result->ID;
+          $_SESSION['stuclass']=$result->StudentClass;
         }
+
+        if(!empty($_POST["remember"])) 
+        {
+          //COOKIES for username
+          setcookie ("user_login",$_POST["stuid"],time()+ (10 * 365 * 24 * 60 * 60));
+          //COOKIES for password
+          setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+        } 
+        else 
+        {
+          if(isset($_COOKIE["user_login"])) 
+          {
+            setcookie ("user_login","");
+            if(isset($_COOKIE["userpassword"])) 
+            {
+              setcookie ("userpassword","");
+            }
+          }
+        }
+        $_SESSION['login']=$_POST['stuid'];
+        echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+      }
+      else
+      {
+        $msg = "Invalid Credentials!";
+        $dangerAlert = true;
       }
   }
-    $_SESSION['login']=$_POST['stuid'];
-    echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
 }
-else
+catch(PDOException $e)
 {
-  echo "<script>alert('Invalid Details');</script>";
-}
+  $msg = "Ops! An error occurred.";
+  $dangerAlert = true;
+
 }
 
 ?>
@@ -54,6 +68,7 @@ else
   <head>
   
     <title>Student  Management System|| Student Login Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
@@ -75,11 +90,23 @@ else
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <div class="brand-logo">
-                  <img src="images/logo.svg"> SMS
+                  <img src="images/logo.svg">
                 </div>
                 <h4>Hello! let's get started</h4>
                 <h6 class="font-weight-light">Sign in to continue.</h6>
                 <form class="pt-3" id="login" method="post" name="login">
+                  <!-- Dismissible Alert messages -->
+                  <?php 
+                  if($dangerAlert)
+                  { 
+                  ?>
+                      <!-- Danger -->
+                      <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <?php echo $msg; ?>
+                      </div>
+                  <?php
+                  }?>
                   <div class="form-group">
                     <input type="text" class="form-control form-control-lg" placeholder="enter your student id or username" required="true" name="stuid" value="<?php if(isset($_COOKIE["user_login"])) { echo $_COOKIE["user_login"]; } ?>" >
                   </div>
@@ -120,6 +147,7 @@ else
     <!-- inject:js -->
     <script src="js/off-canvas.js"></script>
     <script src="js/misc.js"></script>
+    <script src="../admin/js/manageAlert.js"></script>
     <!-- endinject -->
   </body>
 </html>
