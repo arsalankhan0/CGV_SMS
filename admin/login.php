@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 
@@ -177,7 +177,7 @@ if(isset($_POST['login']))
                     <a href="forgot-password.php" class="auth-link text-black">Forgot password?</a>
                   </div>
                   <div class="mb-2">
-                    <a href="../index.php" class="btn btn-block btn-facebook auth-form-btn">
+                    <a href="../Main/index.php" class="btn btn-block btn-facebook auth-form-btn">
                       <i class="icon-social-home mr-2"></i>Back Home </a>
                     </div>
                   </form>

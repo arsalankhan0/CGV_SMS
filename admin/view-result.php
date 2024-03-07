@@ -9,17 +9,6 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 } 
 else 
 {
-    // Code for deletion
-    if (isset($_GET['delid'])) 
-    {
-        $rid = intval($_GET['delid']);
-        $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID=:rid";
-        $query = $dbh->prepare($sql);
-        $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-        $query->execute();
-        echo "<script>alert('Data deleted');</script>";
-        echo "<script>window.location.href = 'manage-students.php'</script>";
-    }
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -11,17 +11,14 @@ else
 {
     if (isset($_GET['studentName'])) 
     {
-        // Get the filtered Session of studentName.
         $studentID = filter_var($_GET['studentName'], FILTER_VALIDATE_INT);
 
-        // Fetch student details
         $sqlStudent = "SELECT * FROM tblstudent WHERE ID = :studentName AND IsDeleted = 0";
         $queryStudent = $dbh->prepare($sqlStudent);
         $queryStudent->bindParam(':studentName', $studentID, PDO::PARAM_INT);
         $queryStudent->execute();
         $studentDetails = $queryStudent->fetch(PDO::FETCH_ASSOC);
 
-        // Get the active session ID
         $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
         $sessionQuery = $dbh->prepare($getSessionSql);
         $sessionQuery->execute();
@@ -29,7 +26,6 @@ else
 
         if ($studentDetails) 
         {
-            // Fetch student Class
             $stdClassID = $studentDetails['StudentClass'];
             $sqlStudentClass = "SELECT * FROM tblclass WHERE ID = :stdClassID AND IsDeleted = 0";
             $queryStudentClass = $dbh->prepare($sqlStudentClass);
@@ -39,7 +35,6 @@ else
 
             try 
             {
-                // Fetch data from the database for the selected student, class, and exam
                 $examSession = $session['session_id'];
                 $className = $_GET['className'];
                 $examName = $_GET['examName'];
@@ -54,33 +49,6 @@ else
                 $stmtReports->execute();
                 $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
-                // Initialize variables for totals
-                $theoryMaxMarksTotal = 0;
-                $theoryObtMarksTotal = 0;
-                $pracMaxMarksTotal = 0;
-                $pracObtMarksTotal = 0;
-                $vivaMaxMarksTotal = 0;
-                $vivaObtMarksTotal = 0;
-
-                foreach ($reports as $report) 
-                {
-                    // Adding individual subject marks
-                    $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
-                    $theoryObtMarksTotal += $report['TheoryMarksObtained'];
-                    $pracMaxMarksTotal += $report['PracticalMaxMarks'];
-                    $pracObtMarksTotal += $report['PracticalMarksObtained'];
-                    $vivaMaxMarksTotal += $report['VivaMaxMarks'];
-                    $vivaObtMarksTotal += $report['VivaMarksObtained'];
-                }
-
-                // Calculate grand total and total max marks
-                $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
-                $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
-
-                // Calculate percentage
-                $percentage = ($grandTotal / $totalMaxMarks) * 100;
-
-
                 if (!$reports) 
                 {
                     echo "<script>alert('No data found for the selected student, class, and exam.');</script>";
@@ -92,23 +60,14 @@ else
                 // error_log($e->getMessage()); //-->This is only for debugging purposes
             }
 
-            // Fetch subjects
-            $sqlSubjects = "SELECT * FROM tblsubjects WHERE IsDeleted = 0";
-            $querySubjects = $dbh->prepare($sqlSubjects);
-            $querySubjects->execute();
-            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
-            $aID = $_SESSION['sturecmsaid'];
-            
             $examSession = $_GET['examSession'];
-            // Fetch only the assigned subjects from tblsubjects
             $sqlSubjects = "SELECT * FROM tblsubjects WHERE SessionID = :examSession AND IsDeleted = 0";
             $querySubjects = $dbh->prepare($sqlSubjects);
             $querySubjects->bindParam(':examSession', $examSession, PDO::PARAM_INT);
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
 
-            if (isset($subjects) && isset($reports)) 
-            {
+            if (isset($subjects) && isset($reports)) {
             ?>
                 <!DOCTYPE html>
                 <html lang="en">
@@ -116,198 +75,213 @@ else
                 <head>
                     <title>Student Management System || Student Report</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <!-- plugins:css -->
                     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
                     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
                     <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-                    <!-- endinject -->
-                    <!-- Plugin css for this page -->
                     <link rel="stylesheet" href="vendors/select2/select2.min.css">
                     <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
-                    <!-- End plugin css for this page -->
-                    <!-- inject:css -->
-                    <!-- endinject -->
-                    <!-- Layout styles -->
                     <link rel="stylesheet" href="css/style.css" />
                 </head>
 
                 <body>
                     <div class="container-scroller">
-                        <!-- partial -->
                         <div class="container-fluid page-body-wrapper">
                             <div class="card">
                                 <div class="card-body" id="report-card">
-                                                    <h4 class="card-title" style="text-align: center;">Student Report of
-                                                        <strong><?php
-                                                                $sql = "SELECT * FROM tblexamination WHERE ID = " . $_GET['examName'] . " AND IsDeleted = 0";
-                                                                $query = $dbh->prepare($sql);
-                                                                $query->execute();
-                                                                $examinations = $query->fetchAll(PDO::FETCH_ASSOC);
-                                                                foreach ($examinations as $exam) 
-                                                                {
-                                                                    echo htmlentities($exam['ExamName']);
-                                                                }
-                                                                ?>
-                                                        </strong>(<?php echo $session['session_name']; ?>)
-                                                    </h4>
+                                    <h4 class="card-title" style="text-align: center;">Student Report of
+                                        <strong><?php
+                                                $sql = "SELECT * FROM tblexamination WHERE ID = " . $_GET['examName'] . " AND IsDeleted = 0";
+                                                $query = $dbh->prepare($sql);
+                                                $query->execute();
+                                                $examinations = $query->fetchAll(PDO::FETCH_ASSOC);
+                                                foreach ($examinations as $exam) {
+                                                    echo htmlentities($exam['ExamName']);
+                                                }
+                                                ?>
+                                        </strong>(<?php echo $session['session_name']; ?>)
+                                    </h4>
 
-                                                    <?php
-                                                    if (isset($subjects) && isset($reports)) 
+                                    <?php
+                                    if (isset($subjects) && isset($reports)) {
+                                    ?>
+                                        <div class="d-flex flex-column">
+                                            <?php
+                                            if (isset($studentDetails)) {
+                                            ?>
+                                                <table class="table table-bordered col-md-6">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Student Name:</td>
+                                                            <td><?php echo htmlentities($studentDetails['StudentName']); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Roll No:</td>
+                                                            <td><?php
+                                                                echo htmlentities($studentDetails['RollNo']);
+                                                                ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Class:</td>
+                                                            <td><?php echo htmlentities($studentClass['ClassName']); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Section:</td>
+                                                            <td><?php
+                                                                $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
+                                                                $sectionQuery = $dbh->prepare($sectionSql);
+                                                                $sectionQuery->bindParam(':studentDetails', $studentDetails['StudentSection'], PDO::PARAM_STR);
+                                                                $sectionQuery->execute();
+                                                                $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+                                                                echo htmlentities($sectionRow['SectionName']);
+                                                                ?></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            <?php
+                                            }
+                                            ?>
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th colspan="2" class="text-center font-weight-bold">THEORY</th>
+                                                <th colspan="2" class="text-center font-weight-bold">PRACTICAL</th>
+                                                <th colspan="2" class="text-center font-weight-bold">VIVA</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="font-weight-bold">Subjects</th>
+                                                <th class="font-weight-bold">Max Marks</th>
+                                                <th class="font-weight-bold">Marks Obtained</th>
+                                                <th class="font-weight-bold">Max Marks</th>
+                                                <th class="font-weight-bold">Marks Obtained</th>
+                                                <th class="font-weight-bold">Max Marks</th>
+                                                <th class="font-weight-bold">Marks Obtained</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            // A flag to check if the student has passed in all subjects
+                                            $allSubjectsPassed = true;
+
+                                            // Initialize variables for totals
+                                            $theoryMaxMarksTotal = 0;
+                                            $theoryObtMarksTotal = 0;
+                                            $pracMaxMarksTotal = 0;
+                                            $pracObtMarksTotal = 0;
+                                            $vivaMaxMarksTotal = 0;
+                                            $vivaObtMarksTotal = 0;
+
+                                            foreach ($reports as $report) 
+                                            {
+                                                $subjectsJSON = json_decode($report['SubjectsJSON'], true);
+
+                                                foreach ($subjectsJSON as $subjectData) 
+                                                {
+                                                    // Fetch subjects Name
+                                                    $sqlSubjects = "SELECT SubjectName FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
+                                                    $querySubjects = $dbh->prepare($sqlSubjects);
+                                                    $querySubjects->bindParam(':subjectID', $subjectData['SubjectID'], PDO::PARAM_INT);
+                                                    $querySubjects->execute();
+                                                    $subject = $querySubjects->fetch(PDO::FETCH_ASSOC);
+
+                                                    $subjectName = htmlentities($subject['SubjectName']);
+                                                    $theoryMaxMarks = htmlentities($subjectData['TheoryMaxMarks']);
+                                                    $theoryMarksObtained = htmlentities($subjectData['TheoryMarksObtained']);
+                                                    $practicalMaxMarks = htmlentities($subjectData['PracticalMaxMarks']);
+                                                    $practicalMarksObtained = htmlentities($subjectData['PracticalMarksObtained']);
+                                                    $vivaMaxMarks = htmlentities($subjectData['VivaMaxMarks']);
+                                                    $vivaMarksObtained = htmlentities($subjectData['VivaMarksObtained']);
+
+                                                    if (isset($subjectData['TheoryMaxMarks'], $subjectData['TheoryMarksObtained'],
+                                                        $subjectData['PracticalMaxMarks'], $subjectData['PracticalMarksObtained'],
+                                                        $subjectData['VivaMaxMarks'], $subjectData['VivaMarksObtained'])
+                                                    ) 
                                                     {
-                                                    ?>
-                                                        <div class="d-flex flex-column">
-                                                            <?php
-                                                            if (isset($studentDetails)) 
-                                                            {
-                                                            ?>
-                                                                <table class="table table-bordered col-md-6">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td>Student Name:</td>
-                                                                            <td><?php echo htmlentities($studentDetails['StudentName']); ?></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>Roll No:</td>
-                                                                            <td><?php
-                                                                                echo htmlentities($studentDetails['RollNo']); 
-                                                                                ?></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>Class:</td>
-                                                                            <td><?php echo htmlentities($studentClass['ClassName']); ?></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>Section:</td>
-                                                                            <td><?php 
-                                                                             // Fetch sections from the database
-                                                                            $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
-                                                                            $sectionQuery = $dbh->prepare($sectionSql);
-                                                                            $sectionQuery->bindParam(':studentDetails',$studentDetails['StudentSection'], PDO::PARAM_STR);
-                                                                            $sectionQuery->execute();
-                                                                            $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
-                                                                            echo htmlentities($sectionRow['SectionName']); ?></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            <?php
-                                                            }
-                                                            ?>
-                                                            <table class="table table-bordered">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th></th>
-                                                                        <th colspan="2" class="text-center font-weight-bold">THEORY</th>
-                                                                        <th colspan="2" class="text-center font-weight-bold">PRACTICAL</th>
-                                                                        <th colspan="2" class="text-center font-weight-bold">VIVA</th>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="font-weight-bold">Subjects</th>
-                                                                        <th class="font-weight-bold">Max Marks</th>
-                                                                        <th class="font-weight-bold">Marks Obtained</th>
-                                                                        <th class="font-weight-bold">Max Marks</th>
-                                                                        <th class="font-weight-bold">Marks Obtained</th>
-                                                                        <th class="font-weight-bold">Max Marks</th>
-                                                                        <th class="font-weight-bold">Marks Obtained</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <?php
-                                                                    // A flag to check if the student has passed in all subjects
-                                                                    $allSubjectsPassed = true;
-
-                                                                    foreach ($reports as $report) 
-                                                                    {
-                                                                        $subjectID = $report['Subjects'];
-                                                                        $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
-                                                                        $querySubjectsName = $dbh->prepare($sqlSubjectsName);
-                                                                        $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
-                                                                        $querySubjectsName->execute();
-                                                                        $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
-
-                                                                        
-                                                                        // Check if the student has passed in this subject
-                                                                        if ($report['IsPassed'] != 1) 
-                                                                        {
-                                                                            $allSubjectsPassed = false;
-                                                                        }
-                                                                        ?>
-                                                                        <tr>
-                                                                            <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
-                                                                            <td><?php echo htmlentities($report['TheoryMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['TheoryMarksObtained']); ?></td>
-                                                                            <td><?php echo htmlentities($report['PracticalMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['PracticalMarksObtained']); ?></td>
-                                                                            <td><?php echo htmlentities($report['VivaMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['VivaMarksObtained']); ?></td>
-                                                                        </tr>
-                                                                        <?php
-                                                                    }
-                                                            
-                                                                    // Set $resultText based on the overall result
-                                                                    if ($allSubjectsPassed) 
-                                                                    {
-                                                                        $resultText = "<span class='text-success font-weight-bold'>PASS</span>";
-                                                                    } 
-                                                                    else 
-                                                                    {
-                                                                        $resultText = "<span class='text-danger font-weight-bold'>FAIL</span>";
-                                                                    }
-                                                                    ?>
-                                                                    <tr class=" table-secondary">
-                                                                        <td class="font-weight-bold">TOTAL</td>
-                                                                        <td id="th-max-marks"><?php echo $theoryMaxMarksTotal; ?></td>
-                                                                        <td id="th-obt-marks"><?php echo $theoryObtMarksTotal; ?></td>
-                                                                        <td id="prac-max-marks"><?php echo $pracMaxMarksTotal; ?></td>
-                                                                        <td id="prac-obt-marks"><?php echo $pracObtMarksTotal; ?></td>
-                                                                        <td id="viva-max-marks"><?php echo $vivaMaxMarksTotal; ?></td>
-                                                                        <td id="viva-obt-marks"><?php echo $vivaObtMarksTotal; ?></td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td colspan="2"></td>
-                                                                        <td class="font-weight-bold">TOTAL MAX MARKS</td>
-                                                                        <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
-                                                                        <td class="font-weight-bold">PERCENTAGE</td>
-                                                                        <td class="font-weight-bold" colspan="2">RESULT</td>
-                                                                    </tr>
-                                                                    <tr class=" table-secondary">
-                                                                        <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
-                                                                        <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
-                                                                        <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
-                                                                        <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
-                                                                        <td id="result" colspan="2"><?php echo $resultText; ?></td>
-                                                                    </tr>
-                                                                    
-                                                                </tbody>
-                                                            </table>
-                                                            
-                                                        </div>
-                                                    <?php
+                                                        $theoryMaxMarksTotal += $subjectData['TheoryMaxMarks'];
+                                                        $theoryObtMarksTotal += $subjectData['TheoryMarksObtained'];
+                                                        $pracMaxMarksTotal += $subjectData['PracticalMaxMarks'];
+                                                        $pracObtMarksTotal += $subjectData['PracticalMarksObtained'];
+                                                        $vivaMaxMarksTotal += $subjectData['VivaMaxMarks'];
+                                                        $vivaObtMarksTotal += $subjectData['VivaMarksObtained'];
+                                                    } 
+                                                    else 
+                                                    {
+                                                        echo "<script>console.error('Invalid format for subject data in JSON:', " . json_encode($subjectData) . ");</script>";
                                                     }
                                                     ?>
+                                                    <tr>
+                                                        <td><?php echo htmlentities($subjectName); ?></td>
+                                                        <td><?php echo htmlentities($theoryMaxMarks); ?></td>
+                                                        <td><?php echo htmlentities($theoryMarksObtained); ?></td>
+                                                        <td><?php echo htmlentities($practicalMaxMarks); ?></td>
+                                                        <td><?php echo htmlentities($practicalMarksObtained); ?></td>
+                                                        <td><?php echo htmlentities($vivaMaxMarks); ?></td>
+                                                        <td><?php echo htmlentities($vivaMarksObtained); ?></td>
+                                                    </tr>
+                                                <?php
+                                                }
+
+                                                // Calculate grand total and total max marks
+                                                $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
+                                                $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
+
+                                                // Calculate percentage
+                                                $percentage = ($grandTotal / $totalMaxMarks) * 100;
+
+                                                // Check if the student has passed in this subject
+                                                if ($report['IsPassed'] != 1) 
+                                                {
+                                                    $allSubjectsPassed = false;
+                                                }
+
+                                            }
+                                            // Set $resultText based on the overall result
+                                            $resultText = $allSubjectsPassed ? "<span class='text-success font-weight-bold'>PASS</span>" : "<span class='text-danger font-weight-bold'>FAIL</span>";
+                                            ?>
+                                            <tr class=" table-secondary">
+                                                <td class="font-weight-bold">TOTAL</td>
+                                                <td id="th-max-marks"><?php echo $theoryMaxMarksTotal; ?></td>
+                                                <td id="th-obt-marks"><?php echo $theoryObtMarksTotal; ?></td>
+                                                <td id="prac-max-marks"><?php echo $pracMaxMarksTotal; ?></td>
+                                                <td id="prac-obt-marks"><?php echo $pracObtMarksTotal; ?></td>
+                                                <td id="viva-max-marks"><?php echo $vivaMaxMarksTotal; ?></td>
+                                                <td id="viva-obt-marks"><?php echo $vivaObtMarksTotal; ?></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td colspan="2"></td>
+                                                <td class="font-weight-bold">TOTAL MAX MARKS</td>
+                                                <td class="font-weight-bold">TOTAL OBTAINED MARKS</td>
+                                                <td class="font-weight-bold">PERCENTAGE</td>
+                                                <td class="font-weight-bold" colspan="2">RESULT</td>
+                                            </tr>
+                                            <tr class=" table-secondary">
+                                                <td class="font-weight-bold" colspan="2">GRAND TOTAL</td>
+                                                <td id="total-max-marks"><?php echo $totalMaxMarks; ?></td>
+                                                <td id="total-obt-marks"><?php echo $grandTotal; ?></td>
+                                                <td id="percentage"><?php echo number_format($percentage, 2) . "%"; ?></td>
+                                                <td id="result" colspan="2"><?php echo $resultText; ?></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </div>
-                        <!-- page-body-wrapper ends -->
                     </div>
-                    <!-- container-scroller -->
-                    <!-- plugins:js -->
+
                     <script src="vendors/js/vendor.bundle.base.js"></script>
-                    <!-- endinject -->
-                    <!-- Plugin js for this page -->
                     <script src="vendors/select2/select2.min.js"></script>
                     <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
-                    <!-- End plugin js for this page -->
-                    <!-- inject:js -->
                     <script src="js/off-canvas.js"></script>
                     <script src="js/misc.js"></script>
-                    <!-- endinject -->
-                    <!-- Custom js for this page -->
                     <script src="js/typeahead.js"></script>
                     <script src="js/select2.js"></script>
                     <script src="./js/resultGeneration.js"></script>
                     <script src="./js/printReportCard.js"></script>
-                    <!-- End custom js for this page -->
                 </body>
                 </html>
 <?php
@@ -321,7 +295,7 @@ else
         {
             echo "<script>alert('Student not selected.'); window.location.href='view-result.php';</script>";
         }
-    } 
+    }
     else 
     {
         echo "<script>alert('Invalid Request.'); window.location.href='view-result.php';</script>";

@@ -129,17 +129,16 @@ else
                         <select  name="classid" class="form-control" required='true'>
                           <option value="">Select Class</option>
                          <?php 
+                          $sql2 = "SELECT * from    tblclass ";
+                          $query2 = $dbh -> prepare($sql2);
+                          $query2->execute();
+                          $result2=$query2->fetchAll(PDO::FETCH_OBJ);
 
-$sql2 = "SELECT * from    tblclass ";
-$query2 = $dbh -> prepare($sql2);
-$query2->execute();
-$result2=$query2->fetchAll(PDO::FETCH_OBJ);
-
-foreach($result2 as $row1)
-{          
-    ?>  
-<option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
- <?php } ?> 
+                          foreach($result2 as $row1)
+                          {          
+                              ?>  
+                          <option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
+                          <?php } ?> 
                         </select>
                       </div>
                       <div class="form-group">

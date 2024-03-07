@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -57,14 +57,12 @@ else
                                 AND ClassName = :className 
                                 AND ExamName = :examName 
                                 AND StudentName = :studentName 
-                                AND FIND_IN_SET(Subjects, :assignedSubjects)
                                 AND IsDeleted = 0";
                 $stmtReports = $dbh->prepare($sqlReports);
                 $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                 $stmtReports->bindParam(':className', $className, PDO::PARAM_INT);
                 $stmtReports->bindParam(':examName', $examName, PDO::PARAM_STR);
                 $stmtReports->bindParam(':studentName', $studentName, PDO::PARAM_INT);
-                $stmtReports->bindParam(':assignedSubjects', $assignedSubjects['AssignedSubjects'], PDO::PARAM_STR);
                 $stmtReports->execute();
                 $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
@@ -78,23 +76,32 @@ else
 
                 foreach ($reports as $report) 
                 {
-                    // Adding individual subject marks
-                    $theoryMaxMarksTotal += $report['TheoryMaxMarks'];
-                    $theoryObtMarksTotal += $report['TheoryMarksObtained'];
-                    $pracMaxMarksTotal += $report['PracticalMaxMarks'];
-                    $pracObtMarksTotal += $report['PracticalMarksObtained'];
-                    $vivaMaxMarksTotal += $report['VivaMaxMarks'];
-                    $vivaObtMarksTotal += $report['VivaMarksObtained'];
+                    $subjectsJSON = json_decode($report['SubjectsJSON'], true);
+                
+                    foreach ($subjectsJSON as $subjectData) 
+                    {
+                        // Ensure the necessary keys are present in $subjectData
+                        if (
+                            isset($subjectData['TheoryMaxMarks'], $subjectData['TheoryMarksObtained'],
+                            $subjectData['PracticalMaxMarks'], $subjectData['PracticalMarksObtained'],
+                            $subjectData['VivaMaxMarks'], $subjectData['VivaMarksObtained'])
+                        ) 
+                        {
+                            // Adding individual subject marks
+                            $theoryMaxMarksTotal += $subjectData['TheoryMaxMarks'];
+                            $theoryObtMarksTotal += $subjectData['TheoryMarksObtained'];
+                            $pracMaxMarksTotal += $subjectData['PracticalMaxMarks'];
+                            $pracObtMarksTotal += $subjectData['PracticalMarksObtained'];
+                            $vivaMaxMarksTotal += $subjectData['VivaMaxMarks'];
+                            $vivaObtMarksTotal += $subjectData['VivaMarksObtained'];
+                        } 
+                        else 
+                        {
+                            echo "<script>console.error('Invalid format for subject data in JSON:', " . json_encode($subjectData) . ");</script>";
+                        }
+                    }
                 }
-
-                // Calculate grand total and total max marks
-                // $grandTotal = $theoryObtMarksTotal + $pracObtMarksTotal + $vivaObtMarksTotal;
-                // $totalMaxMarks = $theoryMaxMarksTotal + $pracMaxMarksTotal + $vivaMaxMarksTotal;
-
-                // Calculate percentage
-                // $percentage = ($grandTotal / $totalMaxMarks) * 100;
-
-
+                
                 if (!$reports) 
                 {
                     echo "<script>alert('No data found for the selected student, class, and exam.'); window.location.href='view-students-list.php';</script>";
@@ -107,11 +114,6 @@ else
                 // error_log($e->getMessage()); //-->This is only for debugging purposes
             }
 
-            // Fetch subjects
-            $sqlSubjects = "SELECT * FROM tblsubjects WHERE IsDeleted = 0";
-            $querySubjects = $dbh->prepare($sqlSubjects);
-            $querySubjects->execute();
-            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
             $employeeID = $_SESSION['sturecmsEMPid'];
             
             // Fetch only the assigned subjects from tblsubjects
@@ -120,7 +122,14 @@ else
             $querySubjects->execute();
             $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
 
-            if (isset($subjects) && isset($reports)) 
+            $assignedSubjectIDs = explode(",", $assignedSubjects['AssignedSubjects']);
+
+            // Filter subjects to only include assigned subjects
+            $assignedSubjects = array_filter($subjects, function ($subject) use ($assignedSubjectIDs) {
+                return in_array($subject['ID'], $assignedSubjectIDs);
+            });
+
+            if (isset($assignedSubjects) && isset($reports)) 
             {
             ?>
                 <!DOCTYPE html>
@@ -185,7 +194,7 @@ else
                                                     </h4>
 
                                                     <?php
-                                                    if (isset($subjects) && isset($reports)) 
+                                                    if (isset($assignedSubjects) && isset($reports)) 
                                                     {
                                                     ?>
                                                         <div class="d-flex flex-column">
@@ -248,24 +257,50 @@ else
                                                                     <?php
                                                                     foreach ($reports as $report) 
                                                                     {
-                                                                        $subjectID = $report['Subjects'];
-                                                                        $sqlSubjectsName = "SELECT * FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
-                                                                        $querySubjectsName = $dbh->prepare($sqlSubjectsName);
-                                                                        $querySubjectsName->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
-                                                                        $querySubjectsName->execute();
-                                                                        $subjectName = $querySubjectsName->fetch(PDO::FETCH_ASSOC);
-                                                                        
-                                                                        ?>
-                                                                        <tr>
-                                                                            <td><?php echo htmlentities($subjectName['SubjectName']); ?></td>
-                                                                            <td><?php echo htmlentities($report['TheoryMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['TheoryMarksObtained']); ?></td>
-                                                                            <td><?php echo htmlentities($report['PracticalMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['PracticalMarksObtained']); ?></td>
-                                                                            <td><?php echo htmlentities($report['VivaMaxMarks']); ?></td>
-                                                                            <td><?php echo htmlentities($report['VivaMarksObtained']); ?></td>
-                                                                        </tr>
-                                                                        <?php
+                                                                        $subjectsJSON = json_decode($report['SubjectsJSON'], true);
+
+                                                                        // if SubjectsJSON is a valid JSON string
+                                                                        if (json_last_error() === JSON_ERROR_NONE) 
+                                                                        {
+                                                                            foreach ($subjectsJSON as $subjectData) 
+                                                                            {
+                                                                                $subjectID = $subjectData['SubjectID'];
+
+                                                                                if (in_array($subjectID, $assignedSubjectIDs)) 
+                                                                                {
+                                                                                    // Fetch subjects Name
+                                                                                    $sqlSubjects = "SELECT SubjectName FROM tblsubjects WHERE ID = :subjectID AND IsDeleted = 0";
+                                                                                    $querySubjects = $dbh->prepare($sqlSubjects);
+                                                                                    $querySubjects->bindParam(':subjectID', $subjectData['SubjectID'], PDO::PARAM_INT);
+                                                                                    $querySubjects->execute();
+                                                                                    $subject = $querySubjects->fetch(PDO::FETCH_ASSOC);
+
+                                                                                    $subjectName = htmlentities($subject['SubjectName']);
+                                                                                    $theoryMaxMarks = htmlentities($subjectData['TheoryMaxMarks']);
+                                                                                    $theoryMarksObtained = htmlentities($subjectData['TheoryMarksObtained']);
+                                                                                    $practicalMaxMarks = htmlentities($subjectData['PracticalMaxMarks']);
+                                                                                    $practicalMarksObtained = htmlentities($subjectData['PracticalMarksObtained']);
+                                                                                    $vivaMaxMarks = htmlentities($subjectData['VivaMaxMarks']);
+                                                                                    $vivaMarksObtained = htmlentities($subjectData['VivaMarksObtained']);
+                                                                                    
+                                                                                    echo "
+                                                                                        <tr>
+                                                                                            <td>{$subjectName}</td>
+                                                                                            <td>{$theoryMaxMarks}</td>
+                                                                                            <td>{$theoryMarksObtained}</td>
+                                                                                            <td>{$practicalMaxMarks}</td>
+                                                                                            <td>{$practicalMarksObtained}</td>
+                                                                                            <td>{$vivaMaxMarks}</td>
+                                                                                            <td>{$vivaMarksObtained}</td>
+                                                                                        </tr>
+                                                                                    ";
+                                                                                }
+                                                                                else 
+                                                                                {
+                                                                                    echo "<script>console.error('Subject with ID " . $subjectID . " is not assigned to the employee.');</script>";                                                                                
+                                                                                } 
+                                                                            }
+                                                                        } 
                                                                     }
                                                                     ?>
                                                                     <tr class=" table-secondary">

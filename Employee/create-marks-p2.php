@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
@@ -118,37 +118,45 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type) 
+                function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
-                    
-                    $sql = "SELECT * FROM tblreports 
+
+                    $sql = "SELECT SubjectsJSON FROM tblreports 
                             WHERE ClassName = :classID 
                             AND ExamSession = :sessionID 
                             AND ExamName = :examID 
-                            AND Subjects = :subjectID
                             AND IsDeleted = 0";
-                    
+
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
                     $query->bindParam(':examID', $examID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                    $query->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
-                    
+
                     $query->execute();
-                    $result = $query->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($result && $result[$type . 'MaxMarks'] > 0) 
+                    $result = $query->fetchAll(PDO::FETCH_ASSOC);
+
+                    if ($result) 
                     {
-                        return $result[$type . 'MaxMarks'];
+                        foreach ($result as $row) 
+                        {
+                            $subjectsJSON = json_decode($row['SubjectsJSON'], true);
+
+                            // Check if the subject is present in the JSON data
+                            foreach ($subjectsJSON as $subject) 
+                            {
+                                if ($subject['SubjectID'] == $subjectID && isset($subject[$type . 'MaxMarks']) && $subject[$type . 'MaxMarks'] > 0) 
+                                {
+                                    return $subject[$type . 'MaxMarks'];
+                                }
+                            }
+                        }
                     }
-                    
                     return null;
                 }
             } 
             else 
             {
-                // echo '<script>alert("No subjects assigned to the teacher.")</script>';
                 echo '<h2>No Subjects assigned to the teacher!</h2>';
             }
             if (isset($_POST['submit'])) 
@@ -162,6 +170,8 @@ else
                     foreach ($students as $student) 
                     {
                         $totalPass = true;
+                        // studentSubjectsData array
+                        $studentSubjectsData = array();
                         
                         foreach ($subjects as $subject) 
                         {
@@ -175,20 +185,35 @@ else
                             $vivaMaxMarks = isset($_POST['vivaMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['vivaMaxMarks'][$student['ID']][$subject['ID']] : 0;
                             $vivaMarksObtained = isset($_POST['vivaMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['vivaMarksObtained'][$student['ID']][$subject['ID']] : 0;
 
+                            
+                            // An array for subject data
+                            $subjectData = array(
+                                'SubjectID' => $subject['ID'],
+                                'TheoryMaxMarks' => $theoryMaxMarks,
+                                'TheoryMarksObtained' => $theoryMarksObtained,
+                                'PracticalMaxMarks' => $practicalMaxMarks,
+                                'PracticalMarksObtained' => $practicalMarksObtained,
+                                'VivaMaxMarks' => $vivaMaxMarks,
+                                'VivaMarksObtained' => $vivaMarksObtained,
+                            );
+                            $studentSubjectsData[] = $subjectData;
+
+                            $subjectsJSON = json_encode($studentSubjectsData);
+                            
                             // Check for existing entry in tblreports
                             $checkExistingSql = "SELECT ExamSession, ClassName, ExamName, StudentName, Subjects FROM tblreports 
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
                                                     AND ExamName = :examID 
                                                     AND StudentName = :studentID 
-                                                    AND Subjects = :subjectID
+                                                    AND SubjectsJSON = :subjectData
                                                     AND IsDeleted = 0";
                             $checkExistingQuery = $dbh->prepare($checkExistingSql);
                             $checkExistingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                            $checkExistingQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                            $checkExistingQuery->bindParam(':subjectData', $subjectsJSON, PDO::PARAM_INT);
                             $checkExistingQuery->execute();
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
@@ -206,8 +231,6 @@ else
                             $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
                             $checkExistingMaxQuery->execute();
                             $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
-
-
 
                             // Fetching the pass percentage
                             $passPercentID = 1;
@@ -240,10 +263,9 @@ else
                                 $totalPass = false;
                             }
 
-
-                            // Insert Max Marks in tblmaxmarks
-                            if(!$existingMaxReportDetails)
-                            {
+                        // Insert Max Marks in tblmaxmarks
+                        if(!$existingMaxReportDetails)
+                        {
                                 $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, ExamID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage)
                                             VALUES (:sessionID, :classID, :examID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks, :passingPercentage)";
             
@@ -257,10 +279,10 @@ else
                                 $insertAdminMaxQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);            
                                 $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
                                 $insertAdminMaxQuery->execute();
-                            }
-                            // Update Max Marks in tblmaxmarks
-                            else
-                            {
+                        }
+                        // Update Max Marks in tblmaxmarks
+                        else
+                        {
                                  // If an existing entry is found in tblmaxmarks, update the data
                                 $updateAdminSql = "UPDATE tblmaxmarks SET 
                                                 TheoryMaxMarks = :theoryMaxMarks, 
@@ -281,81 +303,62 @@ else
                                 $updateAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
                                 $updateAdminMaxQuery->execute();
-                            }
-            
-                            // If the student is not in tblreports, insert the student
-                            if (!$existingReportDetails) 
-                            {
-                                $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, StudentName, Subjects, TheoryMaxMarks, TheoryMarksObtained, PracticalMaxMarks, PracticalMarksObtained, VivaMaxMarks, VivaMarksObtained, IsPassed)
-                                            VALUES (:sessionID, :classID, :examID, :studentID, :subjectID, :theoryMaxMarks, :theoryMarksObtained, :practicalMaxMarks, :practicalMarksObtained, :vivaMaxMarks, :vivaMarksObtained, :isPassed)";
-            
-                                $insertQuery = $dbh->prepare($insertSql);
-                                $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                $insertQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                                $insertQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                $insertQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':theoryMarksObtained', $theoryMarksObtained, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':practicalMarksObtained', $practicalMarksObtained, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':vivaMarksObtained', $vivaMarksObtained, PDO::PARAM_INT);
-                                $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
-            
-                                $insertQuery->execute();
-                            } 
-                            else 
-                            {
-                                // If an existing entry is found, update the data
-                                $updateSql = "UPDATE tblreports SET 
-                                    TheoryMaxMarks = :theoryMaxMarks, 
-                                    TheoryMarksObtained = :theoryMarksObtained, 
-                                    PracticalMaxMarks = :practicalMaxMarks, 
-                                    PracticalMarksObtained = :practicalMarksObtained, 
-                                    VivaMaxMarks = :vivaMaxMarks, 
-                                    VivaMarksObtained = :vivaMarksObtained,
-                                    IsPassed = :isPassed
-                                    WHERE ExamSession = :sessionID 
-                                    AND ClassName = :classID 
-                                    AND ExamName = :examID 
-                                    AND StudentName = :studentID 
-                                    AND Subjects = :subjectID 
-                                    AND IsDeleted = 0";
+                        }
+                    }
+                        // If the student is not in tblreports, insert the student
+                        if (!$existingReportDetails) 
+                        {
+                            $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, StudentName, SubjectsJSON, IsPassed)
+                                            VALUES (:sessionID, :classID, :examID, :studentID, :subjectsJSON, :isPassed)";
+                            $insertQuery = $dbh->prepare($insertSql);
                             
-                                $updateQuery = $dbh->prepare($updateSql);
-                                $updateQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':theoryMarksObtained', $theoryMarksObtained, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':practicalMarksObtained', $practicalMarksObtained, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':vivaMarksObtained', $vivaMarksObtained, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                $updateQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
-                                $updateQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                                $updateQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                $updateQuery->execute();
+                            
+                            $subjectsJSON = json_encode($studentSubjectsData);
+                            
+                            $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            $insertQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            $insertQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                            $insertQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                            $insertQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
+                            $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
 
-                                
-                            }
+                            $insertQuery->execute();
+                        } 
+                        else 
+                        {
+                            $subjectsJSON = json_encode($studentSubjectsData);
+
+                            // If an existing entry is found, update the data
+                            $updateReportSql = "UPDATE tblreports SET 
+                                                SubjectsJSON = :subjectsJSON, 
+                                                IsPassed = :isPassed
+                                                WHERE ExamSession = :sessionID 
+                                                AND ClassName = :classID 
+                                                AND ExamName = :examID 
+                                                AND StudentName = :studentID 
+                                                AND IsDeleted = 0";
+                        
+                            $updateReportQuery = $dbh->prepare($updateReportSql);
+                            $updateReportQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
+                            $updateReportQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                            $updateReportQuery->execute();
                         }
                     }
                     $dbh->commit();
-                    // echo '<script>alert("Marks assigned successfully.")</script>';
                     $msg = "Marks assigned successfully.";
                     $successAlert = true;
                 } 
                 catch (PDOException $e) 
                 {
                     $dbh->rollBack();
-                    // echo '<script>alert("Ops! An error occurred.'.$e->getMessage().'")</script>';
                     $msg = "Ops! An error occurred.";
                     $dangerAlert = true;
                 }
             }
-            
         } 
         else 
         {
@@ -487,30 +490,39 @@ else
                                             { ?>
                                                 <tr>
                                                     <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
-                                                    <?php foreach ($subjects as $subject) 
+                                                    <?php 
+                                                    foreach ($subjects as $subject) 
                                                     { 
+
+                                                        $subjectID = $subject['ID'];
                                                             // Check if marks exist in tblreports for the student, exam, and subject type
                                                             $checkMarksSql = "SELECT * FROM tblreports 
                                                                                 WHERE ExamSession = :sessionID 
                                                                                 AND ClassName = :classID 
                                                                                 AND ExamName = :examID 
                                                                                 AND StudentName = :studentID 
-                                                                                AND Subjects = :subjectID
                                                                                 AND IsDeleted = 0";
                                                             $checkMarksQuery = $dbh->prepare($checkMarksSql);
                                                             $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                             $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                                                             $checkMarksQuery->bindParam(':examID', $_SESSION['examName'], PDO::PARAM_INT);
                                                             $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                                                            $checkMarksQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
                                                             $checkMarksQuery->execute();
                                                             $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
-
+                                                            
                                                             // Display marks obtained if they exist; otherwise, display an empty field
-                                                            $theoryMarksObtained = ($marksData && isset($marksData['TheoryMarksObtained'])) ? $marksData['TheoryMarksObtained'] : '';
-                                                            $practicalMarksObtained = ($marksData && isset($marksData['PracticalMarksObtained'])) ? $marksData['PracticalMarksObtained'] : '';
-                                                            $vivaMarksObtained = ($marksData && isset($marksData['VivaMarksObtained'])) ? $marksData['VivaMarksObtained'] : '';
+                                                            $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
 
+                                                            // Find the subject in the SubjectsJSON array and extract the marks
+                                                            foreach ($subjectsJSON as $subjectData) {
+                                                                if ($subjectData['SubjectID'] == $subjectID) {
+                                                                    $theoryMarksObtained = $subjectData['TheoryMarksObtained'] ?? '';
+                                                                    $practicalMarksObtained = $subjectData['PracticalMarksObtained'] ?? '';
+                                                                    $vivaMarksObtained = $subjectData['VivaMarksObtained'] ?? '';
+                                                                    break;
+                                                                }
+                                                            }
+                                                            
                                                             // Storing max marks that admin gives, in variables.
                                                             $adminTheoryMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Theory');
                                                             $adminPracticalMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Practical');
@@ -528,6 +540,7 @@ else
                                                         ?>
                                                             <?php if ($theoryMaxMarksToShow !== null || $practicalMaxMarksToShow !== null || $vivaMaxMarksToShow !== null) 
                                                             { 
+                                                                
                                                         ?>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
@@ -566,6 +579,7 @@ else
                                                             } 
                                                             else
                                                             {
+                                                                
                                                             ?>
                                                                 <td>
                                                                     <input type='number' class='border border-secondary' name="theoryMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
