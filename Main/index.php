@@ -23,6 +23,9 @@ include('../includes/dbconnection.php');
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css" />
+
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- Site CSS -->
@@ -156,7 +159,7 @@ include('../includes/dbconnection.php');
 	
     <!-- About us -->
     <div id="overviews" class="section wb">
-        <div class="container wow flipInX" data-wow-offset="300">
+        <div class="container wow slideInLeft" data-wow-offset="300">
             <!-- start about -->
             <div class="section-title row text-center">
                 <div class="col-md-8 offset-md-2">
@@ -183,9 +186,86 @@ include('../includes/dbconnection.php');
         </div><!-- end container -->
     </div><!-- end section -->
 
+<!-- Distinctions and Positions -->
+<div id="distinctions" class="parallax section db parallax-off" style="background-color: maroon; color: white; padding: 60px 0;">
+    <div class="container">
+        <!-- start distinctions and positions -->
+        <div class="section-title text-center mb-5">
+            <h2 class="text-uppercase font-weight-bold">Total Distinctions and Positions</h2>
+
+            <div class="row mt-5">
+                <!-- Animated Total Distinctions -->
+                <div class="col-md-6">
+                    <div class="animated-number text-white" id="totalDistinctions" data-from="0" data-to="100" data-speed="1000" data-refresh-interval="50" style="font-size: 48px; font-weight: bold;"></div>
+                    <p class="font-weight-bold">Distinctions</p>
+                </div>
+
+                <!-- Animated Total Positions -->
+                <div class="col-md-6">
+                    <div class="animated-number text-white" id="totalPositions" data-from="0" data-to="50" data-speed="1000" data-refresh-interval="50" style="font-size: 48px; font-weight: bold;"></div>
+                    <p class="font-weight-bold">Positions</p>
+                </div>
+            </div>
+        </div><!-- end distinctions and positions -->
+    </div><!-- end container -->
+</div><!-- end section -->
+
+
+<!-- Toppers Section -->
+<div id="toppers" class="section wb">
+    <div class="container wow slideInRight" data-wow-offset="300">
+        <div class="section-title text-center">
+            <h3>Topper's Gallery</h3>
+        </div><!-- end title -->
+
+        <!-- Toppers Carousel -->
+        <div id="toppersCarousel" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner">
+                <!-- Toppers Content Goes Here -->
+                <!-- Repeat the following structure for each topper -->
+                <div class="carousel-item active">
+                    <div class="topper-card" style="background-color: maroon;">
+                        <img src="https://source.unsplash.com/800x600/?student" class="d-block mx-auto" alt="Topper 1">
+                        <div class="topper-details text-white">
+                            <h5>Topper Name 1</h5>
+                            <p>Class: 10th</p>
+                            <p>Marks: 95%</p>
+                            <p>Rank: 1st</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="topper-card" style="background-color: maroon;">
+                        <img src="https://source.unsplash.com/800x600/?student" class="d-block mx-auto" alt="Topper 1">
+                        <div class="topper-details text-white">
+                            <h5>Topper Name 1</h5>
+                            <p>Class: 10th</p>
+                            <p>Marks: 95%</p>
+                            <p>Rank: 1st</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- End of Topper Card -->
+            </div>
+
+            <!-- Left Control -->
+            <a class="carousel-control-prev" href="#toppersCarousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <!-- Right Control -->
+            <a class="carousel-control-next" href="#toppersCarousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div><!-- End Toppers Carousel -->
+    </div><!-- end container -->
+</div><!-- end section -->
+
+
     <!-- Public Notice -->
     <div id="testimonials" class="parallax section db parallax-off" style="background-image:url('images/parallax_04.jpg');">
-        <div class="container wow fadeInUp" data-wow-offset="300">
+        <div class="container wow slideInRight" data-wow-offset="300">
             <div class="section-title text-center">
                 <h3>Public Notice</h3>
             </div><!-- end title -->
@@ -229,70 +309,7 @@ include('../includes/dbconnection.php');
         </div><!-- end container -->
     </div><!-- end section -->
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-
-                <!-- Links -->
-				<div class="col-lg-4 col-md-4 col-xs-12">
-                    <div class="widget clearfix">
-                        <div class="widget-title">
-                            <h3>Information Link</h3>
-                        </div>
-                        <ul class="footer-links">
-                            <li><a href="index.php">Home</a></li>
-                            <li><a href="about.php">About</a></li>
-                            <li><a href="contact.php">Contact</a></li>
-                            <li><a href="../admin/login.php">Admin</a></li>
-                            <li><a href="../user/login.php">Student</a></li>
-                        </ul><!-- end links -->
-                    </div><!-- end clearfix -->
-                </div><!-- end col -->
-				
-                <!-- Address -->
-                <div class="col-lg-4 col-md-4 col-xs-12">
-                    <div class="widget clearfix">
-                        <div class="widget-title">
-                            <h3>Address</h3>
-                        </div>
-
-                        <?php
-                        $sql="SELECT * from tblpage where PageType='contactus'";
-                        $query = $dbh -> prepare($sql);
-                        $query->execute();
-                        $results=$query->fetchAll(PDO::FETCH_OBJ);
-
-                        $cnt=1;
-                        if($query->rowCount() > 0)
-                        {
-                        foreach($results as $row)
-                        {               ?>
-                                <div class="address">
-                                <p><?php  echo htmlentities($row->PageDescription);?>
-                                </p>
-                                </div>
-                                <div class="phone">
-                                <p><?php  echo htmlentities($row->MobileNumber);?></p>
-                                </div>
-                            <?php $cnt=$cnt+1;}} ?>
-                    </div><!-- end clearfix -->
-                </div><!-- end col -->
-				
-            </div><!-- end row -->
-        </div><!-- end container -->
-    </footer><!-- end footer -->
-
-    <!-- Copyright -->
-    <div class="copyrights">
-        <div class="container">
-            <div class="footer-distributed">
-                <div class="footer-center">                   
-                    <p class="footer-company-name">All Rights Reserved. &copy; <?php echo date('Y');?> <a href="index.php">SMS</a>. Designed and Maintained By : <a href="https://cogveel.com/">Cogveel Technologies</a></p>
-                </div>
-            </div>
-        </div><!-- end container -->
-    </div><!-- end copyrights -->
+    <?php include_once('../includes/footer.php');?>
 
     <a href="#" id="scroll-to-top" class="dmtop global-radius"><i class="fa fa-angle-up"></i></a>
 
@@ -301,6 +318,11 @@ include('../includes/dbconnection.php');
     <!-- ALL PLUGINS -->
     <script src="js/custom.js"></script>
 	<script src="js/timeline.min.js"></script>
+    <!-- odometer.js library -->
+    <script src="js/odometer.min.js"></script>
+
+
+    
 	<script>
 		timeline(document.querySelectorAll('.timeline'), {
 			forceVerticalMode: 700,
@@ -308,6 +330,36 @@ include('../includes/dbconnection.php');
 			verticalStartPosition: 'left',
 			visibleItems: 4
 		});
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // if Odometer is defined
+            if (typeof Odometer !== 'undefined') 
+            {
+                // Initialize Odometer for Total Distinctions
+                var totalDistinctions = new Odometer({
+                    el: document.querySelector('#totalDistinctions'),
+                    value: 0,
+                    format: '(,ddd)', // You can customize the format as needed
+                    theme: 'default'
+                });
+                // Animate the odometer
+                totalDistinctions.update(80);
+
+                // Initialize Odometer for Total Positions
+                var totalPositions = new Odometer({
+                    el: document.querySelector('#totalPositions'),
+                    value: 0,
+                    format: '(,ddd)',
+                    theme: 'default'
+                });
+                totalPositions.update(50);
+            } 
+            else 
+            {
+                console.error('Odometer is not defined. Check if the library is loaded correctly.');
+            }
+        });
 	</script>
 </body>
 </html>

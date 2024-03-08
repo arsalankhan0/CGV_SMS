@@ -14,7 +14,7 @@ include('../includes/dbconnection.php');
     <meta name="viewport" content="width=device-width, initial-scale=1">
  
      <!-- Site Metas -->
-    <title>Student Management System || About</title>  
+    <title>Student Management System || Notice</title>  
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -66,7 +66,7 @@ include('../includes/dbconnection.php');
 				<div class="collapse navbar-collapse" id="navbars-host">
                     <ul class="navbar-nav ml-auto">
 						<li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-						<li class="nav-item active"><a class="nav-link" href="about.php">About</a></li>
+						<li class="nav-item"><a class="nav-link" href="about.php">About</a></li>
 						<li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
 						<li class="nav-item"><a class="nav-link" href="../admin/login.php">Admin</a></li>
 						<li class="nav-item"><a class="nav-link" href="../user/login.php">Student</a></li>
@@ -79,32 +79,47 @@ include('../includes/dbconnection.php');
 	
 	<div class="all-title-box">
 		<div class="container text-center">
-			<h1>About</h1>
+			<h1>Notice</h1>
 		</div>
 	</div>
 	
-    <!-- About -->
+    <!-- Notice -->
     <div id="overviews" class="section lb">
-        <div class="container wow fadeInLeft" data-wow-offset="300">
+        <div class="container wow zoomIn" data-wow-offset="300">
             <div class="section-title row text-center">
                 <div class="col-md-8 offset-md-2">
-                    <p class="lead">
-                    <?php
-                        $sql="SELECT * from tblpage where PageType='aboutus'";
+                    <table border="1" class="table table-bordered mg-b-0">
+                        <?php
+                        $vid=$_GET['viewid'];
+                        $sql="SELECT * from tblpublicnotice where ID=:vid";
                         $query = $dbh -> prepare($sql);
+                        $query->bindParam(':vid',$vid,PDO::PARAM_STR);
                         $query->execute();
                         $results=$query->fetchAll(PDO::FETCH_OBJ);
-
                         $cnt=1;
                         if($query->rowCount() > 0)
                         {
                             foreach($results as $row)
                             {               ?>
-                                            
-                                            <p><?php  echo ($row->PageDescription);?></p><?php $cnt=$cnt+1;
+                                <tr class="table-danger">
+                                    <th>Notice Announced Date</th>
+                                    <td><?php  echo $row->CreationDate;?></td>
+                                </tr>
+                                    <tr class="table-danger">
+                                    <th>Noitice Title</th>
+                                    <td><?php  echo $row->NoticeTitle;?></td>
+                                </tr>
+                                <tr class="table-danger">
+                                    <th>Message</th>
+                                    <td><?php  echo $row->NoticeMessage;?></td>
+                                    
+                                </tr>
+                        <?php 
+                                $cnt=$cnt+1;
                             }
-                        } ?>
-                    </p>
+                        } 
+                        ?>
+                    </table>
                 </div>
             </div><!-- end title -->
 
@@ -119,6 +134,5 @@ include('../includes/dbconnection.php');
     <script src="js/all.js"></script>
     <!-- ALL PLUGINS -->
     <script src="js/custom.js"></script>
-
 </body>
 </html>
