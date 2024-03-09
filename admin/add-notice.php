@@ -50,7 +50,7 @@ else
 <html lang="en">
   <head>
    
-    <title>Student  Management System|| Add Notice</title>
+    <title>Student  Management System || Add Notice</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -129,7 +129,7 @@ else
                         <select  name="classid" class="form-control" required='true'>
                           <option value="">Select Class</option>
                          <?php 
-                          $sql2 = "SELECT * from    tblclass ";
+                          $sql2 = "SELECT * from tblclass ";
                           $query2 = $dbh -> prepare($sql2);
                           $query2->execute();
                           $result2=$query2->fetchAll(PDO::FETCH_OBJ);
@@ -145,9 +145,7 @@ else
                         <label for="exampleInputName1">Notice Message</label>
                         <textarea name="notmsg" value="" class="form-control" required='true'></textarea>
                       </div>
-                   
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
-                     
                     </form>
                   </div>
                 </div>

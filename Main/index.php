@@ -37,8 +37,12 @@ include('../includes/dbconnection.php');
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/custom.css">
 
+    <!-- For gallery -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+
     <!-- Modernizer for Portfolio -->
     <script src="js/modernizer.js"></script>
+    
 
 </head>
 <body class="host_version"> 
@@ -81,7 +85,7 @@ include('../includes/dbconnection.php');
 	<!-- End header -->
 	
     <!-- Main Heading images -->
-	<div id="carouselExampleControls" class="carousel slide bs-slider box-slider" data-ride="carousel" data-pause="hover" data-interval="false" >
+	<div id="carouselExampleControls" class="carousel slide bs-slider box-slider" data-ride="carousel" data-interval="5000" data-pause="hover">
 		<!-- Indicators -->
 		<ol class="carousel-indicators">
 			<li data-target="#carouselExampleControls" data-slide-to="0" class="active"></li>
@@ -158,7 +162,7 @@ include('../includes/dbconnection.php');
 	</div>
 	
     <!-- About us -->
-    <div id="overviews" class="section wb">
+    <div id="overviews" class="section wb pb-2">
         <div class="container wow slideInLeft" data-wow-offset="300">
             <!-- start about -->
             <div class="section-title row text-center">
@@ -186,126 +190,101 @@ include('../includes/dbconnection.php');
         </div><!-- end container -->
     </div><!-- end section -->
 
-<!-- Distinctions and Positions -->
-<div id="distinctions" class="parallax section db parallax-off" style="background-color: maroon; color: white; padding: 60px 0;">
-    <div class="container">
-        <!-- start distinctions and positions -->
-        <div class="section-title text-center mb-5">
-            <h2 class="text-uppercase font-weight-bold">Total Distinctions and Positions</h2>
-
-            <div class="row mt-5">
-                <!-- Animated Total Distinctions -->
-                <div class="col-md-6">
-                    <div class="animated-number text-white" id="totalDistinctions" data-from="0" data-to="100" data-speed="1000" data-refresh-interval="50" style="font-size: 48px; font-weight: bold;"></div>
-                    <p class="font-weight-bold">Distinctions</p>
-                </div>
-
-                <!-- Animated Total Positions -->
-                <div class="col-md-6">
-                    <div class="animated-number text-white" id="totalPositions" data-from="0" data-to="50" data-speed="1000" data-refresh-interval="50" style="font-size: 48px; font-weight: bold;"></div>
-                    <p class="font-weight-bold">Positions</p>
+    <!-- Gallery Section -->
+    <div id="gallery" class="section wb wow fadeInUp pt-1" data-wow-duration="1s" data-wow-delay="0.2s">
+        <div class="container">
+            <div class="section-title row text-center">
+                <div class="col-md-8 offset-md-2">
+                    <h3>Gallery</h3>
+                    <p class="lead">Explore our gallery</p>
                 </div>
             </div>
-        </div><!-- end distinctions and positions -->
-    </div><!-- end container -->
-</div><!-- end section -->
 
-
-<!-- Toppers Section -->
-<div id="toppers" class="section wb">
-    <div class="container wow slideInRight" data-wow-offset="300">
-        <div class="section-title text-center">
-            <h3>Topper's Gallery</h3>
-        </div><!-- end title -->
-
-        <!-- Toppers Carousel -->
-        <div id="toppersCarousel" class="carousel slide" data-ride="carousel">
-            <div class="carousel-inner">
-                <!-- Toppers Content Goes Here -->
-                <!-- Repeat the following structure for each topper -->
-                <div class="carousel-item active">
-                    <div class="topper-card" style="background-color: maroon;">
-                        <img src="https://source.unsplash.com/800x600/?student" class="d-block mx-auto" alt="Topper 1">
-                        <div class="topper-details text-white">
-                            <h5>Topper Name 1</h5>
-                            <p>Class: 10th</p>
-                            <p>Marks: 95%</p>
-                            <p>Rank: 1st</p>
-                        </div>
-                    </div>
+            <!-- Image Grid -->
+            <div class="gallery-grid">
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.4s">
+                    <a data-fancybox="gallery" href="./images/blog_1.jpg">
+                        <img src="./images/blog_1.jpg" alt="Image 1" class="img-fluid">
+                    </a>
                 </div>
-                <div class="carousel-item">
-                    <div class="topper-card" style="background-color: maroon;">
-                        <img src="https://source.unsplash.com/800x600/?student" class="d-block mx-auto" alt="Topper 1">
-                        <div class="topper-details text-white">
-                            <h5>Topper Name 1</h5>
-                            <p>Class: 10th</p>
-                            <p>Marks: 95%</p>
-                            <p>Rank: 1st</p>
-                        </div>
-                    </div>
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.6s">
+                    <a data-fancybox="gallery" href="./images/blog_2.jpg">
+                        <img src="./images/blog_2.jpg" alt="Image 2" class="img-fluid">
+                    </a>
                 </div>
-                <!-- End of Topper Card -->
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.8s">
+                    <a data-fancybox="gallery" href="./images/blog_5.jpg">
+                        <img src="./images/blog_5.jpg" alt="Image 3" class="img-fluid">
+                    </a>
+                </div>
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.8s">
+                    <a data-fancybox="gallery" href="./images/blog_3.jpg">
+                        <img src="./images/blog_3.jpg" alt="Image 3" class="img-fluid">
+                    </a>
+                </div>
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.8s">
+                    <a data-fancybox="gallery" href="./images/blog_4.jpg">
+                        <img src="./images/blog_4.jpg" alt="Image 3" class="img-fluid">
+                    </a>
+                </div>
+                <div class="img-container wow fadeIn" data-wow-duration="1s" data-wow-delay="0.8s">
+                    <a data-fancybox="gallery" href="./images/blog_6.jpg">
+                        <img src="./images/blog_6.jpg" alt="Image 3" class="img-fluid">
+                    </a>
+                </div>
             </div>
 
-            <!-- Left Control -->
-            <a class="carousel-control-prev" href="#toppersCarousel" role="button" data-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-            </a>
-            <!-- Right Control -->
-            <a class="carousel-control-next" href="#toppersCarousel" role="button" data-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-            </a>
-        </div><!-- End Toppers Carousel -->
-    </div><!-- end container -->
-</div><!-- end section -->
-
+            <!-- View All Button -->
+            <div class="row text-center mt-4">
+                <div class="col-md-12">
+                    <a href="view-all-gallery.php" class="btn btn-maroon wow fadeInUp" data-wow-duration="1s" data-wow-delay="1s">View All</a>
+                </div>
+            </div>
+        </div>
+    </div><!-- end section -->
 
     <!-- Public Notice -->
     <div id="testimonials" class="parallax section db parallax-off" style="background-image:url('images/parallax_04.jpg');">
-        <div class="container wow slideInRight" data-wow-offset="300">
+        <div class="container wow fadeIn" data-wow-offset="300">
             <div class="section-title text-center">
                 <h3>Public Notice</h3>
             </div><!-- end title -->
 
-            <div class="row">
-                <div class="col-md-12 col-sm-12">
-                    <div class="testimonial-nfo">
-                        <marquee style="height:350px; overflow:hidden;" direction="up" onmouseover="this.stop();" onmouseout="this.start();">
-                            <?php
-                            $currentDate = date("Y-m-d");
-                            $sql="SELECT * from tblpublicnotice WHERE IsDeleted = 0 ORDER BY CreationDate DESC";
-                            $query = $dbh -> prepare($sql);
-                            $query->execute();
-                            $results=$query->fetchAll(PDO::FETCH_OBJ);
+            <div class="public-notice-container">
+                <?php
+                $currentDate = date("Y-m-d");
+                $sql = "SELECT * FROM tblpublicnotice WHERE IsDeleted = 0 ORDER BY CreationDate DESC";
+                $query = $dbh->prepare($sql);
+                $query->execute();
+                $results = $query->fetchAll(PDO::FETCH_OBJ);
 
-                            $cnt=1;
-                            if($query->rowCount() > 0)
-                            {
-                                foreach($results as $row)
-                                {
-                                    $noticeDate = date("Y-m-d", strtotime($row->CreationDate));
-                                    $isNew = ($currentDate == $noticeDate);
-                                    ?>
-                                    <div class="public-notice-item border-bottom mb-3">
-                                        <a href="view-public-notice.php?viewid=<?php echo htmlentities ($row->ID);?>" target="_blank" class="text-white" style="text-decoration:none; font-size: 1.6rem;">
-                                            <?php  echo htmlentities($row->NoticeTitle);?>
-                                            <span class="badge badge-danger"><?php echo date("j M, Y", strtotime($row->CreationDate)); ?></span>
-                                            <?php if ($isNew): ?>
-                                                <span class="badge animated fadeIn" style="background: red;">New</span>
-                                            <?php endif; ?>
-                                        </a>
-                                    </div>
-                                    <?php $cnt=$cnt+1;
-                                }
-                            } 
+                if ($query->rowCount() > 0) {
+                    ?>
+                    <marquee style="height: 350px; overflow: hidden;" id="public-notice" direction="up" onmouseover="this.stop();" onmouseout="this.start();">
+                        <?php
+                        foreach ($results as $row) {
+                            $noticeDate = date("Y-m-d", strtotime($row->CreationDate));
+                            $isNew = ($currentDate == $noticeDate);
                             ?>
-                        </marquee>
-                    </div>
-                </div><!-- end col -->
-            </div><!-- end row -->
+                            <div class="public-notice-item border-bottom mb-3">
+                                <a href="view-public-notice.php?viewid=<?php echo htmlentities($row->ID);?>" target="_blank">
+                                    <?php echo htmlentities($row->NoticeTitle);?>
+                                    <span class="badge badge-primary"><?php echo date("j M, Y", strtotime($row->CreationDate)); ?></span>
+                                    <?php if ($isNew): ?>
+                                        <span class="badge badge-animated badge-maroon">New</span>
+                                    <?php endif; ?>
+                                </a>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </marquee>
+                <?php
+                } else {
+                    echo '<p class="text-center">No public notices available.</p>';
+                }
+                ?>
+            </div>
         </div><!-- end container -->
     </div><!-- end section -->
 
@@ -318,48 +297,20 @@ include('../includes/dbconnection.php');
     <!-- ALL PLUGINS -->
     <script src="js/custom.js"></script>
 	<script src="js/timeline.min.js"></script>
-    <!-- odometer.js library -->
-    <script src="js/odometer.min.js"></script>
 
+    <script>
+        new WOW().init();
 
-    
-	<script>
 		timeline(document.querySelectorAll('.timeline'), {
 			forceVerticalMode: 700,
 			mode: 'horizontal',
 			verticalStartPosition: 'left',
 			visibleItems: 4
 		});
+    </script>
 
+<!-- For gallery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // if Odometer is defined
-            if (typeof Odometer !== 'undefined') 
-            {
-                // Initialize Odometer for Total Distinctions
-                var totalDistinctions = new Odometer({
-                    el: document.querySelector('#totalDistinctions'),
-                    value: 0,
-                    format: '(,ddd)', // You can customize the format as needed
-                    theme: 'default'
-                });
-                // Animate the odometer
-                totalDistinctions.update(80);
-
-                // Initialize Odometer for Total Positions
-                var totalPositions = new Odometer({
-                    el: document.querySelector('#totalPositions'),
-                    value: 0,
-                    format: '(,ddd)',
-                    theme: 'default'
-                });
-                totalPositions.update(50);
-            } 
-            else 
-            {
-                console.error('Odometer is not defined. Check if the library is loaded correctly.');
-            }
-        });
-	</script>
 </body>
 </html>
