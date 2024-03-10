@@ -14,7 +14,7 @@ else
 <html lang="en">
   <head>
   
-    <title>Student  Management System|||Dashboard</title>
+    <title>Student  Management System || Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -55,7 +55,7 @@ else
                       </div>
                     </div>
                     <div class="row report-inner-cards-wrapper">
-                      <div class=" col-md -6 col-xl report-inner-card">
+                      <div class=" col-md-6 col-xl report-inner-card">
                         <div class="inner-card-text">
                           <?php 
                           $sql1 ="SELECT * from  tblclass";
@@ -66,7 +66,6 @@ else
                           ?>
                           <span class="report-title">Total Class</span>
                           <h4><?php echo htmlentities($totclass);?></h4>
-                          <a href="manage-class.php"><span class="report-count"> View Classes</span></a>
                         </div>
                         <div class="inner-card-icon bg-success">
                           <i class="icon-rocket"></i>
@@ -83,46 +82,12 @@ else
                           ?>
                           <span class="report-title">Total Students</span>
                           <h4><?php echo htmlentities($totstu);?></h4>
-                          <a href="manage-students.php"><span class="report-count"> View Students</span></a>
                         </div>
                         <div class="inner-card-icon bg-danger">
                           <i class="icon-user"></i>
                         </div>
                       </div>
-                      <div class="col-md-6 col-xl report-inner-card">
-                        <div class="inner-card-text">
-                          <?php 
-                          $sql3 ="SELECT * from  tblnotice";
-                          $query3 = $dbh -> prepare($sql3);
-                          $query3->execute();
-                          $results3=$query3->fetchAll(PDO::FETCH_OBJ);
-                          $totnotice=$query3->rowCount();
-                          ?>
-                          <span class="report-title">Total Class Notice</span>
-                          <h4><?php echo htmlentities($totnotice);?></h4>
-                          <a href="manage-notice.php"><span class="report-count"> View Notices</span></a>
-                        </div>
-                        <div class="inner-card-icon bg-warning">
-                          <i class="icon-doc"></i>
-                        </div>
-                      </div>
-                      <div class="col-md-6 col-xl report-inner-card">
-                        <div class="inner-card-text">
-                          <?php 
-                          $sql4 ="SELECT * from  tblpublicnotice";
-                          $query4 = $dbh -> prepare($sql4);
-                          $query4->execute();
-                          $results4=$query4->fetchAll(PDO::FETCH_OBJ);
-                          $totpublicnotice=$query4->rowCount();
-                          ?>
-                          <span class="report-title">Total Public Notice</span>
-                          <h4><?php echo htmlentities($totpublicnotice);?></h4>
-                          <a href="manage-public-notice.php"><span class="report-count"> View PublicNotices</span></a>
-                        </div>
-                        <div class="inner-card-icon bg-primary">
-                          <i class="icon-doc"></i>
-                        </div>
-                      </div>
+                      
                     </div>
                   </div>
                 </div>
