@@ -1,10 +1,14 @@
 <?php
 session_start();
+error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsstuid'] == 0)) {
+if (strlen($_SESSION['sturecmsstuid'] == 0)) 
+{
     header('location:logout.php');
-} else {
-    ?>
+} 
+else 
+{
+?>
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -49,47 +53,56 @@ if (strlen($_SESSION['sturecmsstuid'] == 0)) {
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
-                              <div class="card-body table table-responsive">
-                                  
+                                <div class="card-body table table-responsive">
                                     <?php
                                     $stuclass = $_SESSION['stuclass'];
-                                    $sql = "SELECT tblclass.ID,tblclass.ClassName,tblclass.Section,tblnotice.NoticeTitle,tblnotice.CreationDate,tblnotice.ClassId,tblnotice.NoticeMsg,tblnotice.ID as nid from tblnotice join tblclass on tblclass.ID=tblnotice.ClassId where tblnotice.ClassId=:stuclass AND tblnotice.IsDeleted = 0";
+                                    $stusection = $_SESSION['stusection'];
+                                    // $sql = "SELECT tblclass.ID,tblclass.ClassName,tblclass.Section,tblnotice.NoticeTitle,tblnotice.CreationDate,tblnotice.ClassId,tblnotice.NoticeMsg,tblnotice.ID as nid from tblnotice join tblclass on tblclass.ID=tblnotice.ClassId where tblnotice.ClassId=:stuclass AND tblnotice.IsDeleted = 0";
+                                    $sql = "SELECT tblclass.ID, tblclass.ClassName, tblclass.Section, tblnotice.NoticeTitle, tblnotice.CreationDate, tblnotice.ClassId, tblnotice.NoticeMsg, tblnotice.ID as nid 
+                                            FROM tblnotice 
+                                            JOIN tblclass ON tblclass.ID = tblnotice.ClassId 
+                                            WHERE tblnotice.ClassId = :stuclass 
+                                            AND tblnotice.IsDeleted = 0 
+                                            AND tblclass.IsDeleted = 0
+                                            AND FIND_IN_SET(:stusection, tblnotice.SectionID)
+                                            ORDER BY tblnotice.CreationDate DESC";
                                     $query = $dbh->prepare($sql);
                                     $query->bindParam(':stuclass', $stuclass, PDO::PARAM_STR);
+                                    $query->bindParam(':stusection', $stusection, PDO::PARAM_STR);
                                     $query->execute();
                                     $results = $query->fetchAll(PDO::FETCH_OBJ);
                                     $cnt = 1;
                                     if ($query->rowCount() > 0) {
                                         ?>
-                                        <table border="1" class="table table-bordered mg-b-0">
+                                        <table class="table-notice">
                                             <thead>
-                                              <tr>
-                                                <th colspan="4" class="text-center font-weight-bold table-warning">Notice</th>
-                                              </tr>
-                                                <tr align="center" class="table-warning">
+                                                <tr>
+                                                    <th colspan="4" class="text-center font-weight-bold bg-maroon">Notice</th>
+                                                </tr>
+                                                <tr class="bg-warning">
                                                     <th class="font-weight-bold">S.No</th>
                                                     <th class="font-weight-bold">Notice Announced Date</th>
-                                                    <th class="font-weight-bold">Noitice Title</th>
+                                                    <th class="font-weight-bold">Notice Title</th>
                                                     <th class="font-weight-bold">Message</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php foreach ($results as $row) { ?>
-                                                    <tr class="table-info">
+                                                    <tr>
                                                         <td><?php echo $cnt; ?></td>
-                                                        <td><?php echo $row->CreationDate; ?></td>
+                                                        <td><?php echo date('j-F-Y', strtotime($row->CreationDate)); ?></td>
                                                         <td><?php echo $row->NoticeTitle; ?></td>
                                                         <td><?php echo $row->NoticeMsg; ?></td>
                                                     </tr>
-                                                    <?php $cnt = $cnt + 1;
-                                                } ?>
+                                                    <?php $cnt = $cnt + 1; ?>
+                                                <?php } ?>
                                             </tbody>
                                         </table>
                                     <?php } else { ?>
                                         <table border="1" class="table table-bordered mg-b-0">
                                             <thead>
                                                 <tr>
-                                                    <th colspan="4" style="color:red;">No Notice Found</th>
+                                                    <th colspan="4" class="text-danger font-weight-bold text-center">No Notice Found</th>
                                                 </tr>
                                             </thead>
                                         </table>

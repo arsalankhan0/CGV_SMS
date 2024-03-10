@@ -280,8 +280,8 @@ else
                     <script src="js/misc.js"></script>
                     <script src="js/typeahead.js"></script>
                     <script src="js/select2.js"></script>
-                    <script src="./js/resultGeneration.js"></script>
-                    <script src="./js/printReportCard.js"></script>
+                    <!-- <script src="./js/resultGeneration.js"></script>
+                    <script src="./js/printReportCard.js"></script> -->
                 </body>
                 </html>
 <?php

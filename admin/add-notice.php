@@ -14,30 +14,46 @@ else
 
   try
   {
-    if(isset($_POST['submit']))
-    {
-        $nottitle=$_POST['nottitle'];
-        $classid=$_POST['classid'];
-        $notmsg=$_POST['notmsg'];
-        $sql="insert into tblnotice(NoticeTitle,ClassId,NoticeMsg)values(:nottitle,:classid,:notmsg)";
-        $query=$dbh->prepare($sql);
-        $query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
-        $query->bindParam(':classid',$classid,PDO::PARAM_STR);
-        $query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
-        $query->execute();
-        $LastInsertId=$dbh->lastInsertId();
+      if(isset($_POST['submit']))
+      {
+        $nottitle = filter_input(INPUT_POST, 'nottitle', FILTER_SANITIZE_STRING);
+        $classid = filter_input(INPUT_POST, 'classid', FILTER_VALIDATE_INT);
+        $notmsg = filter_input(INPUT_POST, 'notmsg', FILTER_SANITIZE_STRING);
+
+        $selectedSections = isset($_POST['sections']) ? implode(',', $_POST['sections']) : '';
+
+        if ($classid === false || $classid === null) 
+        {
+            $dangerAlert = true;
+            $msg = "Invalid class! Please select a valid class from the dropdown.";
+        }
+
+        $sql = "INSERT INTO tblnotice (NoticeTitle, ClassId, SectionID, NoticeMsg) VALUES (:nottitle, :classid, :sectionid, :notmsg)";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':nottitle', $nottitle, PDO::PARAM_STR);
+        $query->bindParam(':classid', $classid, PDO::PARAM_INT);
         
-        if ($LastInsertId>0) 
+        // Split the selected sections into an array and then implode it into a comma-separated string
+        $selectedSectionsArray = explode(',', $selectedSections);
+        $selectedSectionsImploded = implode(',', $selectedSectionsArray);
+
+        $query->bindParam(':sectionid', $selectedSectionsImploded, PDO::PARAM_STR);
+        $query->bindParam(':notmsg', $notmsg, PDO::PARAM_STR);
+        $query->execute();
+
+        $LastInsertId = $dbh->lastInsertId();
+
+        if ($LastInsertId > 0) 
         {
-          $successAlert = true;
-          $msg = "Notice has been added successfully.";
-        }
-        else
+            $successAlert = true;
+            $msg = "Notice has been added successfully.";
+        } 
+        else 
         {
-          $dangerAlert = true;
-          $msg = "Something went wrong! Please try again later.";
+            $dangerAlert = true;
+            $msg = "Something went wrong! Please try again later.";
         }
-    }
+      }
   }
   catch(PDOException $e)
   {
@@ -123,23 +139,27 @@ else
                         <label for="exampleInputName1">Notice Title</label>
                         <input type="text" name="nottitle" value="" class="form-control" required='true'>
                       </div>
-                     
                       <div class="form-group">
-                        <label for="exampleInputEmail3">Notice For</label>
-                        <select  name="classid" class="form-control" required='true'>
-                          <option value="">Select Class</option>
-                         <?php 
-                          $sql2 = "SELECT * from tblclass ";
-                          $query2 = $dbh -> prepare($sql2);
-                          $query2->execute();
-                          $result2=$query2->fetchAll(PDO::FETCH_OBJ);
+                          <label for="exampleInputEmail3">Notice For</label>
+                          <select name="classid" id="classid" class="form-control" required='true' onchange="loadSections()">
+                              <option value="">Select Class</option>
+                              <?php
+                              $sql2 = "SELECT * from tblclass ";
+                              $query2 = $dbh->prepare($sql2);
+                              $query2->execute();
+                              $result2 = $query2->fetchAll(PDO::FETCH_OBJ);
 
-                          foreach($result2 as $row1)
-                          {          
-                              ?>  
-                          <option value="<?php echo htmlentities($row1->ID);?>"><?php echo htmlentities($row1->ClassName);?> <?php echo htmlentities($row1->Section);?></option>
-                          <?php } ?> 
-                        </select>
+                              foreach ($result2 as $row1) {
+                                  ?>
+                                  <option value="<?php echo htmlentities($row1->ID); ?>"><?php echo htmlentities($row1->ClassName); ?></option>
+                              <?php } ?>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label for="exampleInputName1">Sections</label>
+                          <select name="sections[]" id="sections" class="js-example-basic-multiple w-100" multiple required='true'>
+                              <!-- Options will be dynamically loaded based on the selected class -->
+                          </select>
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Notice Message</label>
@@ -177,6 +197,39 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script>
+      function loadSections() 
+      {
+          let classid = document.getElementById('classid').value;
+          let sectionsDropdown = document.getElementById('sections');
+
+          // Clear existing options
+          sectionsDropdown.innerHTML = '';
+
+          // Make an AJAX request with GET method
+          let xhr = new XMLHttpRequest();
+          xhr.open('GET', 'get_sections.php?classId=' + classid, true);
+          xhr.onreadystatechange = function() {
+              if (xhr.readyState == 4 && xhr.status == 200) 
+              {
+                  let response = JSON.parse(xhr.responseText);
+
+                  for (let i = 0; i < response.length; i++) 
+                  {
+                      let option = document.createElement('option');
+                      
+                      option.value = response[i].ID;
+                      option.text = response[i].SectionName;
+
+                      sectionsDropdown.appendChild(option);
+                  }
+              }
+          };
+          xhr.send();
+      }
+
+    </script>
+
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) 
 {
@@ -32,6 +32,7 @@ else
   {
     $dangerAlert = true;
     $msg = "Ops! Something went wrong while deleting notice.";
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
   }
 ?>
 <!DOCTYPE html>
@@ -137,7 +138,29 @@ else
                           $results1=$query1->fetchAll(PDO::FETCH_OBJ);
                           $total_rows=$query1->rowCount();
                           $total_pages = ceil($total_rows / $no_of_records_per_page);
-                          $sql="SELECT tblclass.ID,tblclass.ClassName, tblnotice.ID ,tblclass.Section,tblnotice.NoticeTitle,tblnotice.CreationDate,tblnotice.ClassId,tblnotice.ID as nid from tblnotice join tblclass on tblclass.ID=tblnotice.ClassId WHERE tblnotice.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                          // $sql="SELECT tblclass.ID,tblclass.ClassName, tblnotice.ID ,tblsections.SectionName as Section, tblnotice.NoticeTitle,tblnotice.CreationDate,tblnotice.ClassId,tblnotice.ID as nid from tblnotice join tblclass on tblclass.ID=tblnotice.ClassId join tblsections on tblsections.ID=tblnotice.SectionID WHERE tblnotice.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                          $sql = "SELECT
+                                      tblclass.ID,
+                                      tblclass.ClassName,
+                                      tblclass.Section,
+                                      tblnotice.ID as noticeID,
+                                      tblnotice.NoticeTitle,
+                                      tblnotice.CreationDate,
+                                      GROUP_CONCAT(tblsections.SectionName) as Sections,
+                                      tblnotice.ClassId,
+                                      tblnotice.SectionID,
+                                      tblnotice.IsDeleted
+                                  FROM
+                                      tblnotice
+                                      JOIN tblclass ON tblclass.ID = tblnotice.ClassId
+                                      LEFT JOIN tblsections ON FIND_IN_SET(tblsections.ID, tblnotice.SectionID) > 0
+                                  WHERE
+                                      tblnotice.IsDeleted = 0
+                                      AND tblclass.IsDeleted = 0
+                                  GROUP BY
+                                      tblnotice.ID
+                                  LIMIT
+                                      $offset, $no_of_records_per_page";
                           $query = $dbh -> prepare($sql);
                           $query->execute();
                           $results=$query->fetchAll(PDO::FETCH_OBJ);
@@ -153,11 +176,11 @@ else
                                 <td><?php echo htmlentities($cnt);?></td>
                                 <td><?php  echo htmlentities($row->NoticeTitle);?></td>
                                 <td><?php  echo htmlentities($row->ClassName);?></td>
-                                <td><?php  echo htmlentities($row->Section);?></td>
+                                <td><?php  echo htmlentities($row->Sections);?></td>
                                 <td><?php  echo htmlentities($row->CreationDate);?></td>
                                 <td>
-                                  <div><a href="edit-notice-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-eye"></i></a>
-                                                    || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                  <div><a href="edit-notice-detail.php?editid=<?php echo htmlentities ($row->noticeID);?>"><i class="icon-pencil"></i></a>
+                                                    || <a href="" onclick="setDeleteId(<?php echo ($row->noticeID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                                           <i class="icon-trash"></i>
                                                         </a>
                                   </div>

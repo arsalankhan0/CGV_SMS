@@ -12,7 +12,7 @@ try
   {
       $stuid=$_POST['stuid'];
       $password=md5($_POST['password']);
-      $sql ="SELECT StuID,ID,StudentClass FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
+      $sql ="SELECT StuID,ID,StudentClass, StudentSection FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
       $query=$dbh->prepare($sql);
       $query-> bindParam(':stuid', $stuid, PDO::PARAM_STR);
       $query-> bindParam(':password', $password, PDO::PARAM_STR);
@@ -25,6 +25,7 @@ try
           $_SESSION['sturecmsstuid']=$result->StuID;
           $_SESSION['sturecmsuid']=$result->ID;
           $_SESSION['stuclass']=$result->StudentClass;
+          $_SESSION['stusection'] = $result->StudentSection;
         }
 
         if(!empty($_POST["remember"])) 
