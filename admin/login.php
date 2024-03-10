@@ -14,51 +14,41 @@ if(isset($_POST['login']))
     $role = $_POST['role'];
     if($role === "admin")
     {
-        $username=$_POST['username'];
-        $password=md5($_POST['password']);
-        $sql ="SELECT ID FROM tbladmin WHERE UserName=:username AND Password=:password";
-        $query=$dbh->prepare($sql);
-        $query-> bindParam(':username', $username, PDO::PARAM_STR);
-        $query-> bindParam(':password', $password, PDO::PARAM_STR);
-        $query-> execute();
-        $results=$query->fetchAll(PDO::FETCH_OBJ);
-        if($query->rowCount() > 0)
-        {
-            foreach ($results as $result) 
-            {
-              $_SESSION['sturecmsaid']=$result->ID;
-            }
+      $username = $_POST['username'];
+      $password = $_POST['password'];
 
-            if(!empty($_POST["remember"])) 
-            {
-              //COOKIES for username
-              setcookie ("user_login",$_POST["username"],time()+ (10 * 365 * 24 * 60 * 60));
-              //COOKIES for password
-              setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
-              //COOKIES for role
-              setcookie ("role",$role,time()+(10 * 365 * 24 * 60 * 60));
-            } 
-            else 
-            {
-              if(isset($_COOKIE["user_login"])) 
-              {
-                setcookie ("user_login","");
-                setcookie ("role", "");
-                if(isset($_COOKIE["userpassword"])) 
-                {
-                  setcookie ("userpassword","");
-                }
-              }
-            }
-            $_SESSION['login']=$_POST['username'];
-            echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
-        } 
-        else
-        {
-            $msg = "Invalid Credentials!";
-            $dangerAlert = true;
-            
-        }
+      $sql = "SELECT ID, Password FROM tbladmin WHERE UserName=:username";
+      $query = $dbh->prepare($sql);
+      $query->bindParam(':username', $username, PDO::PARAM_STR);
+      $query->execute();
+      $result = $query->fetch(PDO::FETCH_ASSOC);
+
+      if ($result && password_verify($password, $result['Password'])) 
+      {
+          $_SESSION['sturecmsaid'] = $result['ID'];
+
+          if (!empty($_POST["remember"])) 
+          {
+              setcookie("user_login", $username, time() + (10 * 365 * 24 * 60 * 60));
+              setcookie("userpassword", $password, time() + (10 * 365 * 24 * 60 * 60));
+              setcookie("role", $role, time() + (10 * 365 * 24 * 60 * 60));
+          } 
+          else 
+          {
+              setcookie("user_login", "");
+              setcookie("userpassword", "");
+              setcookie("role", "");
+          }
+
+          $_SESSION['login'] = $username;
+          echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+          exit;
+      } 
+      else 
+      {
+          $msg = "Invalid Credentials!";
+          $dangerAlert = true;
+      }
     }
     else
     {
@@ -104,6 +94,7 @@ if(isset($_POST['login']))
   {
     $msg = "Ops! An Error occurred.";
     $dangerAlert = true;
+    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
   }
 }
 

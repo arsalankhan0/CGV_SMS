@@ -32,6 +32,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred while deleting the record.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 ?>
 

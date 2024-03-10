@@ -88,6 +88,7 @@ else
   {
     $msg = "Ops! An error occurred.";
     $dangerAlert = true;
+    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
   }
 
 

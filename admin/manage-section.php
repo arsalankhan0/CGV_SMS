@@ -44,6 +44,7 @@ else
     {
         $msg = "Ops! An error occurred while deleting section.";
         $dangerAlert = true;
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 
 ?>

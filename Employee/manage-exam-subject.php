@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid']) == 0) 
@@ -129,6 +129,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 ?>
 

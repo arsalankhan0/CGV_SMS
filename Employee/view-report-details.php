@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -111,7 +111,7 @@ else
             catch (PDOException $e) 
             {
                 echo '<script>alert("Ops! An Error occurred.")</script>';
-                // error_log($e->getMessage()); //-->This is only for debugging purposes
+                echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
             }
 
             $employeeID = $_SESSION['sturecmsEMPid'];

@@ -80,7 +80,6 @@ $requiredPermissions = array(
             $allowed_extensions = array(".jpg","jpeg",".png",".gif");
             if(!in_array($extension,$allowed_extensions))
             {
-              // echo "<script>alert('Logo has Invalid format. Only jpg / jpeg/ png /gif format allowed');</script>";
               $dangerAlert = true;
               $msg = "Invalid file format. Only jpg / jpeg/ png /gif format allowed!";
             }
@@ -111,14 +110,11 @@ $requiredPermissions = array(
               $LastInsertId=$dbh->lastInsertId();
               if ($LastInsertId>0) 
               {
-                // echo '<script>alert("Student has been added.")</script>';
-                // echo "<script>window.location.href ='add-students.php'</script>";
                 $successAlert = true;
                 $msg = "Student has been added successfully.";
               }
               else
               {
-                // echo '<script>alert("Something Went Wrong. Please try again")</script>';
                 $dangerAlert = true;
                 $msg = "Something went wrong! Please try again.";
               }
@@ -126,7 +122,6 @@ $requiredPermissions = array(
           }
           else
           {
-            // echo "<script>alert('Username or Student Id  already exist. Please try again');</script>";
             $dangerAlert = true;
             $msg = "Username or Student ID already exists! Please try again with different Username or Student ID.";
           }
@@ -134,9 +129,9 @@ $requiredPermissions = array(
     }
     catch(PDOException $e)
     {
-      // echo "<script>alert('Ops! An error occurred');</script>";4
       $dangerAlert = true;
       $msg = "Ops! An error occurred.";
+      echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
   ?>
 <!DOCTYPE html>

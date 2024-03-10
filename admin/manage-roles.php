@@ -71,6 +71,7 @@ else
     {
         $msg = "Ops! An error occurred while deleting the role.";
         $dangerAlert = true;
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 
 ?>

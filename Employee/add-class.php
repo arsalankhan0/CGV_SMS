@@ -8,8 +8,6 @@ $requiredPermissions = array(
   'add-class' => 'Class',
 );
 
-
-
 if (strlen($_SESSION['sturecmsEMPid']==0)) 
 {
   header('location:logout.php');
@@ -83,7 +81,7 @@ else
     {
       $dangerAlert = true;
       $msg = "Ops! An error occurred.";
-      // error_log($e->getMessage()); //-->This is only for debugging purpose  
+      echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>"; 
     }
 
 

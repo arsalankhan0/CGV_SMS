@@ -101,6 +101,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred while deleting the exam.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 
     try
@@ -140,6 +141,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred while publishing the exam.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 
     try

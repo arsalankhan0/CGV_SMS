@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -21,7 +21,6 @@ else
 
 try 
 {
-        
     // Promote selected students
     if (isset($_POST['promote'])) 
     {
@@ -120,6 +119,7 @@ catch (PDOException $e)
 {
     $dangerAlert = true;
     $msg = "Ops! An error occurred while promoting the students.";
+    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
 }
 
 
@@ -254,8 +254,12 @@ catch (PDOException $e)
                                         $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
                                                                 FROM tblreports r
                                                                 JOIN tblstudent s ON r.StudentName = s.ID
-                                                                WHERE r.ClassName = :class AND r.ExamSession = :sessionID AND s.StudentSection = :section
-                                                                AND r.IsDeleted = 0 AND s.IsDeleted = 0";
+                                                                WHERE r.ClassName = :class 
+                                                                AND r.ExamSession = :sessionID 
+                                                                AND s.StudentSection = :section
+                                                                AND s.SessionID = :sessionID
+                                                                AND r.IsDeleted = 0 
+                                                                AND s.IsDeleted = 0";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':sessionID', $activeSession, PDO::PARAM_STR);
@@ -280,7 +284,8 @@ catch (PDOException $e)
                                         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
                                         
                                         // Check if all results are published
-                                        // $checkResultPublishedSql = "SELECT COUNT(*) as rowCount FROM tblexamination WHERE IsResultPublished = 1
+                                        // $checkResultPublishedSql = "SELECT COUNT(*) as rowCount FROM tblexamination
+                                        //                             WHERE IsResultPublished = 1
                                         //                             AND session_id = :session_id
                                         //                             AND IsDeleted = 0";
                                         // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
@@ -297,6 +302,7 @@ catch (PDOException $e)
                                         $sectionQuery->execute();
                                         $selectedSec = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                                         
+                                        // if (!empty($filteredReports) && $rowCountResult['rowCount'] > 0) 
                                         if (!empty($filteredReports) && $publishedResult) 
                                         {
                                             echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
@@ -333,7 +339,8 @@ catch (PDOException $e)
                                             $queryAllClasses = $dbh->prepare($sqlAllClasses);
                                             $queryAllClasses->execute();
                                             $allClasses = $queryAllClasses->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($allClasses as $class) {
+                                            foreach ($allClasses as $class) 
+                                            {
                                                 echo "<option value='" . $class['ID'] . "'>" . htmlspecialchars($class['ClassName']) . "</option>";
                                             }
                                             echo "</select>";
@@ -363,7 +370,8 @@ catch (PDOException $e)
                                             $queryAllSessions = $dbh->prepare($sqlAllSessions);
                                             $queryAllSessions->execute();
                                             $allSessions = $queryAllSessions->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($allSessions as $sessionOption) {
+                                            foreach ($allSessions as $sessionOption) 
+                                            {
                                                 echo "<option value='" . $sessionOption['session_id'] . "'>" . htmlspecialchars($sessionOption['session_name']) . "</option>";
                                             }
                                             echo "</select>";

@@ -32,7 +32,7 @@ else
     $queryPermissions->execute();
     $permissions = $queryPermissions->fetch(PDO::FETCH_ASSOC);
 
-    if (!$permissions || $permissions['UpdatePermission'] != 1) 
+    if (!$permissions || $permissions['ReadPermission'] != 1) 
     {
         echo "<h1>You have no permission to access this page!</h1>";
         exit;
@@ -149,6 +149,7 @@ catch (PDOException $e)
 {
     $dangerAlert = true;
     $msg = "Ops! An error occurred while promoting the students.";
+    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
 }
 
 
@@ -157,7 +158,7 @@ catch (PDOException $e)
 <html lang="en">
 <head>
 
-    <title>Student Management System|||Promote Students</title>
+    <title>Student Management System || Promote Students</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -283,8 +284,12 @@ catch (PDOException $e)
                                         $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
                                                                 FROM tblreports r
                                                                 JOIN tblstudent s ON r.StudentName = s.ID
-                                                                WHERE r.ClassName = :class AND r.ExamSession = :sessionID AND s.StudentSection = :section
-                                                                AND r.IsDeleted = 0 AND s.IsDeleted = 0";
+                                                                WHERE r.ClassName = :class 
+                                                                AND r.ExamSession = :sessionID 
+                                                                AND s.StudentSection = :section
+                                                                AND s.SessionID = :sessionID
+                                                                AND r.IsDeleted = 0 
+                                                                AND s.IsDeleted = 0";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':sessionID', $activeSession, PDO::PARAM_STR);
@@ -350,71 +355,79 @@ catch (PDOException $e)
                                                 </div>
                                             </div>
                                             <?php
-                                            echo "<h4 class='text-center'>Promote Selected Students To </h4>";
-                                            echo "<hr>";
-                                            echo "<div class='row mt-3'>";
-                                            // Dropdown for classes
-                                            echo "<div class='col-md-3 mb-3'>";
-                                            echo "<label for='classDropdown'>Select Class:</label>";
-                                            echo "<select id='classDropdown' name='promoteClass' class='form-control'>";
-                                            // Fetch all classes from tblclass
-                                            $sqlAllClasses = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
-                                            $queryAllClasses = $dbh->prepare($sqlAllClasses);
-                                            $queryAllClasses->execute();
-                                            $allClasses = $queryAllClasses->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($allClasses as $class) {
-                                                echo "<option value='" . $class['ID'] . "'>" . htmlspecialchars($class['ClassName']) . "</option>";
-                                            }
-                                            echo "</select>";
-                                            echo "</div>";
-
-                                            // Dropdown for sections 
-                                            echo "<div class='col-md-3 mb-3'>";
-                                            echo "<label for='sectionDropdown'>Select Section:</label>";
-                                            echo "<select id='sectionDropdown' name='promoteSection' class='form-control'>";
-                                            // Fetch sections from the database
-                                                $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
-                                                $sectionQuery = $dbh->prepare($sectionSql);
-                                                $sectionQuery->execute();
-
-                                                while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
-                                                {
-                                                    echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                                            // Check if the user has UpdatePermission
+                                            if ($employeePermissions['Promotion']['UpdatePermission'] == 1) 
+                                            {
+                                                echo "<h4 class='text-center'>Promote Selected Students To </h4>";
+                                                echo "<hr>";
+                                                echo "<div class='row mt-3'>";
+                                                // Dropdown for classes
+                                                echo "<div class='col-md-3 mb-3'>";
+                                                echo "<label for='classDropdown'>Select Class:</label>";
+                                                echo "<select id='classDropdown' name='promoteClass' class='form-control'>";
+                                                // Fetch all classes from tblclass
+                                                $sqlAllClasses = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                                $queryAllClasses = $dbh->prepare($sqlAllClasses);
+                                                $queryAllClasses->execute();
+                                                $allClasses = $queryAllClasses->fetchAll(PDO::FETCH_ASSOC);
+                                                foreach ($allClasses as $class) {
+                                                    echo "<option value='" . $class['ID'] . "'>" . htmlspecialchars($class['ClassName']) . "</option>";
                                                 }
-                                            echo "</select>";
-                                            echo "</div>";
+                                                echo "</select>";
+                                                echo "</div>";
 
-                                            // Dropdown for sessions
-                                            echo "<div class='col-md-3 mb-3'>";
-                                            echo "<label for='sessionDropdown'>Select Session:</label>";
-                                            echo "<select id='sessionDropdown' name='promoteSession' class='form-control'>";
-                                            $sqlAllSessions = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
-                                            $queryAllSessions = $dbh->prepare($sqlAllSessions);
-                                            $queryAllSessions->execute();
-                                            $allSessions = $queryAllSessions->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($allSessions as $sessionOption) {
-                                                echo "<option value='" . $sessionOption['session_id'] . "'>" . htmlspecialchars($sessionOption['session_name']) . "</option>";
+                                                // Dropdown for sections 
+                                                echo "<div class='col-md-3 mb-3'>";
+                                                echo "<label for='sectionDropdown'>Select Section:</label>";
+                                                echo "<select id='sectionDropdown' name='promoteSection' class='form-control'>";
+                                                // Fetch sections from the database
+                                                    $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                    $sectionQuery = $dbh->prepare($sectionSql);
+                                                    $sectionQuery->execute();
+
+                                                    while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
+                                                    {
+                                                        echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                                                    }
+                                                echo "</select>";
+                                                echo "</div>";
+
+                                                // Dropdown for sessions
+                                                echo "<div class='col-md-3 mb-3'>";
+                                                echo "<label for='sessionDropdown'>Select Session:</label>";
+                                                echo "<select id='sessionDropdown' name='promoteSession' class='form-control'>";
+                                                $sqlAllSessions = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
+                                                $queryAllSessions = $dbh->prepare($sqlAllSessions);
+                                                $queryAllSessions->execute();
+                                                $allSessions = $queryAllSessions->fetchAll(PDO::FETCH_ASSOC);
+                                                foreach ($allSessions as $sessionOption) {
+                                                    echo "<option value='" . $sessionOption['session_id'] . "'>" . htmlspecialchars($sessionOption['session_name']) . "</option>";
+                                                }
+                                                echo "</select>";
+                                                echo "</div>";
+
+                                                // Promote button
+                                                echo "<div class='col-md-3 mb-3 d-flex align-items-end'>";
+                                                echo "<button class='border-0 btn btn-primary' type='button'data-toggle='modal' data-target='#confirmationModal'>Promote</button>";
+                                                echo "</div>";
+                                                echo "</div>";
                                             }
-                                            echo "</select>";
-                                            echo "</div>";
-
-                                            // Promote button
-                                            echo "<div class='col-md-3 mb-3 d-flex align-items-end'>";
-                                            echo "<button class='border-0 btn btn-primary' type='button'data-toggle='modal' data-target='#confirmationModal'>Promote</button>";
-                                            echo "</div>";
-                                            echo "</div>";
 
                                             echo "<div class='table-responsive border rounded p-1'>";
                                             echo "<table class='table'>";
                                             echo "<thead>";
                                             echo "<tr>";
-                                            echo "<th class='font-weight-bold'>
-                                                    <div class='form-check m-0'>
-                                                    <label class='form-check-label' for='checkAll'>
-                                                        <input type='checkbox' id='checkAll'> 
-                                                    </label>
-                                                    </div>
-                                                </th>";
+                                            // Check if the user has UpdatePermission
+                                            if ($employeePermissions['Promotion']['UpdatePermission'] == 1) 
+                                            {
+                                                echo "<th class='font-weight-bold'>
+                                                        <div class='form-check m-0'>
+                                                        <label class='form-check-label' for='checkAll'>
+                                                            <input type='checkbox' id='checkAll'> 
+                                                        </label>
+                                                        </div>
+                                                    </th>";
+                                            }
                                             echo "<th class='font-weight-bold'>S.No</th>";
                                             echo "<th class='font-weight-bold'>Student Name</th>";
                                             echo "<th class='font-weight-bold'>Roll No</th>";
@@ -446,13 +459,17 @@ catch (PDOException $e)
                                                 $overallResult = (count(array_unique($results)) == 1 && end($results) == 1) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
                                     
                                                 echo "<tr>";
-                                                echo "<td>";
-                                                echo "<div class='form-check mt-0'>";
-                                                echo "<label class='form-check-label' for='checkbox'>";
-                                                echo "<input type='checkbox' class='student-checkbox' name='selectedStudents[]' id='checkbox' value='" . $report['StudentName'] . "'" . ($overallResult == '<span class="text-success font-weight-bold">PASS</span>' ? ' checked' : '') . ">";
-                                                echo "</label>";
-                                                echo "</div>";
-                                                echo "</td>";
+                                                // Check if the user has UpdatePermission
+                                                if ($employeePermissions['Promotion']['UpdatePermission'] == 1) 
+                                                {
+                                                    echo "<td>";
+                                                    echo "<div class='form-check mt-0'>";
+                                                    echo "<label class='form-check-label' for='checkbox'>";
+                                                    echo "<input type='checkbox' class='student-checkbox' name='selectedStudents[]' id='checkbox' value='" . $report['StudentName'] . "'" . ($overallResult == '<span class="text-success font-weight-bold">PASS</span>' ? ' checked' : '') . ">";
+                                                    echo "</label>";
+                                                    echo "</div>";
+                                                    echo "</td>";
+                                                }
                                                 echo "<td>" . htmlentities($cnt) . "</td>";
                                                 echo "<td>" . htmlentities($studentDetails['StudentName']) . "</td>";
                                                 echo "<td>" . htmlentities($studentDetails['RollNo']) . "</td>";

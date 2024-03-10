@@ -57,7 +57,6 @@ else
                                     <?php
                                     $stuclass = $_SESSION['stuclass'];
                                     $stusection = $_SESSION['stusection'];
-                                    // $sql = "SELECT tblclass.ID,tblclass.ClassName,tblclass.Section,tblnotice.NoticeTitle,tblnotice.CreationDate,tblnotice.ClassId,tblnotice.NoticeMsg,tblnotice.ID as nid from tblnotice join tblclass on tblclass.ID=tblnotice.ClassId where tblnotice.ClassId=:stuclass AND tblnotice.IsDeleted = 0";
                                     $sql = "SELECT tblclass.ID, tblclass.ClassName, tblclass.Section, tblnotice.NoticeTitle, tblnotice.CreationDate, tblnotice.ClassId, tblnotice.NoticeMsg, tblnotice.ID as nid 
                                             FROM tblnotice 
                                             JOIN tblclass ON tblclass.ID = tblnotice.ClassId 

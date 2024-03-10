@@ -6,63 +6,54 @@ include('includes/dbconnection.php');
 $dangerAlert = false;
 $msg = "";
 
-try
+try 
 {
-  if(isset($_POST['login'])) 
+  if (isset($_POST['login'])) 
   {
-      $stuid=$_POST['stuid'];
-      $password=md5($_POST['password']);
-      $sql ="SELECT StuID,ID,StudentClass, StudentSection FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND Password=:password AND IsDeleted = 0";
-      $query=$dbh->prepare($sql);
-      $query-> bindParam(':stuid', $stuid, PDO::PARAM_STR);
-      $query-> bindParam(':password', $password, PDO::PARAM_STR);
-      $query-> execute();
-      $results=$query->fetchAll(PDO::FETCH_OBJ);
-      if($query->rowCount() > 0)
-      {
-        foreach ($results as $result) 
-        {
-          $_SESSION['sturecmsstuid']=$result->StuID;
-          $_SESSION['sturecmsuid']=$result->ID;
-          $_SESSION['stuclass']=$result->StudentClass;
-          $_SESSION['stusection'] = $result->StudentSection;
-        }
+      $stuid = $_POST['stuid'];
+      $password = $_POST['password'];
 
-        if(!empty($_POST["remember"])) 
-        {
-          //COOKIES for username
-          setcookie ("user_login",$_POST["stuid"],time()+ (10 * 365 * 24 * 60 * 60));
-          //COOKIES for password
-          setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
-        } 
-        else 
-        {
-          if(isset($_COOKIE["user_login"])) 
-          {
-            setcookie ("user_login","");
-            if(isset($_COOKIE["userpassword"])) 
-            {
-              setcookie ("userpassword","");
-            }
-          }
-        }
-        $_SESSION['login']=$_POST['stuid'];
-        echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
-      }
-      else
+      $sql = "SELECT StuID, ID, StudentClass, StudentSection, Password FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND IsDeleted = 0";
+      $query = $dbh->prepare($sql);
+      $query->bindParam(':stuid', $stuid, PDO::PARAM_STR);
+      $query->execute();
+      $result = $query->fetch(PDO::FETCH_ASSOC);
+
+      if ($result && password_verify($password, $result['Password'])) 
       {
-        $msg = "Invalid Credentials!";
-        $dangerAlert = true;
+          $_SESSION['sturecmsstuid'] = $result['StuID'];
+          $_SESSION['sturecmsuid'] = $result['ID'];
+          $_SESSION['stuclass'] = $result['StudentClass'];
+          $_SESSION['stusection'] = $result['StudentSection'];
+
+          if (!empty($_POST["remember"])) 
+          {
+              // COOKIES for username
+              setcookie("user_login", $_POST["stuid"], time() + (10 * 365 * 24 * 60 * 60));
+          } 
+          else 
+          {
+              if (isset($_COOKIE["user_login"])) 
+              {
+                  setcookie("user_login", "");
+              }
+          }
+          $_SESSION['login'] = $_POST['stuid'];
+          echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+      } 
+      else 
+      {
+          $msg = "Invalid Credentials!";
+          $dangerAlert = true;
       }
   }
-}
-catch(PDOException $e)
+} 
+catch (PDOException $e) 
 {
   $msg = "Ops! An error occurred.";
   $dangerAlert = true;
-
+  echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

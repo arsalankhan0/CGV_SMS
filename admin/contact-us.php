@@ -36,6 +36,7 @@ else
   {
     $dangerAlert = true;
     $msg = "Ops! An error occurred while updating Contact Us.";
+    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
   }
 
   ?>

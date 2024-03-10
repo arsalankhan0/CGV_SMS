@@ -35,7 +35,7 @@ include('includes/dbconnection.php');
           $altconnum=$_POST['altconnum'];
           $address=$_POST['address'];
           $uname=$_POST['uname'];
-          $password=md5($_POST['password']);
+          $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
           $image=$_FILES["image"]["name"];
           $ret="select UserName from tblstudent where UserName=:uname || StuID=:stuid";
           $query= $dbh -> prepare($ret);

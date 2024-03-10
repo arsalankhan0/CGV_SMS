@@ -15,54 +15,60 @@ else
 
   try
   {
-    if(isset($_POST['submit']))
+    if (isset($_POST['submit'])) 
     {
-        $sid=$_SESSION['sturecmsstuid'];
-        $cpassword=md5($_POST['currentpassword']);
-        $newpassword=md5($_POST['newpassword']);
-        $confirmpassword=md5($_POST['confirmpassword']);
-        $sql ="SELECT StuID FROM tblstudent WHERE StuID=:sid and Password=:cpassword";
-        $query= $dbh -> prepare($sql);
-        $query-> bindParam(':sid', $sid, PDO::PARAM_STR);
-        $query-> bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
-        $query-> execute();
-        $results = $query -> fetchAll(PDO::FETCH_OBJ);
+        $sid = $_SESSION['sturecmsstuid'];
+        $cpassword = $_POST['currentpassword'];
+        $newpassword = $_POST['newpassword'];
+        $confirmpassword = $_POST['confirmpassword'];
 
-        if (strlen($_POST['newpassword']) < 8) 
+        $sql = "SELECT Password FROM tblstudent WHERE StuID=:stdid";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':stdid', $sid, PDO::PARAM_STR);
+        $query->execute();
+
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+
+        if (strlen($newpassword) < 8) 
         {
             $msg = "New password must be at least 8 characters long!";
             $dangerAlert = true;
         } 
-        else if(!preg_match('/[a-zA-Z]/', $_POST['newpassword']))
+        else if (!preg_match('/[a-zA-Z]/', $newpassword)) 
         {
             $msg = "New password must contain at least one alphabetic character!";
             $dangerAlert = true;
-        }
-        else if(!preg_match('/[0-9]/', $_POST['newpassword']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['newpassword']))
+        } 
+        else if (!preg_match('/[0-9]/', $newpassword) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $newpassword)) 
         {
             $msg = "New password must contain at least one number and one special character!";
             $dangerAlert = true;
-        }
-        else if ($newpassword != $confirmpassword) 
-        {
-            $msg = "New password and confirm password do not match!";
-            $dangerAlert = true;
         } 
-        else if($query -> rowCount() > 0)
+        else if ($result && password_verify($cpassword, $result['Password'])) 
         {
-          $con="update tblstudent set Password=:newpassword where StuID=:sid";
-          $chngpwd1 = $dbh->prepare($con);
-          $chngpwd1-> bindParam(':sid', $sid, PDO::PARAM_STR);
-          $chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
-          $chngpwd1->execute();
+          if ($newpassword == $confirmpassword) 
+          {
+              $hashedNewPassword = password_hash($newpassword, PASSWORD_DEFAULT);
 
-          $msg = "Your password changed successfully.";
-          $successAlert = true;
-        } 
+                $con = "UPDATE tblstudent SET Password=:newpassword WHERE StuID=:stdid";
+                $chngpwd1 = $dbh->prepare($con);
+                $chngpwd1->bindParam(':stdid', $sid, PDO::PARAM_STR);
+                $chngpwd1->bindParam(':newpassword', $hashedNewPassword, PDO::PARAM_STR);
+                $chngpwd1->execute();
+
+                $msg = "Your password changed successfully.";
+                $successAlert = true;
+          } 
+          else 
+          {
+              $msg = "New Password and confirm password do not match!";
+              $dangerAlert = true;
+          }
+        }
         else 
         {
-          $msg = "Your current password is wrong!";
-          $dangerAlert = true;
+            $msg = "Your current password is wrong!";
+            $dangerAlert = true;
         }
     }
   }
@@ -192,4 +198,5 @@ else
     <script src="../Employee/js/manageAlert.js"></script>
     <!-- End custom js for this page -->
   </body>
-</html><?php }  ?>
+</html>
+<?php }  ?>

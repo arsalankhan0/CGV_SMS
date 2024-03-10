@@ -77,6 +77,7 @@ else
         {
             $dangerAlert = true;
             $msg = "Ops! An error occurred while updating the details.";
+            echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
         }
     }
 ?>

@@ -47,6 +47,7 @@ else
         {
             $dangerAlert = true;
             $msg = "Ops! Something went wrong while deleting the student.";
+            echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
         }
 
     }

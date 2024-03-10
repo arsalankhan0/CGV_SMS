@@ -34,9 +34,9 @@ else
   } 
   catch (PDOException $e) 
   {
-      // error_log($e->getMessage()); //-->This is only for debugging purpose 
       $msg = "Ops! An error occurred.";
       $dangerAlert = true;
+      echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
   }
 
 

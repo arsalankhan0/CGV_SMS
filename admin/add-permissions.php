@@ -212,6 +212,7 @@ else
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
     <script>
+
  document.addEventListener('DOMContentLoaded', function () {
 
     // Fetch permissions on clicking the button
@@ -233,6 +234,9 @@ else
         .catch(error => console.error('Error fetching permissions:', error));
     });
 });
+
+
+
     </script>
     <!-- End custom js for this page -->
   </body>

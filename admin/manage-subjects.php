@@ -29,6 +29,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred while deleting the subject!";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
         
 ?>

@@ -2,6 +2,7 @@
 include('includes/dbconnection.php');
 // error_reporting(0);
 
+
 if (isset($_POST['roleID'])) 
 {
     $roleID = $_POST['roleID'];
@@ -54,12 +55,16 @@ if (isset($_POST['roleID']))
         $updateChecked = getPermissionValue($currentPermissions, $permission, 'UpdatePermission');
         $deleteChecked = getPermissionValue($currentPermissions, $permission, 'DeletePermission');
 
+        // Disable Create, Update, and Delete for Promotion by default
+        $createDisabled = ($permission === 'Promotion') ? 'disabled' : '';
+        $deleteDisabled = ($permission === 'Promotion') ? 'disabled' : '';
+
         echo '<tr>
                 <td>' . $permission . '</td>
                 <td><input type="checkbox" name="permissions[' . $permission . '][view]" class="select2-checkbox" ' . $viewChecked . '></td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][create]" class="select2-checkbox" ' . $createChecked . '></td>
+                <td><input type="checkbox" name="permissions[' . $permission . '][create]" class="select2-checkbox" ' . $createChecked . ' ' . $createDisabled . '></td>
                 <td><input type="checkbox" name="permissions[' . $permission . '][update]" class="select2-checkbox" ' . $updateChecked . '></td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][delete]" class="select2-checkbox" ' . $deleteChecked . '></td>
+                <td><input type="checkbox" name="permissions[' . $permission . '][delete]" class="select2-checkbox" ' . $deleteChecked . ' ' . $deleteDisabled . '></td>
             </tr>';
     }
 
@@ -105,4 +110,5 @@ function getPermissionValue($permissions, $permissionName, $columnName)
     }
     return '';
 }
+
 ?>

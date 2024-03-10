@@ -23,6 +23,8 @@ else
         exit;
     }
         
+    $dangerAlert = false;
+    $msg = "";
     try 
     {
         // Get the active session ID
@@ -38,7 +40,8 @@ else
 
             if (empty($examName) || empty($classID)) 
             {
-                echo '<script>alert("Please select at least one option in both fields!")</script>';
+                $msg = "Please select at least one option in both fields!";
+                $dangerAlert = true;
             } 
             else 
             {
@@ -52,7 +55,9 @@ else
     } 
     catch (PDOException $e) 
     {
-        echo '<script>alert("Ops! An Error occurred.")</script>';
+        $msg = "Ops! An error occurred.";
+        $dangerAlert = true;
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 ?>
 
@@ -102,6 +107,19 @@ else
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title" style="text-align: center;">Create Student Report</h4>
+                                <!-- Dismissible Alert message -->
+                                <?php 
+                                if($dangerAlert)
+                                { 
+                                ?>
+                                    <!-- Danger -->
+                                    <div id="danger-alert" class="alert alert-danger alert-dismissible" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <?php echo $msg; ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
                                 <form class="forms-sample" method="post">
 
                                     <div class="form-group">
@@ -167,14 +185,10 @@ else
                                             ?>
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Next</button>
-                                    <?php 
-                                    } 
-                                    else
-                                    {
-                                        // echo '<p></p>';
+                                    <?php
                                     }
                                     ?>
+                                    <button type="submit" class="btn btn-primary mr-2" name="submit">Next</button>
                                 </form>
                             </div>
                         </div>
@@ -205,6 +219,7 @@ else
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
+<script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>

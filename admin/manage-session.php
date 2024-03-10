@@ -10,33 +10,6 @@ if (strlen($_SESSION['sturecmsaid'] == 0))
 else 
 {
     
-    // if (isset($_GET['delid'])) 
-    // {
-    //     $session_id = $_GET['delid'];
-    
-    //     // Here we are checking if the session to be deleted is active
-    //     $checkActive = "SELECT is_active FROM tblsessions WHERE session_id = :session_id";
-    //     $queryCheckActive = $dbh->prepare($checkActive);
-    //     $queryCheckActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-    //     $queryCheckActive->execute();
-    //     $isActiveResult = $queryCheckActive->fetch(PDO::FETCH_ASSOC);
-    
-    //     // Here we are checking for active session
-    //     if ($isActiveResult['is_active'] == 1) 
-    //     {
-    //         echo "<script>alert('Cannot delete the active session. Set another session as active first.');</script>";
-    //     } 
-    //     else 
-    //     {
-    //         $deleteSession = "UPDATE tblsessions SET IsDeleted = 1 WHERE session_id = :session_id";
-    //         $queryDelete = $dbh->prepare($deleteSession);
-    //         $queryDelete->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-    //         $queryDelete->execute();
-    
-    //         echo "<script>alert('Session deleted successfully.');</script>";
-    //         echo "<script>window.location.href ='manage-session.php'</script>";
-    //     }
-    // }
 ?>
 <!DOCTYPE html>
 <html lang="en">

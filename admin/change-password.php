@@ -11,68 +11,69 @@ else
   $msg = "";
   $dangerAlert = false;
   $successAlert = false;
-  try
+  try 
   {
     if (isset($_POST['submit'])) 
     {
-      $adminid = $_SESSION['sturecmsaid'];
-      $cpassword = md5($_POST['currentpassword']);
-      $newpassword = md5($_POST['newpassword']);
-      $confirmpassword = md5($_POST['confirmpassword']);
-      
-      if (strlen($_POST['newpassword']) < 8) 
-      {
-          $msg = "New password must be at least 8 characters long!";
-          $dangerAlert = true;
-      } 
-      else if(!preg_match('/[a-zA-Z]/', $_POST['newpassword']))
-      {
-          $msg = "New password must contain at least one alphabetic character!";
-          $dangerAlert = true;
-      }
-      else if(!preg_match('/[0-9]/', $_POST['newpassword']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['newpassword']))
-      {
-          $msg = "New password must contain at least one number and one special character!";
-          $dangerAlert = true;
-      }
-      else if ($newpassword != $confirmpassword) 
-      {
-          $msg = "New password and confirm password do not match!";
-          $dangerAlert = true;
-      } 
-      else 
-      {
-          $sql = "SELECT ID FROM tbladmin WHERE ID=:adminid and Password=:cpassword";
-          $query = $dbh->prepare($sql);
-          $query->bindParam(':adminid', $adminid, PDO::PARAM_STR);
-          $query->bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
-          $query->execute();
-          $results = $query->fetchAll(PDO::FETCH_OBJ);
+        $adminid = $_SESSION['sturecmsaid'];
+        $cpassword = $_POST['currentpassword'];
+        $newpassword = $_POST['newpassword'];
+        $confirmpassword = $_POST['confirmpassword'];
 
-          if ($query->rowCount() > 0) 
-          {
-              $con = "update tbladmin set Password=:newpassword where ID=:adminid";
-              $chngpwd1 = $dbh->prepare($con);
-              $chngpwd1->bindParam(':adminid', $adminid, PDO::PARAM_STR);
-              $chngpwd1->bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
-              $chngpwd1->execute();
+        if (strlen($newpassword) < 8) 
+        {
+            $msg = "New password must be at least 8 characters long!";
+            $dangerAlert = true;
+        } 
+        elseif (!preg_match('/[a-zA-Z]/', $newpassword)) 
+        {
+            $msg = "New password must contain at least one alphabetic character!";
+            $dangerAlert = true;
+        } 
+        elseif (!preg_match('/[0-9]/', $newpassword) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $newpassword)) 
+        {
+            $msg = "New password must contain at least one number and one special character!";
+            $dangerAlert = true;
+        } 
+        elseif ($newpassword != $confirmpassword) 
+        {
+            $msg = "New password and confirm password do not match!";
+            $dangerAlert = true;
+        } 
+        else 
+        {
+            $sql = "SELECT ID, Password FROM tbladmin WHERE ID=:adminid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':adminid', $adminid, PDO::PARAM_STR);
+            $query->execute();
+            $result = $query->fetch(PDO::FETCH_ASSOC);
 
-              $msg = "Your password changed successfully.";
-              $successAlert = true;
-          } 
-          else 
-          {
-              $msg = "Your current password is wrong!";
-              $dangerAlert = true;
-          }
-      }
+            if ($result && password_verify($cpassword, $result['Password'])) 
+            {
+                $newpassword = password_hash($newpassword, PASSWORD_DEFAULT);
+
+                $con = "UPDATE tbladmin SET Password=:newpassword WHERE ID=:adminid";
+                $chngpwd1 = $dbh->prepare($con);
+                $chngpwd1->bindParam(':adminid', $adminid, PDO::PARAM_STR);
+                $chngpwd1->bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
+                $chngpwd1->execute();
+
+                $msg = "Your password changed successfully.";
+                $successAlert = true;
+            } 
+            else 
+            {
+                $msg = "Your current password is wrong!";
+                $dangerAlert = true;
+            }
+        }
     }
-  }
-  catch(PDOException $e)
+  } 
+  catch (PDOException $e) 
   {
-    $msg = "Ops! An error occurred.";
-    $dangerAlert = true;
-    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
+      $msg = "Ops! An error occurred.";
+      $dangerAlert = true;
+      echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
   }
 ?>
 <!DOCTYPE html>

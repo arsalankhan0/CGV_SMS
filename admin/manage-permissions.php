@@ -32,7 +32,7 @@ else
         {
             $dangerAlert = true;
             $msg = "Ops! An error occurred while deleting the permissions.";
-            // error_log($e->getMessage()); //-->This is only for debugging purpose  
+            echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
         }
 ?>
 <!DOCTYPE html>

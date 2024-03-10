@@ -57,7 +57,7 @@ else
             catch (PDOException $e) 
             {
                 echo '<script>alert("Ops! An Error occurred.")</script>';
-                // error_log($e->getMessage()); //-->This is only for debugging purposes
+                echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
             }
 
             $examSession = $_GET['examSession'];

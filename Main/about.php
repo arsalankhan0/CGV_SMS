@@ -119,6 +119,9 @@ include('../includes/dbconnection.php');
     <script src="js/all.js"></script>
     <!-- ALL PLUGINS -->
     <script src="js/custom.js"></script>
+    <script>
+        new WOW().init();
+    </script>
 
 </body>
 </html>

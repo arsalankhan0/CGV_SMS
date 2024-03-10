@@ -164,6 +164,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred while publishing the result.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 ?>
 <!DOCTYPE html>

@@ -135,6 +135,9 @@ include('../includes/dbconnection.php');
     <script src="js/all.js"></script>
     <!-- ALL PLUGINS -->
     <script src="js/custom.js"></script>
+    <script>
+        new WOW().init();
+    </script>
 
 <!-- For gallery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid']) == 0) 
@@ -15,7 +15,8 @@ else
 
     $eid = $_GET['editid'];
 
-    try {
+    try 
+    {
         if (isset($_POST['submit']) && isset($_GET['editid']) && !empty($_GET['editid'])) {
 
             $selectedClasses = isset($_POST['classes']) ? $_POST['classes'] : [];
@@ -44,6 +45,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! And error occurred.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
 ?>
 

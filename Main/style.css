@@ -2661,7 +2661,6 @@ select.mobile-device {
 }
 
 .dmtop {
-    /* background-color: #3C3D41; */
     background-color: #800000;
     z-index: 100;
     width: 40px;
@@ -2674,6 +2673,16 @@ select.mobile-device {
     text-align: center;
     font-size: 28px;
     color: #ffffff !important;
+    cursor: pointer;
+    -webkit-transition: all .7s ease-in-out;
+    -moz-transition: all .7s ease-in-out;
+    -o-transition: all .7s ease-in-out;
+    -ms-transition: all .7s ease-in-out;
+    transition: all .7s ease-in-out;
+}
+.dmtop:hover {
+    background-color: #ffffff !important;
+    color: #800000 !important;
     cursor: pointer;
     -webkit-transition: all .7s ease-in-out;
     -moz-transition: all .7s ease-in-out;
@@ -2711,7 +2720,7 @@ select.mobile-device {
     margin: 0;
     font-weight: 300;
     padding: 4px 0 0;
-    line-height: 1 !important:
+    line-height: 1 !important;
 }
 
 #preloader {
@@ -2721,7 +2730,6 @@ select.mobile-device {
     right: 0;
     bottom: 0;
     left: 0;
-    /* background: #eea412; */
     background: #800000;
     z-index: 11000;
     position: fixed;
