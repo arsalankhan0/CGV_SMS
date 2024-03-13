@@ -4182,3 +4182,7 @@ dl.toggle.time-line:before {
 .footer-bottom .footer-social a:hover {
   background-color: #800000;
 }
+.gallery-img
+{
+  max-height: 40vh !important;
+}

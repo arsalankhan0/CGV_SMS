@@ -76,7 +76,7 @@
 											<div class="single-imgs relative">
 												<div class="overlay overlay-bg"></div>
 												<div class="relative">
-													<img class="img-fluid" src="<?php echo '../admin/gallery/'.$imagePath; ?>" alt="img">
+													<img class="img-fluid gallery-img" src="<?php echo '../admin/gallery/'.$imagePath; ?>" alt="img">
 												</div>
 											</div>
 										</a>
