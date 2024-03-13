@@ -67,14 +67,12 @@
 .gallery-grid {
   display: flex;
   flex-wrap: wrap;
-  /* justify-content: space-between; */
   justify-content: center;
   gap: 10px;
 }
 
 .img-container {
   flex: 0 0 31%;
-  /* margin-bottom: 10px; */
 }
 
 .img-container a {

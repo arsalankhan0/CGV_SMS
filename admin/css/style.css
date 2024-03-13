@@ -13380,12 +13380,30 @@ dl {
 
 /* For Manage Gallery */
 .gallery-row {
-  border-bottom: 1px solid #e5e5e5;
+  /* border-bottom: 1px solid #e5e5e5; */
   padding: 15px 0; 
+}
+.row-container
+{
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 10px;
+  transition: 0.3s ease-in-out;
+}
+.row-container:hover
+{
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+  transition: 0.3s ease-in-out;
+}
+.row-container:hover .img-name
+{
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
 }
 
 .gallery-image {
   max-width: 200px; 
+  max-height: 25vh;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
   transition: box-shadow 0.3s ease-in-out; 
 }

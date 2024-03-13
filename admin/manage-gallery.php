@@ -154,11 +154,11 @@ else
                                 {
                                     ?>
                                     <div class="col-md-12 gallery-row">
-                                        <div class="row align-items-center">
+                                        <div class="row align-items-center row-container">
                                             <div class="col-md-4">
                                                 <img class="img-fluid gallery-image" src="<?php echo 'gallery/' . $imagePath['imgPath']; ?>" alt="Image"  loading="lazy">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-4 pt-2 img-name">
                                                 <?php echo $imagePath['imgPath']; ?>
                                             </div>
                                             <div class="col-md-4 text-right">

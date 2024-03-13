@@ -52,7 +52,7 @@ include('../includes/dbconnection.php');
 							<p class="pt-10 pb-10">
 								In the history of modern astronomy, there is probably no one greater leap forward than the building and launch of the space telescope known as the Hubble.
 							</p>
-							<a href="#" class="primary-btn text-uppercase">Student Login</a>
+							<a href="../user/login.php" class="primary-btn text-uppercase">Student Login</a>
 						</div>										
 					</div>
 				</div>					
@@ -376,8 +376,6 @@ include('../includes/dbconnection.php');
 				</div>	
 			</section>
 			<!-- End search-course Area -->
-			
-		
 
 			<!-- Start gallery Area -->
 			<section class="gallery-area section-gap">
