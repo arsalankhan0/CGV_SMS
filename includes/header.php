@@ -6,8 +6,7 @@
 								<ul>
 									<li><a href="#"><i class="fa fa-facebook"></i></a></li>
 									<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-									<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-									<li><a href="#"><i class="fa fa-behance"></i></a></li>
+									<li><a href="#"><i class="fa fa-instagram"></i></a></li>
 								</ul>			
 							</div>
 							<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
@@ -21,8 +20,8 @@
 								{
 									foreach($results as $row)
 									{               ?>
-										<a href="tel:+953 012 3654 896"><span class="lnr lnr-phone-handset"></span> <span class="text"><?php  echo '+91 ' . htmlentities($row->MobileNumber);?></span></a>
-										<a href="mailto:support@colorlib.com"><span class="lnr lnr-envelope"></span> <span class="text"><?php  echo htmlentities($row->Email);?></span></a>			
+										<a href="<?php  echo 'tel:+91 ' . htmlentities($row->MobileNumber);?>"><span class="lnr lnr-phone-handset"></span> <span class="text"><?php  echo '+91 ' . htmlentities($row->MobileNumber);?></span></a>
+										<a href="<?php  echo 'mailto:' . htmlentities($row->Email);?>"><span class="lnr lnr-envelope"></span> <span class="text"><?php  echo htmlentities($row->Email);?></span></a>			
 									<?php
 									}
 								}?>

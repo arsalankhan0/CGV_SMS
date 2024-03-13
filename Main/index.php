@@ -38,7 +38,7 @@ include('../includes/dbconnection.php');
 		</head>
 		<body>	
 			<?php include_once('../includes/header.php'); ?>
-
+		
 			<!-- start banner Area -->
 			<section class="banner-area relative" id="home">
 				<div class="overlay overlay-bg"></div>	
