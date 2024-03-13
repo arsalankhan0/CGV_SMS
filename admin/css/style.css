@@ -13376,3 +13376,24 @@ dl {
   background-color: #812000 !important;
 	border-color: #800000 !important;
 }
+
+
+/* For Manage Gallery */
+.gallery-row {
+  border-bottom: 1px solid #e5e5e5;
+  padding: 15px 0; 
+}
+
+.gallery-image {
+  max-width: 200px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  transition: box-shadow 0.3s ease-in-out; 
+}
+
+.gallery-image:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
+}
+.delete-icon
+{
+  font-size: 1.5rem;
+}

@@ -1,127 +1,107 @@
-<?php
-session_start();
-error_reporting(0);
-include('../includes/dbconnection.php');
-?>
-<!DOCTYPE html>
-<html lang="en">
+	<?php 
+	session_start();
+	error_reporting(0);
+	include('../includes/dbconnection.php');
+	?>
+	<!DOCTYPE html>
+	<html lang="zxx" class="no-js">
+	<head>
+		<!-- Mobile Specific Meta -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!-- Favicon-->
+		<link rel="shortcut icon" href="img/fav.png">
+		<!-- Author Meta -->
+		<meta name="author" content="colorlib">
+		<!-- Meta Description -->
+		<meta name="description" content="">
+		<!-- Meta Keyword -->
+		<meta name="keywords" content="">
+		<!-- meta character set -->
+		<meta charset="UTF-8">
+		<!-- Site Title -->
+		<title>SMS - About Us</title>
 
-    <!-- Basic -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">   
-   
-    <!-- Mobile Metas -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
- 
-     <!-- Site Metas -->
-    <title>Student Management System || About</title>  
-    <meta name="keywords" content="">
-    <meta name="description" content="">
-    <meta name="author" content="">
+		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet"> 
+			<!--
+			CSS
+			============================================= -->
+			<link rel="stylesheet" href="css/linearicons.css">
+			<link rel="stylesheet" href="css/font-awesome.min.css">
+			<link rel="stylesheet" href="css/bootstrap.css">
+			<link rel="stylesheet" href="css/magnific-popup.css">
+			<link rel="stylesheet" href="css/nice-select.css">							
+			<link rel="stylesheet" href="css/animate.min.css">
+			<link rel="stylesheet" href="css/owl.carousel.css">			
+			<link rel="stylesheet" href="css/jquery-ui.css">			
+			<link rel="stylesheet" href="css/main.css">
+		</head>
+		<body>	
+			<?php include_once('../includes/header.php'); ?>
 
-    <!-- Site Icons -->
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <!-- Site CSS -->
-    <link rel="stylesheet" href="style.css">
-    <!-- ALL VERSION CSS -->
-    <link rel="stylesheet" href="css/versions.css">
-    <!-- Responsive CSS -->
-    <link rel="stylesheet" href="css/responsive.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/custom.css">
-
-    <!-- Modernizer for Portfolio -->
-    <script src="js/modernizer.js"></script>
-
-</head>
-<body class="host_version"> 
-
-    <!-- LOADER -->
-	<div id="preloader">
-		<div class="loader-container">
-			<div class="progress-br float shadow">
-				<div class="progress__item"></div>
-			</div>
-		</div>
-	</div>
-	<!-- END LOADER -->	
-
-    <!-- Start header -->
-	<header class="top-navbar">
-		<nav class="navbar navbar-expand-lg navbar-light bg-light">
-			<div class="container-fluid">
-				<a class="navbar-brand" href="index.html">
-					<!-- <img src="images/logo.png" alt="" /> -->
-                    <h2 class="text-light">SMS</h2>
-				</a>
-				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbars-host" aria-controls="navbars-rs-food" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-				</button>
-				<div class="collapse navbar-collapse" id="navbars-host">
-                    <ul class="navbar-nav ml-auto">
-						<li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-						<li class="nav-item active"><a class="nav-link" href="about.php">About</a></li>
-						<li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
-						<li class="nav-item"><a class="nav-link" href="../admin/login.php">Admin</a></li>
-						<li class="nav-item"><a class="nav-link" href="../user/login.php">Student</a></li>
-					</ul>
+			<!-- start banner Area -->
+			<section class="banner-area relative about-banner" id="home">	
+				<div class="overlay overlay-bg"></div>
+				<div class="container">				
+					<div class="row d-flex align-items-center justify-content-center">
+						<div class="about-content col-lg-12">
+							<h1 class="text-white">
+								About Us				
+							</h1>	
+							<p class="text-white link-nav"><a href="index.html">Home </a>  <span class="lnr lnr-arrow-right"></span>  <a href="about.html"> About Us</a></p>
+						</div>	
+					</div>
 				</div>
-			</div>
-		</nav>
-	</header>
-	<!-- End header -->
-	
-	<div class="all-title-box">
-		<div class="container text-center">
-			<h1>About</h1>
-		</div>
-	</div>
-	
-    <!-- About -->
-    <div id="overviews" class="section lb">
-        <div class="container wow fadeInLeft" data-wow-offset="300">
-            <div class="section-title row text-center">
-                <div class="col-md-8 offset-md-2">
-                    <p class="lead">
-                    <?php
-                        $sql="SELECT * from tblpage where PageType='aboutus'";
-                        $query = $dbh -> prepare($sql);
-                        $query->execute();
-                        $results=$query->fetchAll(PDO::FETCH_OBJ);
+			</section>
+			<!-- End banner Area -->	
 
-                        $cnt=1;
-                        if($query->rowCount() > 0)
-                        {
-                            foreach($results as $row)
-                            {               ?>
-                                            
-                                            <p><?php  echo ($row->PageDescription);?></p><?php $cnt=$cnt+1;
-                            }
-                        } ?>
-                    </p>
-                </div>
-            </div><!-- end title -->
+			<!-- About us Area -->
+			<section class="info-area pb-120 mt-5">
+				<div class="container">
+					<div class="row align-items-center">
+						<div class="col-lg-6 no-padding info-area-left">
+							<img class="img-fluid" src="img/about-img.jpg" alt="">
+						</div>
+						<div class="col-lg-6 info-area-right">
+							<h1>Who we are</h1>
+							<?php
+								$sql="SELECT * from tblpage where PageType='aboutus'";
+								$query = $dbh -> prepare($sql);
+								$query->execute();
+								$results=$query->fetchAll(PDO::FETCH_OBJ);
 
-        </div><!-- end container -->
-    </div><!-- end section -->
+								$cnt=1;
+								if($query->rowCount() > 0)
+								{
+									foreach($results as $row)
+									{ ?>
+													
+										<p><?php  echo ($row->PageDescription);?></p><?php $cnt=$cnt+1;
+									}
+								} ?>
+								
+						</div>
+					</div>
+				</div>	
+			</section>
+			<!-- About us Area -->	
+					
+			<!-- Footer -->
+			<?php include_once('../includes/footer.php');?>
 
-    <?php include_once('../includes/footer.php');?>
 
-    <a href="#" id="scroll-to-top" class="dmtop global-radius"><i class="fa fa-angle-up"></i></a>
-
-    <!-- ALL JS FILES -->
-    <script src="js/all.js"></script>
-    <!-- ALL PLUGINS -->
-    <script src="js/custom.js"></script>
-    <script>
-        new WOW().init();
-    </script>
-
-</body>
-</html>
+			<script src="js/vendor/jquery-2.2.4.min.js"></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+			<script src="js/vendor/bootstrap.min.js"></script>			
+			<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhOdIF3Y9382fqJYt5I_sswSrEw5eihAA"></script>
+  			<script src="js/easing.min.js"></script>			
+			<script src="js/hoverIntent.js"></script>
+			<script src="js/superfish.min.js"></script>	
+			<script src="js/jquery.ajaxchimp.min.js"></script>
+			<script src="js/jquery.magnific-popup.min.js"></script>	
+    		<script src="js/jquery.tabs.min.js"></script>						
+			<script src="js/jquery.nice-select.min.js"></script>	
+			<script src="js/owl.carousel.min.js"></script>									
+			<script src="js/mail-script.js"></script>	
+			<script src="js/main.js"></script>	
+		</body>
+	</html>
