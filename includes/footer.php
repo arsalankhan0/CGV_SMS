@@ -6,11 +6,10 @@
 							<div class="single-footer-widget">
 								<h4>Quick links</h4>
 								<ul>
-									<li><a href="../Main/index.php">Home</a></li>
-									<li><a href="../Main/about.php">About</a></li>
-									<li><a href="../Main/courses.php">Courses</a></li>
-									<li><a href="../Main/gallery.php">Gallery</a></li>
-									<li><a href="../Main/contact.php">Contact</a></li>
+									<li><a href="./index.php">Home</a></li>
+									<li><a href="./about.php">About</a></li>
+									<li><a href="./gallery.php">Gallery</a></li>
+									<li><a href="./contact.php">Contact</a></li>
 								</ul>								
 							</div>
 						</div>
@@ -18,8 +17,8 @@
 							<div class="single-footer-widget">
 								<h4>Login</h4>
 								<ul>
-									<li><a href="../admin/login.php">Admin</a></li>
-									<li><a href="../user/login.php">Student</a></li>
+									<li><a href="./admin/login.php">Admin</a></li>
+									<li><a href="./user/login.php">Student</a></li>
 								</ul>								
 							</div>
 						</div>

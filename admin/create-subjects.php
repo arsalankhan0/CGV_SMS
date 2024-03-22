@@ -185,7 +185,7 @@ else
                                         <div class="form-group">
                                             <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"></span> subject</label>
                                             <select multiple="multiple" name="classes[]"
-                                                    class="js-example-basic-multiple w-100">
+                                                    class="js-example-basic-multiple w-100" required="true">
                                                 <?php
                                                 $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
                                                 $query = $dbh->prepare($sql);
@@ -206,6 +206,20 @@ else
                                                 }
                                                 ?>
                                             </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Is this subject optional?</label>
+                                            <div class="d-flex align-items-center form-check">
+                                                <div class="d-flex align-items-center">
+                                                    <input class="form-check-label" type="radio" name="subjectOptional" id="subjectOptionalYes" value="yes">
+                                                    <label class="ml-2" for="subjectOptionalYes">Yes</label>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <input class="form-check-label" type="radio" name="subjectOptional" id="subjectOptionalNo" value="no" checked>
+                                                    <label class="ml-2" for="subjectOptionalNo">No</label>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <div class="form-group">

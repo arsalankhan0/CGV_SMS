@@ -144,7 +144,7 @@ catch (PDOException $e)
                     <a href="login.php" class="auth-link text-black">signin</a>
                   </div>
                   <div class="mb-2">
-                    <a href="../Main/index.php" class="btn btn-block btn-facebook auth-form-btn">
+                    <a href="../index.php" class="btn btn-block btn-facebook auth-form-btn">
                       <i class="icon-social-home mr-2"></i>Back Home </a>
                   </div>
                   
