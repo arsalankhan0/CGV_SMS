@@ -36,11 +36,11 @@
 								{
 									foreach($results as $row)
 									{               ?>
-											<div class="address">
+											<div class="address text-light">
 											<p><?php  echo htmlentities($row->PageDescription);?>
 											</p>
 											</div>
-											<div class="phone">
+											<div class="phone text-light">
 											<p><?php  echo htmlentities($row->MobileNumber);?></p>
 											</div>
 										<?php $cnt=$cnt+1;
@@ -50,8 +50,8 @@
 						</div>																								
 					</div>
 					<div class="footer-bottom row align-items-center justify-content-between">
-						<p class="footer-text m-0 col-lg-6 col-md-12">
-							SMS Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved </a>
+						<p class="footer-text m-0 col-lg-6 col-md-12 text-light">
+							Tibetan Public school Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved </a>
 						</p>
 						<div class="col-lg-6 col-sm-12 footer-social">
 							<a href="#"><i class="fa fa-facebook"></i></a>

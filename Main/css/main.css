@@ -1837,7 +1837,7 @@ h6 {
   /* color: #fff; */
   color: #000;
   font-weight: 500;
-  font-size: 12px;
+  font-size: 14px;
   text-transform: uppercase;
   outline: none;
 }
@@ -4070,7 +4070,7 @@ dl.toggle.time-line:before {
   border-radius: 0;
   font-size: 14px;
   line-height: normal !important;
-  color: #222;
+  color: #fff;
 }
 .single-footer-widget .form-control:focus {
   box-shadow: none;
@@ -4080,18 +4080,17 @@ dl.toggle.time-line:before {
   margin-bottom: 10px;
 }
 .single-footer-widget ul li a {
-  color: #777;
+  color: #ccc;
   -webkit-transition: all 0.3s ease 0s;
   -moz-transition: all 0.3s ease 0s;
   -o-transition: all 0.3s ease 0s;
   transition: all 0.3s ease 0s;
 }
 .single-footer-widget ul li a:hover {
-  /* color: #800000; */
   color: #ffffff;
 }
 .single-footer-widget .bb-btn {
-  color: #800000;
+  /* color: #800000; */
   color: #fff;
   font-weight: 300;
   border-radius: 0;

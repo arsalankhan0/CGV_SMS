@@ -1,7 +1,7 @@
  <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
         <div class="navbar-brand-wrapper d-flex align-items-center">
           <a class="navbar-brand brand-logo" href="dashboard.php">
-            <strong style="color: white;">SMS</strong>
+            <strong style="color: white;">TPS</strong>
           </a>
           <a class="navbar-brand brand-logo-mini" href="dashboard.php"><img src="images/logo-mini.svg" alt="logo" /></a>
         </div><?php

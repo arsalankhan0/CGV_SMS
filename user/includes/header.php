@@ -1,28 +1,27 @@
  <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
         <div class="navbar-brand-wrapper d-flex align-items-center">
           <a class="navbar-brand brand-logo" href="dashboard.php">
-            <strong style="color: white;">SMS</strong>
+            <strong style="color: white;">TPS</strong>
           </a>
-         
+
         </div>
         <?php
-         $uid= $_SESSION['sturecmsuid'];
-$sql="SELECT * from tblstudent where ID=:uid";
+          $uid= $_SESSION['sturecmsuid'];
+          $sql="SELECT * from tblstudent where ID=:uid";
 
-$query = $dbh -> prepare($sql);
-$query->bindParam(':uid',$uid,PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
+          $query = $dbh -> prepare($sql);
+          $query->bindParam(':uid',$uid,PDO::PARAM_STR);
+          $query->execute();
+          $results=$query->fetchAll(PDO::FETCH_OBJ);
 
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
+          $cnt=1;
+          if($query->rowCount() > 0)
+          {
+          foreach($results as $row)
+          {               ?>
         <div class="navbar-menu-wrapper d-flex align-items-center flex-grow-1">
           <h5 class="mb-0 font-weight-medium d-none d-lg-flex"><?php  echo htmlentities($row->StudentName);?> Welcome to dashboard!</h5>
           <ul class="navbar-nav navbar-nav-right ml-auto">
-           
         
       
             <!-- <li class="nav-item dropdown d-none d-xl-inline-flex user-dropdown"> -->

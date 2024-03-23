@@ -112,7 +112,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System|| Create Subjects</title>
+        <title>Student  Management System || Create Subjects</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -206,20 +206,6 @@ else
                                                 }
                                                 ?>
                                             </select>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Is this subject optional?</label>
-                                            <div class="d-flex align-items-center form-check">
-                                                <div class="d-flex align-items-center">
-                                                    <input class="form-check-label" type="radio" name="subjectOptional" id="subjectOptionalYes" value="yes">
-                                                    <label class="ml-2" for="subjectOptionalYes">Yes</label>
-                                                </div>
-                                                <div class="d-flex align-items-center">
-                                                    <input class="form-check-label" type="radio" name="subjectOptional" id="subjectOptionalNo" value="no" checked>
-                                                    <label class="ml-2" for="subjectOptionalNo">No</label>
-                                                </div>
-                                            </div>
                                         </div>
                                         
                                         <div class="form-group">

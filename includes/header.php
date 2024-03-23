@@ -34,7 +34,6 @@
 		<div class="row align-items-center justify-content-between d-flex">
 			<div id="logo">
 				<a href="index.php"><img src="Main/img/LogoWithName.png" alt="" title="" /></a>
-				<!-- <h1 class="text-light">TIBETAN PUBLIC SCHOOL</h1> -->
 			</div>
 			<nav id="nav-menu-container">
 				<ul class="nav-menu">
