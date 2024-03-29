@@ -145,6 +145,18 @@
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-curricular" aria-expanded="false" aria-controls="ui-curricular">
+                <span class="menu-title">Curricular Component</span>
+                <i class="icon-book-open menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-curricular">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="create-curricular.php">Create Curricular</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-curricular.php">Manage Curricular</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#ui-employees" aria-expanded="false" aria-controls="ui-employees">
                 <span class="menu-title">Employees</span>
                 <i class="icon-user menu-icon"></i>

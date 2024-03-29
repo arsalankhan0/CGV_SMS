@@ -15,7 +15,7 @@ else
     {
         if(isset($_POST['confirmDelete']))
         {
-            $rid = intval($_POST['subjectID']);
+            $rid = intval($_POST['curricularID']);
 
             $sql = "UPDATE tblsubjects SET IsDeleted = 1 WHERE ID = :rid";
             $query = $dbh->prepare($sql);
@@ -36,7 +36,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Tibetan Public School || Manage Subjects</title>
+        <title>Tibetan Public School || Manage Curricular</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -65,11 +65,11 @@ else
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
-                            <h3 class="page-title"> Manage Subjects </h3>
+                            <h3 class="page-title"> Manage Curricular </h3>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
                                     <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page"> Manage Subjects</li>
+                                    <li class="breadcrumb-item active" aria-current="page"> Manage Curricular</li>
                                 </ol>
                             </nav>
                         </div>
@@ -78,8 +78,8 @@ else
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-sm-flex align-items-center mb-4">
-                                            <h4 class="card-title mb-sm-0">Manage Subjects</h4>
-                                            <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Subjects</a>
+                                            <h4 class="card-title mb-sm-0">Manage Curricular</h4>
+                                            <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Curricular Activities</a>
                                         </div>
                                         <!-- Dismissible Alert messages -->
                                         <?php 
@@ -110,9 +110,8 @@ else
                                                 <thead>
                                                     <tr>
                                                         <th class="font-weight-bold">S.No</th>
-                                                        <th class="font-weight-bold">Subject Name</th>
+                                                        <th class="font-weight-bold">Curricular Name</th>
                                                         <th class="font-weight-bold">Class Name</th>
-                                                        <th class="font-weight-bold">Optional Subject</th>
                                                         <th class="font-weight-bold">Action</th>
                                                     </tr>
                                                 </thead>
@@ -135,7 +134,7 @@ else
                                                     // Formula for pagination
                                                     $no_of_records_per_page = 15;
                                                     $offset = ($pageno - 1) * $no_of_records_per_page;
-                                                    $ret = "SELECT ID, SubjectName, ClassName, IsOptional FROM tblsubjects WHERE SessionID = :sessionID AND IsCurricularSubject = 0 AND IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                                                    $ret = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE SessionID = :sessionID AND IsCurricularSubject = 1 AND IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
                                                     $query1 = $dbh->prepare($ret);
                                                     $query1->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                     $query1->execute();
@@ -177,13 +176,8 @@ else
                                                                     ?>
                                                                 </td>
                                                                 <td>
-                                                                    <?php 
-                                                                    echo $row->IsOptional == 1 ? 'Yes' : 'No';
-                                                                    ?>
-                                                                </td>
-                                                                <td>
                                                                     <div>
-                                                                        <a href="edit-subject-details.php?editid=<?php echo htmlentities($row->ID);?>"><i class="icon-pencil"></i></a>
+                                                                        <a href="edit-curricular-details.php?editid=<?php echo htmlentities($row->ID);?>"><i class="icon-pencil"></i></a>
                                                                         || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                                                                 <i class="icon-trash"></i>
                                                                             </a>
@@ -233,11 +227,11 @@ else
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body">
-                        Are you sure you want to delete this Subject?
+                        Are you sure you want to delete this Curricular Activity?
                     </div>
                     <div class="modal-footer">
                         <form id="deleteForm" action="" method="post">
-                        <input type="hidden" name="subjectID" id="subjectID">
+                        <input type="hidden" name="curricularID" id="curricularID">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
                         </form>
@@ -266,7 +260,7 @@ else
         <script>
             function setDeleteId(id) 
             {
-                document.getElementById('subjectID').value = id;
+                document.getElementById('curricularID').value = id;
             }
         </script>
     </body>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) {
@@ -36,6 +36,7 @@ else
 
             // Fetch assigned classes and subjects from form
             $assignedClasses = isset($_POST['assignedClasses']) ? implode(',', $_POST['assignedClasses']) : '';
+            $assignedSections = isset($_POST['assignedSection']) ? implode(',', $_POST['assignedSection']) : '';
             $assignedSubjects = isset($_POST['assignedSubjects']) ? implode(',', $_POST['assignedSubjects']) : '';
 
             $sql = "UPDATE tblemployees SET 
@@ -50,6 +51,7 @@ else
                     AlternateNumber = :alternatenumber, 
                     Address = :address,
                     AssignedClasses = :assignedClasses,
+                    AssignedSections = :assignedSections,
                     AssignedSubjects = :assignedSubjects
                     WHERE ID = :eid";
 
@@ -65,6 +67,7 @@ else
             $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
             $query->bindParam(':assignedClasses', $assignedClasses, PDO::PARAM_STR);
+            $query->bindParam(':assignedSections', $assignedSections, PDO::PARAM_STR);
             $query->bindParam(':assignedSubjects', $assignedSubjects, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
@@ -168,6 +171,7 @@ else
                         foreach($results as $row)
                         {           
                             $selectedClasses = explode(',', $row->AssignedClasses);
+                            $selectedSections = explode(',', $row->AssignedSections);
                             $selectedSubjects = explode(',', $row->AssignedSubjects);    
                             ?>
                             <div class="form-group">
@@ -205,12 +209,29 @@ else
                                                 ?>
                                             </select>
                                         </div>
+                                        <div class="form-group" id="assignSection">
+                                            <label for="assignSec">Assign Section</label>
+                                            <select name="assignedSection[]" id="assignSec" multiple="multiple" class="js-example-basic-multiple w-100">
+                                                <?php
+                                                // Fetch options for classes from tblclass
+                                                $classSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                $classQuery = $dbh->prepare($classSql);
+                                                $classQuery->execute();
+                                                $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($classResults as $class) {
+                                                    $selected = in_array($class['ID'], $selectedSections) ? 'selected' : '';
+                                                    echo "<option value='" . htmlentities($class['ID']) . "' $selected>" . htmlentities($class['SectionName']) . "</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
                                         <div class="form-group" id="assignSubjectsSection">
                                             <label for="exampleInputName1">Assign Subjects</label>
                                             <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
                                                 <?php
                                                 // Fetch options for subjects from tblsubjects
-                                                $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID";
+                                                $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
                                                 $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                 $subjectQuery->execute();
@@ -223,8 +244,6 @@ else
                                                 ?>
                                             </select>
                                         </div>
-
-
 
                                         <div class="form-group">
                                             <label for="exampleInputName1">Employee Role</label>

@@ -11,7 +11,7 @@ include('includes/dbconnection.php');
 		<!-- Favicon-->
 		<link rel="shortcut icon" href="img/fav.png">
 		<!-- Author Meta -->
-		<meta name="author" content="">
+		<meta name="author" content="Tibetan public school">
 		<!-- Meta Description -->
 		<meta name="description" content="">
 		<!-- Meta Keyword -->

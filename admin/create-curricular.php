@@ -3,41 +3,12 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-// Define permissions array
-$requiredPermissions = array(
-    'create-subjects' => 'Subjects',
-);
-
-if (strlen($_SESSION['sturecmsEMPid']) == 0) 
+if (strlen($_SESSION['sturecmsaid']) == 0) 
 {
     header('location:logout.php');
 } 
 else 
 {
-    // Check if the employee has the required permission for this file
-    $eid = $_SESSION['sturecmsEMPid'];
-    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
-    $query = $dbh->prepare($sql);
-    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-    $query->execute();
-    $results = $query->fetch(PDO::FETCH_ASSOC);
-
-    $employeeRole = $results['Role'];
-    $requiredPermission = $requiredPermissions['create-subjects']; 
-
-    $sqlPermissions = "SELECT * FROM tblpermissions WHERE RoleID=:employeeRole AND Name=:requiredPermission";
-    $queryPermissions = $dbh->prepare($sqlPermissions);
-    $queryPermissions->bindParam(':employeeRole', $employeeRole, PDO::PARAM_STR);
-    $queryPermissions->bindParam(':requiredPermission', $requiredPermission, PDO::PARAM_STR);
-    $queryPermissions->execute();
-    $permissions = $queryPermissions->fetch(PDO::FETCH_ASSOC);
-
-    if (!$permissions || $permissions['CreatePermission'] != 1) 
-    {
-        echo "<h1>You have no permission to access this page!</h1>";
-        exit;
-    }
-
     $successAlert = false;
     $dangerAlert = false;
     $msg = "";
@@ -52,17 +23,16 @@ else
     {
         if (isset($_POST['submit'])) 
         {
-            $subjectName = filter_var($_POST['subjectName'], FILTER_SANITIZE_STRING);
+            $curricularName = filter_var($_POST['curricularName'], FILTER_SANITIZE_STRING);
             $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
-            $isOptional = isset($_POST['isOptional']) ? ($_POST['isOptional'] == 'yes' ? 1 : 0) : 0;
 
-            if (empty($subjectName) || empty($classes)) 
+            if (empty($curricularName) || empty($classes)) 
             {
                 $dangerAlert = true;
-                $msg = "Please enter Subject Name and select at least one class!";
+                $msg = "Please enter Curricular Name and select at least one class!";
             } 
             else 
-            {                
+            {
                 // Fetch IDs of selected classes
                 $selectedClassIds = [];
                 foreach ($classes as $className) 
@@ -78,41 +48,28 @@ else
                     }
                 }
 
-                // Fetch selected subject types
-                $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+                $cName = implode(",", $selectedClassIds);
+                $curricularSubject = 1; 
 
-                // Check if at least one subject type is selected
-                if (empty($subjectTypes)) 
+                // Insert curricular with comma-separated class IDs, active session ID
+                $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, IsCurricularSubject) VALUES (:subjectName, :cName, :sessionID, :isCurricularSubject)";
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':subjectName', $curricularName, PDO::PARAM_STR);
+                $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                $query->bindParam(':isCurricularSubject', $curricularSubject, PDO::PARAM_INT);
+                $query->execute();
+                $LastInsertId = $dbh->lastInsertId();
+
+                if ($LastInsertId > 0) 
                 {
-                    $dangerAlert = true;
-                    $msg = "Please select at least one subject type!";
+                    $successAlert = true;
+                    $msg = "Curricular has been created successfully!";
                 } 
                 else 
                 {
-                    $cName = implode(",", $selectedClassIds);
-                    $subjectTypeString = implode(",", $subjectTypes);
-
-                    // Insert subject with comma-separated class IDs, active session ID, and subject types
-                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, SubjectType, IsOptional) VALUES (:subjectName, :cName, :sessionID, :subjectTypes, :isOptional)";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                    $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
-                    $query->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
-                    $query->execute();
-                    $LastInsertId = $dbh->lastInsertId();
-
-                    if ($LastInsertId > 0) 
-                    {
-                        $successAlert = true;
-                        $msg = "Subject has been created successfully!";
-                    } 
-                    else 
-                    {
-                        $dangerAlert = true;
-                        $msg = "Something went wrong! Please try again later.";
-                    }
+                    $dangerAlert = true;
+                    $msg = "Something went wrong! Please try again later.";
                 }
             }
         }
@@ -121,13 +78,13 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! An error occurred.";
-        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+        echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
 ?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System|| Create Subjects</title>
+        <title>Tibetan Public School || Create Curricular</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -155,11 +112,11 @@ else
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Create Subjects </h3>
+                        <h3 class="page-title"> Create Curricular </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> Create Subjects</li>
+                                <li class="breadcrumb-item active" aria-current="page"> Create Curricular</li>
                             </ol>
                         </nav>
                     </div>
@@ -167,7 +124,7 @@ else
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title" style="text-align: center;">Create Subjects</h4>
+                                    <h4 class="card-title" style="text-align: center;">Create Curricular</h4>
                                         <!-- Dismissible Alert messages -->
                                         <?php 
                                         if ($successAlert) 
@@ -193,14 +150,14 @@ else
                                         ?>
                                     <form class="forms-sample" method="post">
                                         <div class="form-group">
-                                            <label for="exampleInputName1">Subject Name</label>
-                                            <input type="text" name="subjectName" value="" id="input-subject" class="form-control" required='true'>
+                                            <label for="exampleInputName1">Curricular Name</label>
+                                            <input type="text" name="curricularName" value="" id="input-subject" class="form-control" required='true'>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"></span> subject</label>
+                                            <label for="exampleFormControlSelect2">Assign Classes</label>
                                             <select multiple="multiple" name="classes[]"
-                                                    class="js-example-basic-multiple w-100">
+                                                    class="js-example-basic-multiple w-100" required="true">
                                                 <?php
                                                 $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
                                                 $query = $dbh->prepare($sql);
@@ -221,44 +178,6 @@ else
                                                 }
                                                 ?>
                                             </select>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Is this subject Optional?</label>
-                                            <div class="d-flex align-items-center my-4">
-                                                <div class="form-check-inline d-flex mr-4">
-                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalYes" value="yes">
-                                                    <label class="form-check-label" for="optionalYes">Yes</label>
-                                                </div>
-                                                <div class="form-check-inline d-flex">
-                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalNo" value="no" checked>
-                                                    <label class="form-check-label" for="optionalNo">No</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Subject Type</label>
-                                            <div class="checkbox-group d-flex justify-content-start">
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="theory">
-                                                        Theory
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="theory" id="theory">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="practical">
-                                                        Practical
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="practical" id="practical">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="viva">
-                                                        Viva
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="viva" id="viva">
-                                                    </label>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
@@ -293,7 +212,6 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <!-- End custom js for this page -->
-    <script src="./js/dataBinding.js"></script>
     <script src="./js/manageAlert.js"></script>
   </body>
 </html><?php }  ?>

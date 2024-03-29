@@ -50,12 +50,12 @@ else
             if ($query->rowCount() == 0) 
             {
                 $extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
-                $allowed_extensions = array("jpg", "jpeg", "png", "gif");
+                $allowed_extensions = array("jpg", "jpeg", "png");
 
                 if (!in_array($extension, $allowed_extensions)) 
                 {
                     $dangerAlert = true;
-                    $msg = "Image has Invalid format! Only jpg / jpeg / png / gif format are allowed.";
+                    $msg = "Image has Invalid format! Only jpg / jpeg / png format are allowed.";
                 } 
                 else if (strlen($_POST['password']) < 8) 
                 {
@@ -80,15 +80,17 @@ else
                     if ($role === 'Teaching') 
                     {
                         $selectedClasses = implode(',', $_POST['assignedClasses']);
+                        $selectedSections = implode(',', $_POST['assignedSection']);
                         $selectedSubjects = implode(',', $_POST['assignedSubjects']);
                     } 
                     else 
                     {
                         $selectedClasses = '';
+                        $selectedSections = '';
                         $selectedSubjects = '';
                     }
 
-                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
+                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSections, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSections, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':name', $name, PDO::PARAM_STR);
                     $query->bindParam(':email', $email, PDO::PARAM_STR);
@@ -96,6 +98,7 @@ else
                     $query->bindParam(':role', $role, PDO::PARAM_STR);
                     $query->bindParam(':empType', $empType, PDO::PARAM_INT);
                     $query->bindParam(':assignedClasses', $selectedClasses, PDO::PARAM_STR);
+                    $query->bindParam(':assignedSections', $selectedSections, PDO::PARAM_STR);
                     $query->bindParam(':assignedSubjects', $selectedSubjects, PDO::PARAM_STR);
                     $query->bindParam(':gender', $gender, PDO::PARAM_STR);
                     $query->bindParam(':dob', $dob, PDO::PARAM_STR);
@@ -144,7 +147,7 @@ else
 <html lang="en">
   <head>
   
-    <title>Student  Management System || Add Employees</title>
+    <title>TIbetan Public School || Add Employees</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -244,12 +247,28 @@ else
                                             ?>
                                         </select>
                                     </div>
+                                    <div class="form-group" id="assignSection">
+                                        <label for="assignSec">Assign Section</label>
+                                        <select name="assignedSection[]" id="assignSec" multiple="multiple" class="js-example-basic-multiple w-100">
+                                            <?php
+                                            // Fetch options for classes from tblclass
+                                            $classSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                            $classQuery = $dbh->prepare($classSql);
+                                            $classQuery->execute();
+                                            $classResults = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                            foreach ($classResults as $class) {
+                                                echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['SectionName']) . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
                                     <div class="form-group" id="assignSubjectsSection">
                                         <label for="exampleInputName1">Assign Subjects</label>
                                         <select name="assignedSubjects[]" multiple="multiple" class="js-example-basic-multiple w-100">
                                             <?php
                                             // Fetch options for subjects from tblsubjects
-                                            $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID";
+                                            $subjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0";
                                             $subjectQuery = $dbh->prepare($subjectSql);
                                             $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                             $subjectQuery->execute();

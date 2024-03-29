@@ -25,6 +25,7 @@ else
         {
             $subjectName = filter_var($_POST['subjectName'], FILTER_SANITIZE_STRING);
             $classes = isset($_POST['classes']) ? $_POST['classes'] : [];
+            $isOptional = isset($_POST['isOptional']) ? ($_POST['isOptional'] == 'yes' ? 1 : 0) : 0;
 
             if (empty($subjectName) || empty($classes)) 
             {
@@ -33,70 +34,55 @@ else
             } 
             else 
             {
+                // Fetch IDs of selected classes
+                $selectedClassIds = [];
+                foreach ($classes as $className) 
+                {
+                    $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
+                    $classQuery = $dbh->prepare($classSql);
+                    $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                    $classQuery->execute();
+                    $classId = $classQuery->fetchColumn();
+                    if ($classId) 
+                    {
+                        $selectedClassIds[] = $classId;
+                    }
+                }
 
-                $checkSql = "SELECT ID FROM tblsubjects WHERE SubjectName = :subjectName AND IsDeleted = 0 AND SessionID = :sessionID";
-                $checkQuery = $dbh->prepare($checkSql);
-                $checkQuery->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                $checkQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT); 
-                $checkQuery->execute();
-                $subjectId = $checkQuery->fetchColumn();
-                
-                if ($subjectId > 0) 
+                // Fetch selected subject types
+                $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+
+                // Check if at least one subject type is selected
+                if (empty($subjectTypes)) 
                 {
                     $dangerAlert = true;
-                    $msg = "Subject already exists in the current session! Please update the existing subject.";
-                }
+                    $msg = "Please select at least one subject type!";
+                } 
                 else 
                 {
-                    // Fetch IDs of selected classes
-                    $selectedClassIds = [];
-                    foreach ($classes as $className) 
-                    {
-                        $classSql = "SELECT ID FROM tblclass WHERE ClassName = :className";
-                        $classQuery = $dbh->prepare($classSql);
-                        $classQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                        $classQuery->execute();
-                        $classId = $classQuery->fetchColumn();
-                        if ($classId) 
-                        {
-                            $selectedClassIds[] = $classId;
-                        }
-                    }
+                    $cName = implode(",", $selectedClassIds);
+                    $subjectTypeString = implode(",", $subjectTypes);
 
-                    // Fetch selected subject types
-                    $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+                    // Insert subject with comma-separated class IDs, active session ID, and subject types
+                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, SubjectType, IsOptional) VALUES (:subjectName, :cName, :sessionID, :subjectTypes, :isOptional)";
+                    $query = $dbh->prepare($sql);
+                    $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                    $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
+                    $query->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
+                    $query->execute();
+                    $LastInsertId = $dbh->lastInsertId();
 
-                    // Check if at least one subject type is selected
-                    if (empty($subjectTypes)) 
+                    if ($LastInsertId > 0) 
                     {
-                        $dangerAlert = true;
-                        $msg = "Please select at least one subject type!";
+                        $successAlert = true;
+                        $msg = "Subject has been created successfully!";
                     } 
                     else 
                     {
-                        $cName = implode(",", $selectedClassIds);
-                        $subjectTypeString = implode(",", $subjectTypes);
-
-                        // Insert subject with comma-separated class IDs, active session ID, and subject types
-                        $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, SubjectType) VALUES (:subjectName, :cName, :sessionID, :subjectTypes)";
-                        $query = $dbh->prepare($sql);
-                        $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                        $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                        $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                        $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
-                        $query->execute();
-                        $LastInsertId = $dbh->lastInsertId();
-
-                        if ($LastInsertId > 0) 
-                        {
-                            $successAlert = true;
-                            $msg = "Subject has been created successfully!";
-                        } 
-                        else 
-                        {
-                            $dangerAlert = true;
-                            $msg = "Something went wrong! Please try again later.";
-                        }
+                        $dangerAlert = true;
+                        $msg = "Something went wrong! Please try again later.";
                     }
                 }
             }
@@ -112,7 +98,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System || Create Subjects</title>
+        <title>Tibetan Public School || Create Subjects</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -207,7 +193,21 @@ else
                                                 ?>
                                             </select>
                                         </div>
-                                        
+
+                                        <div class="form-group">
+                                            <label>Is this subject Optional?</label>
+                                            <div class="d-flex align-items-center my-4">
+                                                <div class="form-check-inline d-flex mr-4">
+                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalYes" value="yes">
+                                                    <label class="form-check-label" for="optionalYes">Yes</label>
+                                                </div>
+                                                <div class="form-check-inline d-flex">
+                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalNo" value="no" checked>
+                                                    <label class="form-check-label" for="optionalNo">No</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="form-group">
                                             <label>Subject Type</label>
                                             <div class="checkbox-group d-flex justify-content-start">

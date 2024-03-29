@@ -37,24 +37,17 @@ else
                 }
             }                
 
-            // Fetch selected subject types
-            $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
-
             $cName = implode(",", $selectedClassIds);
-            $subjectTypeString = implode(",", $subjectTypes);
-            $isOptional = isset($_POST['isOptional']) ? ($_POST['isOptional'] == 'yes' ? 1 : 0) : 0;
 
-            $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes, IsOptional=:optional WHERE ID=:eid";
+            $sql = "UPDATE tblsubjects SET ClassName=:cName WHERE ID=:eid";
             $query = $dbh->prepare($sql);
             $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-            $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
-            $query->bindParam(':optional', $isOptional, PDO::PARAM_INT);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
             $query->execute();
 
             $successAlert = true;
-            $msg = "Subject has been updated successfully.";
+            $msg = "Curricular Activity has been updated successfully.";
         } 
     } 
     catch (PDOException $e) 
@@ -65,19 +58,18 @@ else
     }
 
     // Fetching subject details
-    $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType, IsOptional FROM tblsubjects WHERE ID = :eid";
-    $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
-    $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
-    $subjectDetailsQuery->execute();
-    $subjectDetailsRow = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
+    $curricularDetailsSql = "SELECT SubjectName, ClassName FROM tblsubjects WHERE ID = :eid";
+    $curricularDetailsQuery = $dbh->prepare($curricularDetailsSql);
+    $curricularDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
+    $curricularDetailsQuery->execute();
+    $curricularDetailsRow = $curricularDetailsQuery->fetch(PDO::FETCH_ASSOC);
             
-    $selectedClasses = explode(",", $subjectDetailsRow['ClassName']);
-    $selectedSubjectTypes = explode(",", $subjectDetailsRow['SubjectType']);
+    $selectedClasses = explode(",", $curricularDetailsRow['ClassName']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Tibetan Public School || Update Subject</title>
+        <title>Tibetan Public School || Update Curricular Activity</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -107,11 +99,11 @@ else
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Update <?php echo $subjectDetailsRow['SubjectName']; ?></span> Subject </h3>
+                        <h3 class="page-title"> Update <?php echo $curricularDetailsRow['SubjectName']; ?></span></h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> Update Subject</li>
+                                <li class="breadcrumb-item active" aria-current="page"> Update Curricular Activity</li>
                             </ol>
                         </nav>
                     </div>
@@ -119,7 +111,7 @@ else
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title" style="text-align: center;">Update Subject</h4>
+                                    <h4 class="card-title" style="text-align: center;">Update Curricular Activity</h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php 
                                     if ($successAlert) 
@@ -147,7 +139,7 @@ else
                                     <form class="forms-sample" id="form" method="post">
 
                                         <div class="form-group">
-                                            <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"><?php echo $subjectDetailsRow['SubjectName']; ?></span> subject</label>
+                                            <label for="exampleFormControlSelect2">Assign Classes to <span id="subject-name"><?php echo $curricularDetailsRow['CurricularName']; ?></span></label>
                                             <select multiple="multiple" name="classes[]" class="js-example-basic-multiple w-100">
                                                 <?php
                                                 $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
@@ -164,44 +156,6 @@ else
                                             </select>
                                         </div>
 
-                                        <div class="form-group">
-                                            <label>Is this subject Optional?</label>
-                                            <div class="d-flex align-items-center my-4">
-                                                <div class="form-check-inline d-flex mr-4">
-                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalYes" value="yes" <?php echo ($subjectDetailsRow['IsOptional'] == 1) ? 'checked' : ''; ?>>
-                                                    <label class="form-check-label" for="optionalYes">Yes</label>
-                                                </div>
-                                                <div class="form-check-inline d-flex">
-                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalNo" value="no" <?php echo ($subjectDetailsRow['IsOptional'] != 1) ? 'checked' : ''; ?>>
-                                                    <label class="form-check-label" for="optionalNo">No</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Subject Type</label>
-                                            <div class="checkbox-group d-flex justify-content-start">
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="theory">
-                                                        Theory
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('theory', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="theory" id="theory">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="practical">
-                                                        Practical
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('practical', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="practical" id="practical">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="viva">
-                                                        Viva
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('viva', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="viva" id="viva">
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
 
                                         <!-- Confirmation Modal (Update) -->
@@ -213,7 +167,7 @@ else
                                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    Are you sure you want to update <?php echo $subjectDetailsRow['SubjectName']; ?> Subject?
+                                                    Are you sure you want to update this Activity?
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

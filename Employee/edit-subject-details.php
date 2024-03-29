@@ -71,11 +71,13 @@ else
 
             $cName = implode(",", $selectedClassIds);
             $subjectTypeString = implode(",", $subjectTypes);
+            $isOptional = isset($_POST['isOptional']) ? ($_POST['isOptional'] == 'yes' ? 1 : 0) : 0;
 
-            $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes WHERE ID=:eid";
+            $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes, IsOptional=:optional WHERE ID=:eid";
             $query = $dbh->prepare($sql);
             $query->bindParam(':cName', $cName, PDO::PARAM_STR);
             $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
+            $query->bindParam(':optional', $isOptional, PDO::PARAM_INT);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
             $query->execute();
@@ -92,7 +94,7 @@ else
     }
 
     // Fetching subject details
-    $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType FROM tblsubjects WHERE ID = :eid";
+    $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType, IsOptional FROM tblsubjects WHERE ID = :eid";
     $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
     $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
     $subjectDetailsQuery->execute();
@@ -104,7 +106,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System || Update Subject</title>
+        <title>Tibetan Public School || Update Subject</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -189,6 +191,20 @@ else
                                                 }
                                                 ?>
                                             </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Is this subject Optional?</label>
+                                            <div class="d-flex align-items-center my-4">
+                                                <div class="form-check-inline d-flex mr-4">
+                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalYes" value="yes" <?php echo ($subjectDetailsRow['IsOptional'] == 1) ? 'checked' : ''; ?>>
+                                                    <label class="form-check-label" for="optionalYes">Yes</label>
+                                                </div>
+                                                <div class="form-check-inline d-flex">
+                                                    <input class="form-check-input" type="radio" name="isOptional" id="optionalNo" value="no" <?php echo ($subjectDetailsRow['IsOptional'] != 1) ? 'checked' : ''; ?>>
+                                                    <label class="form-check-label" for="optionalNo">No</label>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="form-group">

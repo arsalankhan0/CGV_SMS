@@ -93,7 +93,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System || Manage Subjects</title>
+        <title>Tibetan Public School || Manage Subjects</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -169,6 +169,7 @@ else
                                                         <th class="font-weight-bold">S.No</th>
                                                         <th class="font-weight-bold">Subject Name</th>
                                                         <th class="font-weight-bold">Class Name</th>
+                                                        <th class="font-weight-bold">Optional Subject</th>
                                                         <?php 
                                                         // Check if the user has UpdatePermission or DeletePermission
                                                         if ($employeePermissions['Subjects']['UpdatePermission'] == 1 || $employeePermissions['Subjects']['DeletePermission'] == 1) 
@@ -198,7 +199,7 @@ else
                                                     // Formula for pagination
                                                     $no_of_records_per_page = 15;
                                                     $offset = ($pageno - 1) * $no_of_records_per_page;
-                                                    $ret = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE SessionID = :sessionID AND IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+                                                    $ret = "SELECT ID, SubjectName, ClassName, IsOptional FROM tblsubjects WHERE SessionID = :sessionID AND IsCurricularSubject = 0 AND IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
                                                     $query1 = $dbh->prepare($ret);
                                                     $query1->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                     $query1->execute();
@@ -237,6 +238,11 @@ else
                                                                         echo "N.A";
                                                                     }
                                                                     echo implode(", ", $classNames);
+                                                                    ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?php 
+                                                                    echo $row->IsOptional == 1 ? 'Yes' : 'No';
                                                                     ?>
                                                                 </td>
                                                                 <?php 
