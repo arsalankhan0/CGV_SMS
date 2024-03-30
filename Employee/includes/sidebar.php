@@ -153,6 +153,36 @@
         // Check if the role is "Teaching"
         if ($results['EmpType'] == "Teaching") 
         {
+            $eid = $_SESSION['sturecmsEMPid'];
+            $sql = "SELECT * FROM tblemployees WHERE ID=:eid AND IsDeleted = 0";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+            $query->execute();
+            $employeeData = $query->fetch(PDO::FETCH_ASSOC);
+
+            // Check if any co-curricular subject is assigned
+            $coCurricularAssigned = false;
+
+            if (!empty($employeeData['AssignedSubjects'])) 
+            {
+                $assignedSubjects = explode(',', $employeeData['AssignedSubjects']);
+
+                // Fetch subjects from tblsubjects
+                $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjects) . ") AND IsCurricularSubject = 1 AND IsDeleted = 0";
+                $querySubjects = $dbh->prepare($sqlSubjects);
+                $querySubjects->execute();
+                $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
+
+                // Check if any co-curricular subject is assigned
+                foreach ($subjects as $subject) 
+                {
+                    if ($subject['IsCurricularSubject'] == 1) 
+                    {
+                        $coCurricularAssigned = true;
+                        break;
+                    }
+                }
+            }
         ?>
         <li class="nav-item">
             <a class="nav-link" data-toggle="collapse" href="#students" aria-expanded="false" aria-controls="students">
@@ -162,7 +192,14 @@
             <div class="collapse" id="students">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item"> <a class="nav-link" href="create-marks.php"> Add Score </a></li>
-                    <li class="nav-item"> <a class="nav-link" href="view-students-list.php"> View Score </a></li>
+                    <?php
+                    if ($coCurricularAssigned) 
+                    {
+                        ?>
+                    <li class="nav-item"> <a class="nav-link" href="add-coCurricular-score.php"> Add Co-Curricular Score</a></li>
+                    <?php
+                    }
+                    ?>
                 </ul>
             </div>
         </li>

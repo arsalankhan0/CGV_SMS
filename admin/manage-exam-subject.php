@@ -33,12 +33,12 @@ else
                 $insertFlag = true; // Flag to track insertion status
 
                 // Loop through academic subjects
-                foreach ($_POST['theory'] as $subjectId => $theoryMaxMarks) 
+                foreach ($_POST['FA'] as $subjectId => $theoryMaxMarks) 
                 {
                     // Set default values for disabled fields
-                    $theoryMaxMarks = isset($_POST['theory'][$subjectId]) ? $_POST['theory'][$subjectId] : 0;
-                    $practicalMaxMarks = isset($_POST['practical'][$subjectId]) ? $_POST['practical'][$subjectId] : 0;
-                    $vivaMaxMarks = isset($_POST['viva'][$subjectId]) ? $_POST['viva'][$subjectId] : 0;
+                    $FAMaxMarks = isset($_POST['FA'][$subjectId]) ? $_POST['FA'][$subjectId] : 0;
+                    $CAMaxMarks = isset($_POST['CA'][$subjectId]) ? $_POST['CA'][$subjectId] : 0;
+                    $SAMaxMarks = isset($_POST['SA'][$subjectId]) ? $_POST['SA'][$subjectId] : 0;
                     $passMarks = $_POST['passMarks'][$subjectId];
 
                     // Check if the entry already exists
@@ -54,9 +54,9 @@ else
                     {
                         // Update existing record
                         $updateMaxMarksSql = "UPDATE tblmaxmarks 
-                                                SET TheoryMaxMarks = :theoryMaxMarks, 
-                                                    PracticalMaxMarks = :practicalMaxMarks, 
-                                                    VivaMaxMarks = :vivaMaxMarks,
+                                                SET FAMaxMarks = :FAMaxMarks, 
+                                                    CAMaxMarks = :CAMaxMarks, 
+                                                    SAMaxMarks = :SAMaxMarks,
                                                     PassingPercentage = :passPercent
                                                 WHERE ClassID = :classID 
                                                 AND ExamID = :examID 
@@ -67,25 +67,25 @@ else
                         $updateMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_INT);
                         $updateMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                         $updateMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_INT);
-                        $updateMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
-                        $updateMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
-                        $updateMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':FAMaxMarks', $FAMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':CAMaxMarks', $CAMaxMarks, PDO::PARAM_STR);
+                        $updateMaxMarksQuery->bindParam(':SAMaxMarks', $SAMaxMarks, PDO::PARAM_STR);
                         $updateMaxMarksQuery->bindParam(':passPercent', $passMarks, PDO::PARAM_INT);
                         $updateMaxMarksQuery->execute();
                     } 
                     else 
                     {
                         // Insert new record
-                        $insertMaxMarksSql = "INSERT INTO tblmaxmarks (ClassID, ExamID, SessionID, SubjectID, TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage) 
-                                            VALUES (:classID, :examID, :sessionID, :subjectID, :theoryMaxMarks, :practicalMaxMarks, :vivaMaxMarks, :passPercent)";
+                        $insertMaxMarksSql = "INSERT INTO tblmaxmarks (ClassID, ExamID, SessionID, SubjectID, FAMaxMarks, CAMaxMarks, SAMaxMarks, PassingPercentage) 
+                                            VALUES (:classID, :examID, :sessionID, :subjectID, :FAMaxMarks, :CAMaxMarks, :SAMaxMarks, :passPercent)";
                         $insertMaxMarksQuery = $dbh->prepare($insertMaxMarksSql);
                         $insertMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_INT);
                         $insertMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_INT);
                         $insertMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                         $insertMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_INT);
-                        $insertMaxMarksQuery->bindParam(':theoryMaxMarks', $theoryMaxMarks, PDO::PARAM_STR);
-                        $insertMaxMarksQuery->bindParam(':practicalMaxMarks', $practicalMaxMarks, PDO::PARAM_STR);
-                        $insertMaxMarksQuery->bindParam(':vivaMaxMarks', $vivaMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':FAMaxMarks', $FAMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':CAMaxMarks', $CAMaxMarks, PDO::PARAM_STR);
+                        $insertMaxMarksQuery->bindParam(':SAMaxMarks', $SAMaxMarks, PDO::PARAM_STR);
                         $insertMaxMarksQuery->bindParam(':passPercent', $passMarks, PDO::PARAM_INT);
                         $insertMaxMarksQuery->execute();
                     }
@@ -260,14 +260,15 @@ else
                                     <?php
                                     }
                                     ?>
+                                    <!-- MAIN SUBJECTS -->
                                     <div class="table-responsive border rounded p-1">
                                         <table class="table">
                                             <thead>
                                                 <tr>
                                                     <th class="font-weight-bold">Subjects</th>
-                                                    <th class="font-weight-bold">Max Marks (Theory)</th>
-                                                    <th class="font-weight-bold">Max Marks (Practical)</th>
-                                                    <th class="font-weight-bold">Max Marks (Viva)</th>
+                                                    <th class="font-weight-bold">Max Marks (FA)</th>
+                                                    <th class="font-weight-bold">Max Marks (CA)</th>
+                                                    <th class="font-weight-bold">Max Marks (SA)</th>
                                                     <th class="font-weight-bold">Pass Marks (%)</th>
                                                 </tr>
                                             </thead>
@@ -275,7 +276,7 @@ else
                                                 <?php
                                                 
                                                 // Query to show main subjects
-                                                $subjectSql = "SELECT ID, SubjectName, ClassName, SubjectType FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 0";
+                                                $subjectSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 0";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
                                                 $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
                                                 $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
@@ -287,11 +288,10 @@ else
                                                     <tr>
                                                         <td><?php echo htmlentities($subject['SubjectName']);?></td>
                                                         <?php
-                                                        $subjectTypes = explode(",", strtolower($subject['SubjectType']));
                                                         $subjectId = $subject['ID'];
-                                                        $disabledTheory = (!in_array('theory', $subjectTypes) || $published) ? 'disabled' : '';
-                                                        $disabledPractical = (!in_array('practical', $subjectTypes) || $published) ? 'disabled' : '';
-                                                        $disabledViva = (!in_array('viva', $subjectTypes) || $published) ? 'disabled' : '';
+                                                        $disabledFA = ($published) ? 'disabled' : '';
+                                                        $disabledCA = ($published) ? 'disabled' : '';
+                                                        $disabledSA = ($published) ? 'disabled' : '';
                                                         $disabledPassMarks = ($published) ? 'disabled' : '';
 
                                                         // Fetch the Default Passing Marks
@@ -305,7 +305,7 @@ else
 
 
                                                         // Fetch existing record from tblmaxmarks
-                                                        $getMaxMarksSql = "SELECT TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage 
+                                                        $getMaxMarksSql = "SELECT FAMaxMarks, CAMaxMarks, SAMaxMarks, PassingPercentage 
                                                                             FROM tblmaxmarks 
                                                                             WHERE ClassID = :classID 
                                                                             AND ExamID = :examID 
@@ -319,207 +319,36 @@ else
                                                         $getMaxMarksQuery->execute();
                                                         $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
 
-                                                        $theoryMaxMarks = ($maxMarksData) ? $maxMarksData['TheoryMaxMarks'] : 0;
-                                                        $practicalMaxMarks = ($maxMarksData) ? $maxMarksData['PracticalMaxMarks'] : 0;
-                                                        $vivaMaxMarks = ($maxMarksData) ? $maxMarksData['VivaMaxMarks'] : 0;
+                                                        $FAMaxMarks = ($maxMarksData) ? $maxMarksData['FAMaxMarks'] : 0;
+                                                        $CAMaxMarks = ($maxMarksData) ? $maxMarksData['CAMaxMarks'] : 0;
+                                                        $SAMaxMarks = ($maxMarksData) ? $maxMarksData['SAMaxMarks'] : 0;
                                                         $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
 
                                                         ?>
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 min="0"
-                                                                name="theory[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $theoryMaxMarks; ?>"
-                                                                <?php echo $disabledTheory;
+                                                                name="FA[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $FAMaxMarks; ?>"
+                                                                <?php echo $disabledFA;
                                                                 ?>
                                                                 >
                                                         </td>
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 min="0"
-                                                                name="practical[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $practicalMaxMarks; ?>"
-                                                                <?php echo $disabledPractical; 
+                                                                name="CA[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $CAMaxMarks; ?>"
+                                                                <?php echo $disabledCA; 
                                                                 ?>
                                                                 >
                                                         </td>
                                                         <td>
                                                             <input type="number" class="border border-secondary py-1"
                                                                 min="0"
-                                                                name="viva[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $vivaMaxMarks; ?>"
-                                                                <?php echo $disabledViva; 
-                                                                ?>
-                                                                >
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="border border-secondary py-1"
-                                                                min="0"
-                                                                name="passMarks[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $passingPercent;?>"
-                                                                <?php echo $disabledPassMarks;?>
-                                                                >
-                                                        </td>
-                                                    </tr>
-                                                    <?php
-                                                }
-                                                ?>
-                                                <tr>
-                                                    <td colspan="5" class="text-center">
-                                                        <strong>OPTIONAL SUBJECTS</strong>
-                                                        <span id="optional-tooltip" data-toggle="tooltip" title="If the marks are in grades leave the fields empty">
-                                                            <i class="icon-info ml-2"></i>
-                                                        </span>
-                                                    </td>
-                                                </tr>
-
-                                                <?php
-                                                // Query to show optional subjects
-                                                $subjectSql = "SELECT ID, SubjectName, ClassName, SubjectType FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 1";
-                                                $subjectQuery = $dbh->prepare($subjectSql);
-                                                $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
-                                                $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-                                                $subjectQuery->execute();
-                                                $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
-
-                                                foreach ($subjects as $subject) {
-                                                    ?>
-                                                    <tr>
-                                                        <td><?php echo htmlentities($subject['SubjectName']);?></td>
-                                                        <?php
-                                                        $subjectTypes = explode(",", strtolower($subject['SubjectType']));
-                                                        $subjectId = $subject['ID'];
-                                                        $disabledTheory = (!in_array('theory', $subjectTypes) || $published) ? 'disabled' : '';
-                                                        $disabledPractical = (!in_array('practical', $subjectTypes) || $published) ? 'disabled' : '';
-                                                        $disabledViva = (!in_array('viva', $subjectTypes) || $published) ? 'disabled' : '';
-                                                        $disabledPassMarks = ($published) ? 'disabled' : '';
-
-                                                        // Fetch the Default Passing Marks
-                                                        $passPercentID = 1; 
-                                                        $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent
-                                                                                WHERE ID = :id";
-                                                        $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
-                                                        $defaultPassMarksQuery->bindParam(':id', $passPercentID, PDO::PARAM_INT);
-                                                        $defaultPassMarksQuery->execute();
-                                                        $defaultPassMarks = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
-
-
-                                                        // Fetch existing record from tblmaxmarks
-                                                        $getMaxMarksSql = "SELECT TheoryMaxMarks, PracticalMaxMarks, VivaMaxMarks, PassingPercentage 
-                                                                            FROM tblmaxmarks 
-                                                                            WHERE ClassID = :classID 
-                                                                            AND ExamID = :examID 
-                                                                            AND SessionID = :sessionID 
-                                                                            AND SubjectID = :subjectID";
-                                                        $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
-                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->execute();
-                                                        $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
-
-                                                        $theoryMaxMarks = ($maxMarksData) ? $maxMarksData['TheoryMaxMarks'] : 0;
-                                                        $practicalMaxMarks = ($maxMarksData) ? $maxMarksData['PracticalMaxMarks'] : 0;
-                                                        $vivaMaxMarks = ($maxMarksData) ? $maxMarksData['VivaMaxMarks'] : 0;
-                                                        $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
-
-                                                        ?>
-                                                        <td>
-                                                            <input type="number" class="border border-secondary py-1"
-                                                                min="0"
-                                                                name="theory[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $theoryMaxMarks; ?>"
-                                                                <?php echo $disabledTheory;
-                                                                ?>
-                                                                >
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="border border-secondary py-1"
-                                                                min="0"
-                                                                name="practical[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $practicalMaxMarks; ?>"
-                                                                <?php echo $disabledPractical; 
-                                                                ?>
-                                                                >
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="border border-secondary py-1"
-                                                                min="0"
-                                                                name="viva[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $vivaMaxMarks; ?>"
-                                                                <?php echo $disabledViva; 
-                                                                ?>
-                                                                >
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="border border-secondary py-1"
-                                                                min="0"
-                                                                name="passMarks[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $passingPercent;?>"
-                                                                <?php echo $disabledPassMarks;?>
-                                                                >
-                                                        </td>
-                                                    </tr>
-                                                    <?php
-                                                }
-                                                ?>
-                                                <tr>
-                                                    <td colspan="5" class="text-center"><strong>CO-CURRICULAR COMPONENT</strong></td>
-                                                </tr>
-                                                <?php
-                                                // Query to show Co-Curricular subjects
-                                                $subjectCurricularSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND IsCurricularSubject = 1 AND SessionID = :sessionID";
-                                                $subjectCurricularQuery = $dbh->prepare($subjectCurricularSql);
-                                                $subjectCurricularQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
-                                                $subjectCurricularQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-                                                $subjectCurricularQuery->execute();
-                                                $curricularSubjects = $subjectCurricularQuery->fetchAll(PDO::FETCH_ASSOC);
-
-                                                foreach ($curricularSubjects as $curricularSubject) {
-                                                    ?>
-                                                    <tr>
-                                                        <td><?php echo htmlentities($curricularSubject['SubjectName']);?></td>
-                                                        <?php
-                                                        $subjectId = $curricularSubject['ID'];
-                                                        $disabledCurricular = ($published) ? 'disabled' : '';
-                                                        $disabledPassMarks = ($published) ? 'disabled' : '';
-
-                                                        // Fetch the Default Passing Marks
-                                                        $passPercentID = 1; 
-                                                        $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent
-                                                                                WHERE ID = :id";
-                                                        $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
-                                                        $defaultPassMarksQuery->bindParam(':id', $passPercentID, PDO::PARAM_INT);
-                                                        $defaultPassMarksQuery->execute();
-                                                        $defaultPassMarks = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
-
-
-                                                        // Fetch existing record from tblmaxmarks
-                                                        $getMaxMarksSql = "SELECT CoCurricularMaxMarks, PassingPercentage 
-                                                                            FROM tblmaxmarks 
-                                                                            WHERE ClassID = :classID 
-                                                                            AND ExamID = :examID 
-                                                                            AND SessionID = :sessionID 
-                                                                            AND SubjectID = :subjectID";
-                                                        $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
-                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
-                                                        $getMaxMarksQuery->execute();
-                                                        $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
-
-                                                        $curricularMaxMarks = ($maxMarksData) ? $maxMarksData['CoCurricularMaxMarks'] : 0;
-                                                        $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
-
-                                                        ?>
-                                                        <td colspan="3">
-                                                            <input type="number" class="border border-secondary py-1 w-100"
-                                                                min="0"
-                                                                name="curricular[<?php echo $subjectId; ?>]"
-                                                                value="<?php echo $curricularMaxMarks; ?>"
-                                                                <?php echo $disabledCurricular;
+                                                                name="SA[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $SAMaxMarks; ?>"
+                                                                <?php echo $disabledSA; 
                                                                 ?>
                                                                 >
                                                         </td>
@@ -538,9 +367,204 @@ else
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="d-flex justify-content-end pt-4">
-                                        <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
+                                    <!-- OPTIONAL SUBJECTS -->
+                                    <div class="table table-responsive border rounded mt-2 p-1">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="5" class="text-center">
+                                                        <strong>OPTIONAL SUBJECTS</strong>
+                                                        <span id="optional-tooltip" data-toggle="tooltip" title="If the marks are in grades leave the fields empty">
+                                                            <i class="icon-info ml-2"></i>
+                                                        </span>
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th class="font-weight-bold">Subjects</th>
+                                                    <th class="font-weight-bold">Max Marks (FA)</th>
+                                                    <th class="font-weight-bold" colspan="2">Max Marks (SA)</th>
+                                                    <th class="font-weight-bold">Pass Marks (%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                // Query to show optional subjects
+                                                $subjectSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 1";
+                                                $subjectQuery = $dbh->prepare($subjectSql);
+                                                $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
+                                                $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                                                $subjectQuery->execute();
+                                                $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($subjects as $subject) {
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo htmlentities($subject['SubjectName']);?></td>
+                                                        <?php
+                                                        $subjectId = $subject['ID'];
+                                                        $disabledFA = ($published) ? 'disabled' : '';
+                                                        $disabledSA = ($published) ? 'disabled' : '';
+                                                        $disabledPassMarks = ($published) ? 'disabled' : '';
+
+                                                        // Fetch the Default Passing Marks
+                                                        $passPercentID = 1; 
+                                                        $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent
+                                                                                WHERE ID = :id";
+                                                        $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
+                                                        $defaultPassMarksQuery->bindParam(':id', $passPercentID, PDO::PARAM_INT);
+                                                        $defaultPassMarksQuery->execute();
+                                                        $defaultPassMarks = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
+
+
+                                                        // Fetch existing record from tblmaxmarks
+                                                        $getMaxMarksSql = "SELECT FAMaxMarks, CAMaxMarks, SAMaxMarks, PassingPercentage 
+                                                                            FROM tblmaxmarks 
+                                                                            WHERE ClassID = :classID 
+                                                                            AND ExamID = :examID 
+                                                                            AND SessionID = :sessionID 
+                                                                            AND SubjectID = :subjectID";
+                                                        $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
+                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->execute();
+                                                        $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                        $FAMaxMarks = ($maxMarksData) ? $maxMarksData['FAMaxMarks'] : 0;
+                                                        $SAMaxMarks = ($maxMarksData) ? $maxMarksData['SAMaxMarks'] : 0;
+                                                        $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
+
+                                                        ?>
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
+                                                                min="0"
+                                                                name="FA[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $FAMaxMarks; ?>"
+                                                                <?php echo $disabledFA;
+                                                                ?>
+                                                                >
+                                                        </td>
+                                                        <td colspan="2">
+                                                            <input type="number" class="border border-secondary py-1"
+                                                                min="0"
+                                                                name="SA[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $SAMaxMarks; ?>"
+                                                                <?php echo $disabledSA; 
+                                                                ?>
+                                                                >
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="border border-secondary py-1"
+                                                                min="0"
+                                                                name="passMarks[<?php echo $subjectId; ?>]"
+                                                                value="<?php echo $passingPercent;?>"
+                                                                <?php echo $disabledPassMarks;?>
+                                                                >
+                                                        </td>
+                                                    </tr>
+                                                    <?php
+                                                }
+                                                ?>
+                                            </tbody>
+                                        </table>
                                     </div>
+                                    <!-- CO-CURRICULAR SUBJECTS -->
+                                    <div class="table table-responsive border rounded mt-2 p-1">
+                                        <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="5" class="text-center"><strong>CO-CURRICULAR COMPONENT</strong></th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="font-weight-bold">Subjects</th>
+                                                        <th class="font-weight-bold" colspan="2">Max Marks</th>
+                                                        <th class="font-weight-bold" colspan="2">Pass Marks (%)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    
+                                                    <?php
+                                                    // Query to show Co-Curricular subjects
+                                                    $subjectCurricularSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND IsCurricularSubject = 1 AND SessionID = :sessionID";
+                                                    $subjectCurricularQuery = $dbh->prepare($subjectCurricularSql);
+                                                    $subjectCurricularQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
+                                                    $subjectCurricularQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                                                    $subjectCurricularQuery->execute();
+                                                    $curricularSubjects = $subjectCurricularQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                    foreach ($curricularSubjects as $curricularSubject) {
+                                                        ?>
+                                                        <tr>
+                                                            <td><?php echo htmlentities($curricularSubject['SubjectName']);?></td>
+                                                            <?php
+                                                            $subjectId = $curricularSubject['ID'];
+                                                            $disabledCurricular = ($published) ? 'disabled' : '';
+                                                            $disabledPassMarks = ($published) ? 'disabled' : '';
+
+                                                            // Fetch the Default Passing Marks
+                                                            $passPercentID = 1; 
+                                                            $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent
+                                                                                    WHERE ID = :id";
+                                                            $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
+                                                            $defaultPassMarksQuery->bindParam(':id', $passPercentID, PDO::PARAM_INT);
+                                                            $defaultPassMarksQuery->execute();
+                                                            $defaultPassMarks = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
+
+
+                                                            // Fetch existing record from tblmaxmarks
+                                                            $getMaxMarksSql = "SELECT CoCurricularMaxMarks, PassingPercentage 
+                                                                                FROM tblmaxmarks 
+                                                                                WHERE ClassID = :classID 
+                                                                                AND ExamID = :examID 
+                                                                                AND SessionID = :sessionID 
+                                                                                AND SubjectID = :subjectID";
+                                                            $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
+                                                            $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                                                            $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
+                                                            $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+                                                            $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
+                                                            $getMaxMarksQuery->execute();
+                                                            $maxMarksData = $getMaxMarksQuery->fetch(PDO::FETCH_ASSOC);
+
+                                                            $curricularMaxMarks = ($maxMarksData) ? $maxMarksData['CoCurricularMaxMarks'] : 0;
+                                                            $passingPercent = ($maxMarksData) ? $maxMarksData['PassingPercentage'] : $defaultPassMarks;
+
+                                                            ?>
+                                                            <td colspan="2">
+                                                                <input type="number" class="border border-secondary py-1 w-100"
+                                                                    min="0"
+                                                                    name="curricular[<?php echo $subjectId; ?>]"
+                                                                    value="<?php echo $curricularMaxMarks; ?>"
+                                                                    <?php echo $disabledCurricular;
+                                                                    ?>
+                                                                    >
+                                                            </td>
+                                                            <td colspan="2">
+                                                                <input type="number" class="border border-secondary py-1"
+                                                                    min="0"
+                                                                    name="passMarks[<?php echo $subjectId; ?>]"
+                                                                    value="<?php echo $passingPercent;?>"
+                                                                    <?php echo $disabledPassMarks;?>
+                                                                    >
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                    ?>
+                                                </tbody>
+                                        </table>
+                                    </div>
+                                    <?php
+                                    if(!$published)
+                                    {
+                                    ?>
+                                    <div class="d-flex justify-content-end pt-4">
+                                        <button type="submit" class="btn btn-primary mr-2" name="submit" >Add</button>
+                                    </div>
+                                    <?php
+                                    }
+                                    ?>
                                 </form>
                             </div>
                         </div>

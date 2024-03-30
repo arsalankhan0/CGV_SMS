@@ -10,14 +10,44 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 else 
 {
     $eid = $_SESSION['sturecmsEMPid'];
-    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid AND IsDeleted = 0";
     $query = $dbh->prepare($sql);
     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
     $query->execute();
-    $IsAccessible = $query->fetch(PDO::FETCH_ASSOC);
-
-    // Check if the role is "Teaching"
-    if ($IsAccessible['EmpType'] != "Teaching") 
+    $employeeData = $query->fetch(PDO::FETCH_ASSOC);
+    
+    // Check if the role is not "Teaching" or if there are no assigned subjects
+    if ($employeeData['EmpType'] != "Teaching") 
+    {
+        echo "<h1>You have no permission to access this page!</h1>";
+        exit;
+    }
+    // Fetch assigned subjects for the employee
+    $assignedSubjects = explode(',', $employeeData['AssignedSubjects']);
+    
+    // Check if any assigned subject is co-curricular
+    $coCurricularAssigned = false;
+    
+    if (!empty($assignedSubjects)) 
+    {
+        // Fetch subjects from tblsubjects
+        $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjects) . ") AND IsCurricularSubject = 1 AND IsDeleted = 0";
+        $querySubjects = $dbh->prepare($sqlSubjects);
+        $querySubjects->execute();
+        $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
+    
+        // Check if any co-curricular subject is assigned
+        foreach ($subjects as $subject) 
+        {
+            if ($subject['IsCurricularSubject'] == 1) 
+            {
+                $coCurricularAssigned = true;
+                break;
+            }
+        }
+    }
+    // Check if no co-curricular subject is assigned
+    if (!$coCurricularAssigned) 
     {
         echo "<h1>You have no permission to access this page!</h1>";
         exit;
@@ -57,7 +87,7 @@ else
         $checkResultPublishedQuery->execute();
         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
 
-        if (isset($_SESSION['classIDs']) && isset($_SESSION['examName'])) 
+        if (isset($_SESSION['classIDs']) && isset($_SESSION['sessionYear']) && isset($_SESSION['SectionIDs'])) 
         {
             // Fetch students
             $classIDs = unserialize($_SESSION['classIDs']);
@@ -81,25 +111,23 @@ else
                 $assignedSubjectsIDs = explode(',', $assignedSubjects);
 
                 // Fetch assigned subjects
-                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND IsDeleted = 0";
+                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND IsCurricularSubject = 1 AND IsDeleted = 0";
                 $subjectQuery = $dbh->prepare($subjectSql);
                 $subjectQuery->execute();
                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
 
                 // Function to check if the max marks are assigned by the admin
-                function getMaxMarks($classID, $examID, $sessionID, $subjectID, $type) 
+                function getMaxMarks($classID, $sessionID, $subjectID, $type) 
                 {
                     global $dbh;
                     
                     $sql = "SELECT * FROM tblmaxmarks 
                             WHERE ClassID = :classID 
-                            AND ExamID = :examID 
                             AND SessionID = :sessionID 
                             AND SubjectID = :subjectID";
                     
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
-                    $query->bindParam(':examID', $examID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                     $query->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
                     
@@ -114,19 +142,17 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type)
+                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
 
                     $sql = "SELECT SubjectsJSON FROM tblreports 
                             WHERE ClassName = :classID 
                             AND ExamSession = :sessionID 
-                            AND ExamName = :examID 
                             AND IsDeleted = 0";
 
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
-                    $query->bindParam(':examID', $examID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
 
                     $query->execute();
@@ -160,7 +186,6 @@ else
                 try 
                 {
                     $dbh->beginTransaction();
-                    $examID = $_SESSION['examName'];
             
                     foreach ($students as $student) 
                     {
@@ -169,70 +194,44 @@ else
                         $studentSubjectsData = array();
                         
                         foreach ($subjects as $subject) 
-                        {
-                            // Form input names
-                            $FAMaxMarks = isset($_POST['FAMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['FAMaxMarks'][$student['ID']][$subject['ID']] : 0;
-                            $FAMarksObtained = isset($_POST['FAMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['FAMarksObtained'][$student['ID']][$subject['ID']] : 0;
-        
-                            $CAMaxMarks = isset($_POST['CAMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['CAMaxMarks'][$student['ID']][$subject['ID']] : 0;
-                            $CAMarksObtained = isset($_POST['CAMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['CAMarksObtained'][$student['ID']][$subject['ID']] : 0;
-        
-                            $SAMaxMarks = isset($_POST['SAMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['SAMaxMarks'][$student['ID']][$subject['ID']] : 0;
-                            $SAMarksObtained = isset($_POST['SAMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['SAMarksObtained'][$student['ID']][$subject['ID']] : 0;
-                            
+                        {   
                             $coCurricularMaxMarks = isset($_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']] : 0;
                             $coCurricularMarksObtained = isset($_POST['CoCurricularMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['CoCurricularMarksObtained'][$student['ID']][$subject['ID']] : 0;
-
-                            
 
                             // An array for subject data
                             $subjectData = array(
                                 'SubjectID' => $subject['ID'],
-                                'FAMaxMarks' => $FAMaxMarks,
-                                'FAMarksObtained' => $FAMarksObtained,
-                                'CAMaxMarks' => $CAMaxMarks,
-                                'CAMarksObtained' => $CAMarksObtained,
-                                'SAMaxMarks' => $SAMaxMarks,
-                                'SAMarksObtained' => $SAMarksObtained,
-                                'IsOptional' => $subject['IsOptional'],
                                 'CoCurricularMaxMarks' => $coCurricularMaxMarks,
                                 'CoCurricularMarksObtained' => $coCurricularMarksObtained,
-                                'IsCurricular' => $subject['IsCurricularSubject'],
                             );
-
-
                             $studentSubjectsData[] = $subjectData;
 
                             $subjectsJSON = json_encode($studentSubjectsData);
                             
                             // Check for existing entry in tblreports
-                            $checkExistingSql = "SELECT ExamSession, ClassName, ExamName, StudentName FROM tblreports 
+                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName FROM tblcocurricularreports 
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
-                                                    AND ExamName = :examID 
                                                     AND StudentName = :studentID 
                                                     AND SubjectsJSON = :subjectData
                                                     AND IsDeleted = 0";
                             $checkExistingQuery = $dbh->prepare($checkExistingSql);
                             $checkExistingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $checkExistingQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':subjectData', $subjectsJSON, PDO::PARAM_INT);
                             $checkExistingQuery->execute();
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
                             // Check for existing entry in tblmaxmarks
-                            $checkExistingMaxSql = "SELECT SessionID, ClassID, ExamID, SubjectID, PassingPercentage FROM tblmaxmarks 
+                            $checkExistingMaxSql = "SELECT SessionID, ClassID, SubjectID, PassingPercentage FROM tblmaxmarks 
                                                     WHERE SessionID = :sessionID 
                                                     AND ClassID = :classID 
-                                                    AND ExamID = :examID 
                                                     AND SubjectID = :subjectID
                                                     AND IsDeleted = 0";
                             $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
                             $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
                             $checkExistingMaxQuery->execute();
                             $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
@@ -245,25 +244,13 @@ else
                             $defaultPassMarksQuery->execute();
                             $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
 
-                            // Calculate passing marks for each subject
-                            $FAPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $FAMaxMarks
-                            : $defaultPassPercent / 100 * $FAMaxMarks;
-
-                            $CAPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $CAMaxMarks
-                            : $defaultPassPercent / 100 * $CAMaxMarks;
-
-                            $SAPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SAMaxMarks
-                            : $defaultPassPercent / 100 * $SAMaxMarks;
+                            // Calculate passing marks for co-curricular subject
+                            $CoCurricularPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
+                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $CoCurricularMaxMarks
+                            : $defaultPassPercent / 100 * $CoCurricularMaxMarks;
 
                              // Check if marks obtained are less than passing marks for each subject
-                            if (
-                                $FAMarksObtained < $FAPassMarks ||
-                                $CAMarksObtained < $CAPassMarks ||
-                                $SAMarksObtained < $SAPassMarks
-                            ) 
+                            if ($CoCurricularMarksObtained < $FAPassMarks) 
                             {
                                 $totalPass = false;
                             }
@@ -271,17 +258,14 @@ else
                             // Insert Max Marks in tblmaxmarks
                             if(!$existingMaxReportDetails)
                             {
-                                    $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, ExamID, SubjectID, FAMaxMarks, CAMaxMarks, SAMaxMarks, PassingPercentage)
-                                                VALUES (:sessionID, :classID, :examID, :subjectID, :FAMaxMarks, :CAMaxMarks, :SAMaxMarks, :passingPercentage)";
+                                    $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, SubjectID, CoCurricularMaxMarks, PassingPercentage)
+                                                VALUES (:sessionID, :classID, :subjectID, :CoCurricularMaxMarks, :passingPercentage)";
                 
                                     $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
                                     $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                     $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                                     $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':FAMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':CAMaxMarks', $CAMaxMarks, PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':SAMaxMarks', $SAMaxMarks, PDO::PARAM_INT);            
+                                    $insertAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $CoCurricularMaxMarks, PDO::PARAM_INT);
                                     $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
                                     $insertAdminMaxQuery->execute();
                             }
@@ -290,22 +274,15 @@ else
                             {
                                 // If an existing entry is found in tblmaxmarks, update the data
                                 $updateAdminSql = "UPDATE tblmaxmarks SET 
-                                                FAMaxMarks = :FAMaxMarks, 
-                                                CAMaxMarks = :CAMaxMarks, 
-                                                SAMaxMarks = :SAMaxMarks
+                                                CoCurricularMaxMarks = :CoCurricularMaxMarks, 
                                                 WHERE SessionID = :sessionID 
                                                 AND ClassID = :classID 
-                                                AND ExamID = :examID 
                                                 AND SubjectID = :subjectID 
                                                 AND IsDeleted = 0";
-                            
                                 $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
-                                $updateAdminMaxQuery->bindParam(':FAMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':CAMaxMarks', $CAMaxMarks, PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':SAMaxMarks', $SAMaxMarks, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
                                 $updateAdminMaxQuery->execute();
                             }
@@ -313,8 +290,8 @@ else
                         // If the student is not in tblreports, insert the student
                         if (!$existingReportDetails) 
                         {
-                            $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, ExamName, StudentName, SubjectsJSON, IsPassed)
-                                            VALUES (:sessionID, :classID, :examID, :studentID, :subjectsJSON, :isPassed)";
+                            $insertSql = "INSERT INTO tblcocurricularreports (ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed)
+                                            VALUES (:sessionID, :classID, :studentID, :subjectsJSON, :isPassed)";
                             $insertQuery = $dbh->prepare($insertSql);
                             
                             
@@ -322,7 +299,6 @@ else
                             
                             $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $insertQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                             $insertQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
                             $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
@@ -334,12 +310,11 @@ else
                             $subjectsJSON = json_encode($studentSubjectsData);
 
                             // If an existing entry is found, update the data
-                            $updateReportSql = "UPDATE tblreports SET 
+                            $updateReportSql = "UPDATE tblcocurricularreports SET 
                                                 SubjectsJSON = :subjectsJSON, 
                                                 IsPassed = :isPassed
                                                 WHERE ExamSession = :sessionID 
                                                 AND ClassName = :classID 
-                                                AND ExamName = :examID 
                                                 AND StudentName = :studentID 
                                                 AND IsDeleted = 0";
                         
@@ -348,7 +323,6 @@ else
                             $updateReportQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $updateReportQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                             $updateReportQuery->execute();
                         }
@@ -368,7 +342,7 @@ else
         } 
         else 
         {
-            header("Location:create-marks.php");
+            header("Location:add-coCurricular-score.php");
         }
 ?>
 
@@ -421,18 +395,7 @@ else
                                 {
                             ?>
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Create Student Report For <strong><?php
-                                    $sql = "SELECT * FROM tblexamination WHERE ID = " . $_SESSION['examName'] . " AND IsDeleted = 0";
-                                    $query = $dbh->prepare($sql);
-                                    $query->execute();
-                                    $examinations = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                    foreach ($examinations as $exam) 
-                                    {
-                                        echo htmlentities($exam['ExamName']);
-                                    }
-                                    ?></strong></h4>
-
+                                    <h4 class="card-title" style="text-align: center;">Create Co-Curricular Report of Academic Session <?php echo '('.$sessionName.')'; ?></h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php 
                                     if ($successAlert) 
@@ -473,8 +436,6 @@ else
                                                     { 
                                                         // Check if subject is co-curricular
                                                         $isCurricularSubject = $subject['IsCurricularSubject'];
-                                                        // Check if subject is optional
-                                                        $isOptional = $subject['IsOptional'];
 
                                                         if ($isCurricularSubject === 1) 
                                                         {
@@ -482,24 +443,14 @@ else
                                                             <th colspan="2" rowspan="2" class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']); ?></th>
                                                         <?php
                                                         }
-                                                        elseif($isOptional === 1)
-                                                        {?>
-                                                            <th colspan="4" class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']); ?></th>
-                                                        <?php
-                                                        }
-                                                        else
-                                                        { 
+                                                    }
                                                         ?>
-                                                            <th colspan="6" class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']); ?></th>
-                                                    <?php } }?>
                                                 </tr>
                                                 <tr>
                                                     <?php foreach ($subjects as $subject) 
                                                     { 
                                                          // Check if subject is co-curricular
                                                         $isCurricularSubject = $subject['IsCurricularSubject'];
-                                                        // Check if subject is optional
-                                                        $isOptional = $subject['IsOptional'];
 
                                                         if ($isCurricularSubject == 1) 
                                                         {
@@ -507,19 +458,8 @@ else
                                                             <th colspan="2"></th>
                                                         <?php
                                                         } 
-                                                        elseif($isOptional === 1)
-                                                        {?>
-                                                            <th colspan="2">FORMATIVE ASSESSMENT (FA)</th>
-                                                            <th colspan="2">SUMMATIVE ASSESSMENT (SA)</th>
-                                                        <?php
-                                                        }
-                                                        else
-                                                        {?>
-                                                            <th colspan="2">FORMATIVE ASSESSMENT (FA)</th>
-                                                            <th colspan="2">CO-CURRICULAR ACTIVITIES (CA)</th>
-                                                            <th colspan="2">SUMMATIVE ASSESSMENT (SA)</th>
-                                                    <?php
-                                                    } }?>
+                                                    }
+                                                        ?>
                                                 </tr>
                                                 <tr>
                                                     <?php foreach ($subjects as $subject) 
@@ -536,24 +476,7 @@ else
                                                             <td>Marks Obtained</td>
                                                         <?php
                                                         }
-                                                        elseif($isOptional === 1)
-                                                        {?>
-                                                            <td>Max Marks</td>
-                                                            <td>Marks Obtained</td>
-                                                            <td>Max Marks</td>
-                                                            <td>Marks Obtained</td>
-                                                        <?php
-                                                        }
-                                                        else
-                                                        { 
-                                                        ?>
-                                                            <td>Max Marks</td>
-                                                            <td>Marks Obtained</td>
-                                                            <td>Max Marks</td>
-                                                            <td>Marks Obtained</td>
-                                                            <td>Max Marks</td>
-                                                            <td>Marks Obtained</td>
-                                                    <?php } }?>
+                                                    }?>
                                                 </tr>
                                             <tbody>
                                             <?php foreach ($students as $student) 
@@ -563,19 +486,16 @@ else
                                                     <?php 
                                                     foreach ($subjects as $subject) 
                                                     { 
-
                                                         $subjectID = $subject['ID'];
                                                             // Check if marks exist in tblreports for the student, exam, and subject type
-                                                            $checkMarksSql = "SELECT * FROM tblreports 
+                                                            $checkMarksSql = "SELECT * FROM tblcocurricularreports 
                                                                                 WHERE ExamSession = :sessionID 
                                                                                 AND ClassName = :classID 
-                                                                                AND ExamName = :examID 
                                                                                 AND StudentName = :studentID 
                                                                                 AND IsDeleted = 0";
                                                             $checkMarksQuery = $dbh->prepare($checkMarksSql);
                                                             $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                                             $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                                            $checkMarksQuery->bindParam(':examID', $_SESSION['examName'], PDO::PARAM_INT);
                                                             $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
                                                             $checkMarksQuery->execute();
                                                             $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
@@ -588,36 +508,22 @@ else
                                                             {
                                                                 if ($subjectData['SubjectID'] == $subjectID) 
                                                                 {
-                                                                    $FAMarksObtained = $subjectData['FAMarksObtained'] ?? '';
-                                                                    $CAMarksObtained = $subjectData['CAMarksObtained'] ?? '';
-                                                                    $SAMarksObtained = $subjectData['SAMarksObtained'] ?? '';
                                                                     $coCurricularMarksObtained = $subjectData['CoCurricularMarksObtained'] ?? '';
                                                                     break;
                                                                 }
                                                             }
                                                             
                                                             // Storing max marks that admin gives, in variables.
-                                                            $adminFAMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'FA');
-                                                            $adminCAMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CA');
-                                                            $adminSAMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'SA');
                                                             $adminCoCurricularMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular');
                                                             
                                                             // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                            $FAMaxMarksToShow = ($adminFAMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'FA') : $adminFAMaxMarks;
-                                                            $CAMaxMarksToShow = ($adminCAMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CA') : $adminCAMaxMarks;
-                                                            $SAMaxMarksToShow = ($adminSAMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'SA') : $adminSAMaxMarks;
                                                             $coCurricularMaxMarksToShow = ($adminCoCurricularMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular') : $adminCoCurricularMaxMarks;
                                                             
                                                             // Disable the input fields if the condition matches. 
-                                                            $disabledFA = ($publishedResult) ? 'disabled' : ''; 
-                                                            $disabledCA = ($publishedResult) ? 'disabled' : ''; 
-                                                            $disabledSA = ($publishedResult) ? 'disabled' : ''; 
                                                             $disabledCoCurricular = ($publishedResult) ? 'disabled' : ''; 
 
                                                             // Check if subject is co-curricular
                                                             $isCurricularSubject = $subject['IsCurricularSubject'];
-                                                            // Check if subject is optional
-                                                            $isOptional = $subject['IsOptional'];
                                                             
                                                             if ($isCurricularSubject == 1) 
                                                             {
@@ -633,70 +539,6 @@ else
                                                                         value="<?php echo $coCurricularMarksObtained; ?>">
                                                                 </td>
                                                             <?php
-                                                            }
-                                                            elseif($isOptional === 1)
-                                                            {?>
-                                                                <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="FAMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo $disabledFA; ?>
-                                                                        value="<?php echo ($FAMaxMarksToShow !== null) ? $FAMaxMarksToShow : ''; ?>"
-                                                                        >
-                                                                </td>
-                                                                <td>
-                                                                        <input type='number' class='border border-secondary' name="FAMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo $disabledFA; ?>
-                                                                            value="<?php echo $FAMarksObtained; ?>">
-                                                                </td>
-                                                                <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="SAMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo $disabledSA; ?>
-                                                                        value="<?php echo ($SAMaxMarksToShow !== null) ? $SAMaxMarksToShow : ''; ?>"
-                                                                        >
-                                                                </td>
-                                                                <td>
-                                                                        <input type='number' class='border border-secondary' name="SAMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo $disabledSA; ?>
-                                                                            value="<?php echo $SAMarksObtained; ?>">
-                                                                </td>
-                                                            <?php
-                                                            }
-                                                            else
-                                                            { 
-                                                            ?>
-                                                                <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="FAMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo $disabledFA; ?>
-                                                                        value="<?php echo ($FAMaxMarksToShow !== null) ? $FAMaxMarksToShow : ''; ?>"
-                                                                        >
-                                                                </td>
-                                                                <td>
-                                                                        <input type='number' class='border border-secondary' name="FAMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo $disabledFA; ?>
-                                                                            value="<?php echo $FAMarksObtained; ?>">
-                                                                </td>
-                                                                <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="CAMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo $disabledCA; ?>
-                                                                        value="<?php echo ($CAMaxMarksToShow !== null) ? $CAMaxMarksToShow : ''; ?>"
-                                                                        >
-                                                                </td>
-                                                                <td>
-                                                                        <input type='number' class='border border-secondary' name="CAMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo $disabledCA; ?>
-                                                                            value="<?php echo $CAMarksObtained; ?>">
-                                                                </td>
-                                                                <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="SAMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                        <?php echo $disabledSA; ?>
-                                                                        value="<?php echo ($SAMaxMarksToShow !== null) ? $SAMaxMarksToShow : ''; ?>"
-                                                                        >
-                                                                </td>
-                                                                <td>
-                                                                        <input type='number' class='border border-secondary' name="SAMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                            <?php echo $disabledSA; ?>
-                                                                            value="<?php echo $SAMarksObtained; ?>">
-                                                                </td>
-                                                            <?php 
                                                             }
                                                     } ?>
                                                 </tr>

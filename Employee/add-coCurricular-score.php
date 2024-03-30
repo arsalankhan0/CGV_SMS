@@ -10,28 +10,66 @@ if (strlen($_SESSION['sturecmsEMPid'] == 0))
 else 
 {
     $eid = $_SESSION['sturecmsEMPid'];
-    $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
+    $sql = "SELECT * FROM tblemployees WHERE ID=:eid AND IsDeleted = 0";
     $query = $dbh->prepare($sql);
     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
     $query->execute();
-    $IsAccessible = $query->fetch(PDO::FETCH_ASSOC);
-
-    // Check if the role is "Teaching"
-    if ($IsAccessible['EmpType'] != "Teaching") 
+    $employeeData = $query->fetch(PDO::FETCH_ASSOC);
+    
+    // Check if the role is not "Teaching" or if there are no assigned subjects
+    if ($employeeData['EmpType'] != "Teaching") 
     {
         echo "<h1>You have no permission to access this page!</h1>";
         exit;
     }
+    // Fetch assigned subjects for the employee
+    $assignedSubjects = explode(',', $employeeData['AssignedSubjects']);
+    
+    // Check if any assigned subject is co-curricular
+    $coCurricularAssigned = false;
+    
+    if (!empty($assignedSubjects)) 
+    {
+        // Fetch subjects from tblsubjects
+        $sqlSubjects = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjects) . ") AND IsCurricularSubject = 1 AND IsDeleted = 0";
+        $querySubjects = $dbh->prepare($sqlSubjects);
+        $querySubjects->execute();
+        $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
+    
+        // Check if any co-curricular subject is assigned
+        foreach ($subjects as $subject) 
+        {
+            if ($subject['IsCurricularSubject'] == 1) 
+            {
+                $coCurricularAssigned = true;
+                break;
+            }
+        }
+    }
+    // Check if no co-curricular subject is assigned
+    if (!$coCurricularAssigned) 
+    {
+        echo "<h1>You have no permission to access this page!</h1>";
+        exit;
+    }
+    
         
     $dangerAlert = false;
     $msg = "";
     try 
     {
         // Get the active session ID
-        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
         $sessionQuery = $dbh->prepare($getSessionSql);
         $sessionQuery->execute();
-        $sessionID = $sessionQuery->fetchColumn();
+        $session = $sessionQuery->fetchAll();
+        
+        foreach ($session as $row) 
+        {
+            $sessionId = $row['session_id'];
+            $sessionName = $row['session_name'];
+            break;
+        }
 
         if (isset($_POST['submit'])) 
         {
@@ -39,19 +77,18 @@ else
             $sectionID = $_POST['sections'];
             $classID = $_POST['classes'];
 
-            if (empty($examName) || empty($classID) || empty($sectionID)) 
+            if (empty($classID) || empty($sectionID)) 
             {
                 $msg = "Please select at least one option in all fields!";
                 $dangerAlert = true;
             } 
             else 
             {
-                $_SESSION['sessionYear'] = $sessionID;
-                $_SESSION['examName'] = $examName;
+                $_SESSION['sessionYear'] = $sessionId;
                 $_SESSION['SectionIDs'] = serialize($sectionID);
                 $_SESSION['classIDs'] = serialize($classID);
 
-                echo "<script>window.location.href ='create-marks-p2.php'</script>";
+                echo "<script>window.location.href ='create-coCurricular-marks.php'</script>";
             }
         }
     } 
@@ -108,7 +145,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Create Student Report</h4>
+                                <h4 class="card-title" style="text-align: center;">Create Co-Curricular Report of Academic Session <?php echo '('.$sessionName.')'; ?></h4>
                                 <!-- Dismissible Alert message -->
                                 <?php 
                                 if($dangerAlert)
@@ -206,31 +243,6 @@ else
                                         }
                                         ?>
                                     </div>
-                                    <?php 
-                                    if (!empty($assignedClasses)) 
-                                    {
-                                    ?>
-                                    <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Exam</label>
-                                        <select name="exam" class="form-control w-100">
-                                            <?php
-                                                $sql = "SELECT * FROM tblexamination WHERE IsDeleted = 0";
-                                                $query = $dbh->prepare($sql);
-                                                $query->execute();
-
-                                                if ($query->rowCount() > 0) {
-                                                    $examResults = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                                    foreach ($examResults as $exam) {
-                                                        echo "<option value='" . htmlentities($exam['ID']) . "'>" . htmlentities($exam['ExamName']) . "</option>";
-                                                    }
-                                                }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <?php
-                                    }
-                                    ?>
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Next</button>
                                 </form>
                             </div>

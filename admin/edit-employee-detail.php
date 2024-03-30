@@ -242,6 +242,22 @@ else
                                                     echo "<option value='" . htmlentities($subject['ID']) . "' $selected>" . htmlentities($subject['SubjectName']) . "</option>";
                                                 }
                                                 ?>
+                                                <!-- Co-Curricular Activity heading -->
+                                                <optgroup label="Co-Curricular Activity">
+                                                    <?php
+                                                    // Fetch options for co-curricular subjects from tblsubjects
+                                                    $coCurricularSubjectSql = "SELECT ID, SubjectName FROM tblsubjects WHERE IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 1";
+                                                    $coCurricularSubjectQuery = $dbh->prepare($coCurricularSubjectSql);
+                                                    $coCurricularSubjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                                    $coCurricularSubjectQuery->execute();
+                                                    $coCurricularSubjectResults = $coCurricularSubjectQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                    foreach ($coCurricularSubjectResults as $subject) {
+                                                        $selected = in_array($subject['ID'], $selectedSubjects) ? 'selected' : '';
+                                                        echo "<option value='" . htmlentities($subject['ID']) . "'$selected>" . htmlentities($subject['SubjectName']) . "</option>";
+                                                    }
+                                                    ?>
+                                                </optgroup>
                                             </select>
                                         </div>
 
