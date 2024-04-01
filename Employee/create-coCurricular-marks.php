@@ -57,41 +57,73 @@ else
     $successAlert = false;
     $dangerAlert = false;
 
-        // Get the active session ID
-        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        // Get the active session ID and Name
+        $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
         $sessionQuery = $dbh->prepare($getSessionSql);
         $sessionQuery->execute();
-        $sessionID = $sessionQuery->fetchColumn();
+        $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
+        $sessionID = $session['session_id'];
+        $sessionName = $session['session_name'];
 
-        // Check if exam is published
-        $checkPublishedSql = "SELECT * FROM tblexamination WHERE ID = :examId 
-                                AND IsPublished = 1 
-                                AND session_id = :session_id 
-                                AND IsDeleted = 0";
+        // // Check if all available exam is published of current session
+        // $checkPublishedSql = "SELECT * FROM tblexamination 
+        //                         WHERE IsPublished = 1 
+        //                         AND session_id = :session_id 
+        //                         AND IsDeleted = 0";
 
-        $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
-        $checkPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
-        $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-        $checkPublishedQuery->execute();
-        $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        // $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+        // $checkPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
+        // $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        // $checkPublishedQuery->execute();
+        // $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
     
-        // Check if Result is published
-        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination 
-                                    WHERE ID = :examId 
-                                    AND IsResultPublished = 1
+        // // Check if all available exam Result is published of current session
+        // $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination 
+        //                             WHERE IsResultPublished = 1
+        //                             AND session_id = :session_id
+        //                             AND IsDeleted = 0";
+        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
+        // $checkResultPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
+        // $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        // $checkResultPublishedQuery->execute();
+        // $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        // Check if all available exams are published for the current session
+        $checkExamsPublishedSql = "SELECT COUNT(*) as total FROM tblexamination 
+                                    WHERE IsPublished = 0 
+                                    AND session_id = :session_id 
+                                    AND IsDeleted = 0";
+
+        $checkExamsPublishedQuery = $dbh->prepare($checkExamsPublishedSql);
+        $checkExamsPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+        $checkExamsPublishedQuery->execute();
+        $publish = $checkExamsPublishedQuery->fetchColumn();
+
+        // Check if all available exam results are published for the current session
+        $checkResultPublishedSql = "SELECT COUNT(*) as total FROM tblexamination 
+                                    WHERE IsResultPublished = 0
                                     AND session_id = :session_id
                                     AND IsDeleted = 0";
+
         $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-        $checkResultPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
         $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
         $checkResultPublishedQuery->execute();
-        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        $publishedResult = $checkResultPublishedQuery->fetchColumn();
 
-        if (isset($_SESSION['classIDs']) && isset($_SESSION['sessionYear']) && isset($_SESSION['SectionIDs'])) 
+        // Check if all exams and exam results are published
+        // if ($publish == 0 && $publishedResult == 0) {
+        // // All exams and exam results are published
+        // echo "All exams and exam results are published for the current session.";
+        // } else {
+        // // Some exams or exam results are not published
+        // echo "Not all exams and exam results are published for the current session.";
+        // }
+
+
+        if (isset($_SESSION['class']) && isset($_SESSION['Year']) && isset($_SESSION['Section'])) 
         {
             // Fetch students
-            $classIDs = unserialize($_SESSION['classIDs']);
-            $sectionIDs = unserialize($_SESSION['SectionIDs']);
+            $classIDs = unserialize($_SESSION['class']);
+            $sectionIDs = unserialize($_SESSION['Section']);
 
             $sql = "SELECT * FROM tblstudent WHERE StudentClass IN ($classIDs) AND StudentSection IN ($sectionIDs) AND IsDeleted = 0";
             $query = $dbh->prepare($sql);
@@ -146,7 +178,7 @@ else
                 {
                     global $dbh;
 
-                    $sql = "SELECT SubjectsJSON FROM tblreports 
+                    $sql = "SELECT SubjectsJSON FROM tblcocurricularreports 
                             WHERE ClassName = :classID 
                             AND ExamSession = :sessionID 
                             AND IsDeleted = 0";
@@ -208,8 +240,8 @@ else
 
                             $subjectsJSON = json_encode($studentSubjectsData);
                             
-                            // Check for existing entry in tblreports
-                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName FROM tblcocurricularreports 
+                            // Check for existing entry in tblcocurricularreports
+                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName, SubjectsJSON FROM tblcocurricularreports 
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
                                                     AND StudentName = :studentID 
@@ -224,17 +256,17 @@ else
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
                             // Check for existing entry in tblmaxmarks
-                            $checkExistingMaxSql = "SELECT SessionID, ClassID, SubjectID, PassingPercentage FROM tblmaxmarks 
-                                                    WHERE SessionID = :sessionID 
-                                                    AND ClassID = :classID 
-                                                    AND SubjectID = :subjectID
-                                                    AND IsDeleted = 0";
-                            $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
-                            $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                            $checkExistingMaxQuery->execute();
-                            $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
+                            // $checkExistingMaxSql = "SELECT SessionID, ClassID, SubjectID, PassingPercentage FROM tblmaxmarks 
+                            //                         WHERE SessionID = :sessionID 
+                            //                         AND ClassID = :classID 
+                            //                         AND SubjectID = :subjectID
+                            //                         AND IsDeleted = 0";
+                            // $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
+                            // $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            // $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            // $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                            // $checkExistingMaxQuery->execute();
+                            // $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
 
                             // Fetching the pass percentage
                             $passPercentID = 1;
@@ -245,49 +277,47 @@ else
                             $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
 
                             // Calculate passing marks for co-curricular subject
-                            $CoCurricularPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $CoCurricularMaxMarks
-                            : $defaultPassPercent / 100 * $CoCurricularMaxMarks;
+                            $CoCurricularPassMarks = $defaultPassPercent / 100 * $coCurricularMaxMarks;
 
                              // Check if marks obtained are less than passing marks for each subject
-                            if ($CoCurricularMarksObtained < $FAPassMarks) 
+                            if ($coCurricularMarksObtained < $CoCurricularPassMarks) 
                             {
                                 $totalPass = false;
                             }
 
                             // Insert Max Marks in tblmaxmarks
-                            if(!$existingMaxReportDetails)
-                            {
-                                    $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, SubjectID, CoCurricularMaxMarks, PassingPercentage)
-                                                VALUES (:sessionID, :classID, :subjectID, :CoCurricularMaxMarks, :passingPercentage)";
+                            // if(!$existingMaxReportDetails)
+                            // {
+                            //         $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, SubjectID, CoCurricularMaxMarks, PassingPercentage)
+                            //                     VALUES (:sessionID, :classID, :subjectID, :CoCurricularMaxMarks, :passingPercentage)";
                 
-                                    $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
-                                    $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $CoCurricularMaxMarks, PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
-                                    $insertAdminMaxQuery->execute();
-                            }
+                            //         $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
+                            //         $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            //         $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            //         $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                            //         $insertAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $CoCurricularMaxMarks, PDO::PARAM_INT);
+                            //         $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
+                            //         $insertAdminMaxQuery->execute();
+                            // }
                             // Update Max Marks in tblmaxmarks
-                            else
-                            {
-                                // If an existing entry is found in tblmaxmarks, update the data
-                                $updateAdminSql = "UPDATE tblmaxmarks SET 
-                                                CoCurricularMaxMarks = :CoCurricularMaxMarks, 
-                                                WHERE SessionID = :sessionID 
-                                                AND ClassID = :classID 
-                                                AND SubjectID = :subjectID 
-                                                AND IsDeleted = 0";
-                                $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
-                                $updateAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                $updateAdminMaxQuery->execute();
-                            }
+                            // else
+                            // {
+                            //     // If an existing entry is found in tblmaxmarks, update the data
+                            //     $updateAdminSql = "UPDATE tblmaxmarks SET 
+                            //                     CoCurricularMaxMarks = :CoCurricularMaxMarks, 
+                            //                     WHERE SessionID = :sessionID 
+                            //                     AND ClassID = :classID 
+                            //                     AND SubjectID = :subjectID 
+                            //                     AND IsDeleted = 0";
+                            //     $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
+                            //     $updateAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
+                            //     $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            //     $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                            //     $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                            //     $updateAdminMaxQuery->execute();
+                            // }
                         }
-                        // If the student is not in tblreports, insert the student
+                        // If the student is not in tblcocurricularreports, insert the student
                         if (!$existingReportDetails) 
                         {
                             $insertSql = "INSERT INTO tblcocurricularreports (ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed)
@@ -307,9 +337,31 @@ else
                         } 
                         else 
                         {
-                            $subjectsJSON = json_encode($studentSubjectsData);
-
-                            // If an existing entry is found, update the data
+                            $existingSubjectsJSON = json_decode($existingReportDetails['SubjectsJSON'], true);                        
+                            $subjectFound = false;
+                        
+                            foreach ($studentSubjectsData as $newSubjectData) 
+                            {
+                                foreach ($existingSubjectsJSON as &$existingSubjectData) 
+                                {
+                                    if ($existingSubjectData['SubjectID'] == $newSubjectData['SubjectID']) 
+                                    {
+                                        // If the subject already exists, update its marks
+                                        $existingSubjectData['CoCurricularMaxMarks'] = $newSubjectData['CoCurricularMaxMarks'];
+                                        $existingSubjectData['CoCurricularMarksObtained'] = $newSubjectData['CoCurricularMarksObtained'];
+                                        $subjectFound = true;
+                                        break;
+                                    }
+                                }
+                                // If the subject doesn't exist, add it to the existing subjects JSON
+                                if (!$subjectFound) 
+                                {
+                                    $existingSubjectsJSON[] = $newSubjectData;
+                                }
+                            }
+                        
+                            $updatedSubjectsJSON = json_encode($existingSubjectsJSON);
+                        
                             $updateReportSql = "UPDATE tblcocurricularreports SET 
                                                 SubjectsJSON = :subjectsJSON, 
                                                 IsPassed = :isPassed
@@ -319,7 +371,7 @@ else
                                                 AND IsDeleted = 0";
                         
                             $updateReportQuery = $dbh->prepare($updateReportSql);
-                            $updateReportQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
+                            $updateReportQuery->bindParam(':subjectsJSON', $updatedSubjectsJSON, PDO::PARAM_STR);
                             $updateReportQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
@@ -391,7 +443,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <?php
-                                if($publish)
+                                if($publish == 0)
                                 {
                             ?>
                             <div class="card-body">
@@ -423,7 +475,7 @@ else
                                 <form class="forms-sample" method="post">
                                     
                                         <?php 
-                                            if ($publishedResult) 
+                                            if ($publishedResult == 0) 
                                             {
                                                 echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
                                             }
@@ -466,8 +518,6 @@ else
                                                     { 
                                                         // Check if subject is co-curricular
                                                         $isCurricularSubject = $subject['IsCurricularSubject'];
-                                                        // Check if subject is optional
-                                                        $isOptional = $subject['IsOptional'];
 
                                                         if ($isCurricularSubject == 1) 
                                                         {
@@ -487,7 +537,7 @@ else
                                                     foreach ($subjects as $subject) 
                                                     { 
                                                         $subjectID = $subject['ID'];
-                                                            // Check if marks exist in tblreports for the student, exam, and subject type
+                                                            // Check if marks exist in tblcocurricularreports for the student, exam, and subject type
                                                             $checkMarksSql = "SELECT * FROM tblcocurricularreports 
                                                                                 WHERE ExamSession = :sessionID 
                                                                                 AND ClassName = :classID 
@@ -514,13 +564,14 @@ else
                                                             }
                                                             
                                                             // Storing max marks that admin gives, in variables.
-                                                            $adminCoCurricularMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular');
+                                                            // $adminCoCurricularMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular');
                                                             
                                                             // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                            $coCurricularMaxMarksToShow = ($adminCoCurricularMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular') : $adminCoCurricularMaxMarks;
+                                                            // $coCurricularMaxMarksToShow = ($adminCoCurricularMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular') : $adminCoCurricularMaxMarks;
+                                                            $coCurricularMaxMarksToShow = getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'CoCurricular');
                                                             
                                                             // Disable the input fields if the condition matches. 
-                                                            $disabledCoCurricular = ($publishedResult) ? 'disabled' : ''; 
+                                                            $disabledCoCurricular = ($publishedResult == 0) ? 'disabled' : ''; 
 
                                                             // Check if subject is co-curricular
                                                             $isCurricularSubject = $subject['IsCurricularSubject'];
@@ -550,7 +601,7 @@ else
                                     </div>
                                     <div class="pt-3">
                                         <button class="btn btn-primary mr-2"  
-                                            <?php echo ($publishedResult) ? 'disabled' : 'type="button" data-toggle="modal" data-target="#confirmationModal" '; ?>
+                                            <?php echo ($publishedResult == 0) ? 'disabled' : 'type="button" data-toggle="modal" data-target="#confirmationModal" '; ?>
                                         >
                                             Assign Marks
                                         </button>

@@ -84,9 +84,9 @@ else
             } 
             else 
             {
-                $_SESSION['sessionYear'] = $sessionId;
-                $_SESSION['SectionIDs'] = serialize($sectionID);
-                $_SESSION['classIDs'] = serialize($classID);
+                $_SESSION['Year'] = $sessionId;
+                $_SESSION['Section'] = serialize($sectionID);
+                $_SESSION['class'] = serialize($classID);
 
                 echo "<script>window.location.href ='create-coCurricular-marks.php'</script>";
             }
