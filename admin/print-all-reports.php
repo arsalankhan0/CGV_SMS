@@ -98,29 +98,30 @@ else
                                 <div class="mt-4">
                                     <div class="d-flex flex-row justify-content-between">
                                         <div>
-                                            <label>Student's Code No:</label><span class="border-bottom border-dark ml-2 px-5"></span>
+                                            <label>Student's Code No:</label><span class="border-bottom border-secondary ml-2 px-5"></span>
                                         </div>
                                         <div>
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
                                         </div>
                                         <div>
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Roll No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            <label>Roll No:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Student's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Student's Name: </label>
-                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
+                                        <p class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
                                     </div>
                                     <!-- Parent's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Parents'/Guardian's Name: </label>
-                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
+                                        <p class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
                                     </div>
                                 </div>
+                                <!-- Main Subjects -->
                                 <div class="d-flex flex-column">
                                     <table class="table table-bordered">
                                         <thead>
@@ -141,7 +142,7 @@ else
 
                                                 foreach ($examNames as $examName) 
                                                 {
-                                                    echo "<th>$examName</th>";
+                                                    echo "<th scope=col'>$examName</th>";
                                                 }?>
                                                 <th>Total</th>
                                                 <th colspan="2">Max Marks</th>
@@ -194,8 +195,62 @@ else
                                                         </tr>";
                                                 }
                                                 ?>
+                                                <tr>
+                                                    <td class="font-weight-bold">Marks Obtained</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Maximum Marks</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Percentage</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Grade</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rank</td>
+                                                </tr>
                                         </tbody>
+                                    </table>
+                                </div>
+                                <!-- Grading System -->
+                                <div class="d-flex flex-column mt-5">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="vertical-align: middle;" rowspan="2">GRADING SYSTEM</th>
+                                                <th colspan="2">A+</th>
+                                                <th colspan="2">>85% upto 100%</th>
+                                                <th colspan="2">B</th>
+                                                <th colspan="2">>55% upto 70%</th>
+                                                <th colspan="2">D</th>
+                                                <th colspan="2">>33% upto 40%</th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="2">A</th>
+                                                <th colspan="2">>70% upto 85%</th>
+                                                <th colspan="2">C</th>
+                                                <th colspan="2">>40% upto 55%</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <!-- Optional Subjects -->
+                                <div class="d-flex flex-column mt-5">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="3">OPTIONAL SUBJECTS</th>
+                                                <th colspan="9">FORMATIVE / SUMMATIVE ASSESSMENT</th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="8">GRADE</th>
+                                                <th colspan="2">Summative Assessment</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
 
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
