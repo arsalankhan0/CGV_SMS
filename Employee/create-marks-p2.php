@@ -175,12 +175,21 @@ else
                             $SubMaxMarks = isset($_POST['SubMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['SubMaxMarks'][$student['ID']][$subject['ID']] : 0;
                             $SubMarksObtained = isset($_POST['SubMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['SubMarksObtained'][$student['ID']][$subject['ID']] : 0;
 
+                            $subjectID = $subject['ID'];
+                            // Check if the GradingSystem is 1 for the current subject
+                            $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND GradingSystem = 1";
+                            $gradingSystemQuery = $dbh->prepare($gradingSystemSql);
+                            $gradingSystemQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                            $gradingSystemQuery->execute();
+                            $gradingSystem = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
+
                             // An array for subject data
                             $subjectData = array(
                                 'SubjectID' => $subject['ID'],
                                 'SubMaxMarks' => $SubMaxMarks,
                                 'SubMarksObtained' => $SubMarksObtained,
                                 'IsOptional' => $subject['IsOptional'],
+                                'GradingSystem' => $gradingSystem,
                             );
 
                             $studentSubjectsData[] = $subjectData;

@@ -65,28 +65,6 @@ else
         $sessionID = $session['session_id'];
         $sessionName = $session['session_name'];
 
-        // // Check if all available exam is published of current session
-        // $checkPublishedSql = "SELECT * FROM tblexamination 
-        //                         WHERE IsPublished = 1 
-        //                         AND session_id = :session_id 
-        //                         AND IsDeleted = 0";
-
-        // $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
-        // $checkPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
-        // $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-        // $checkPublishedQuery->execute();
-        // $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
-    
-        // // Check if all available exam Result is published of current session
-        // $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination 
-        //                             WHERE IsResultPublished = 1
-        //                             AND session_id = :session_id
-        //                             AND IsDeleted = 0";
-        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-        // $checkResultPublishedQuery->bindParam(':examId', $_SESSION['examName'], PDO::PARAM_STR);
-        // $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
-        // $checkResultPublishedQuery->execute();
-        // $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
         // Check if all available exams are published for the current session
         $checkExamsPublishedSql = "SELECT COUNT(*) as total FROM tblexamination 
                                     WHERE IsPublished = 0 
@@ -108,16 +86,6 @@ else
         $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
         $checkResultPublishedQuery->execute();
         $publishedResult = $checkResultPublishedQuery->fetchColumn();
-
-        // Check if all exams and exam results are published
-        // if ($publish == 0 && $publishedResult == 0) {
-        // // All exams and exam results are published
-        // echo "All exams and exam results are published for the current session.";
-        // } else {
-        // // Some exams or exam results are not published
-        // echo "Not all exams and exam results are published for the current session.";
-        // }
-
 
         if (isset($_SESSION['class']) && isset($_SESSION['Year']) && isset($_SESSION['Section'])) 
         {
