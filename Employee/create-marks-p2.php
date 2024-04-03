@@ -185,6 +185,7 @@ else
 
                             // An array for subject data
                             $subjectData = array(
+                                'ExamName' => $examID,
                                 'SubjectID' => $subject['ID'],
                                 'SubMaxMarks' => $SubMaxMarks,
                                 'SubMarksObtained' => $SubMarksObtained,
@@ -253,7 +254,7 @@ else
                             // Insert Max Marks in tblmaxmarks
                             if(!$existingMaxReportDetails)
                             {
-                                    $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, ExamID, SubjectID, SubMaxMarks PassingPercentage)
+                                    $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, ExamID, SubjectID, SubMaxMarks, PassingPercentage)
                                                 VALUES (:sessionID, :classID, :examID, :subjectID, :SubMaxMarks, :passingPercentage)";
                 
                                     $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);

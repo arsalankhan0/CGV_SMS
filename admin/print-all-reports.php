@@ -59,8 +59,20 @@ else
             <link rel="stylesheet" href="vendors/select2/select2.min.css">
             <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
             <link rel="stylesheet" href="css/style.css" />
+            <style>
+                .card 
+                {
+                    page-break-after: always;
+                }
+                .signature-line
+                {
+                    padding: 0 100px;
+                }
+
+            </style>
         </head>
         <body>
+            
             <div class="container-scroller">
                 <div class="container page-body-wrapper d-flex flex-column">
                     <?php
@@ -68,7 +80,7 @@ else
 
                     foreach ($allReports as $report) 
                     {
-                        // Assuming StudentName is the key to group by
+                        // key to group by
                         $studentName = $report['StudentName'];
 
                         if (!isset($groupedReports[$studentName])) 
@@ -102,7 +114,7 @@ else
                         $sectionQuery->execute();
                         $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
-                        <div class="card">
+                        <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
                                 
@@ -144,17 +156,29 @@ else
                                                 <th colspan="2">Summative Assessment</th>
                                                 <th colspan="2">Total (FA+CA+SA)</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-center">
                                                 <?php
-                                                // Fetch all Formative exam names
-                                                $examNamesSql = "SELECT ExamName FROM tblexamination WHERE ExamType = 'Formative' AND IsDeleted = 0";
+                                                // Fetch all Formative exam names and IDs
+                                                $examNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = 'Formative' AND IsDeleted = 0";
                                                 $examNamesQuery = $dbh->prepare($examNamesSql);
                                                 $examNamesQuery->execute();
-                                                $examNames = $examNamesQuery->fetchAll(PDO::FETCH_COLUMN);
+                                                $examNames = $examNamesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                                                foreach ($examNames as $examName) 
+                                                // Co-curricular exam name
+                                                $coCurricularExamNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = 'Co-Curricular' AND IsDeleted = 0";
+                                                $coCurricularExamNamesQuery = $dbh->prepare($coCurricularExamNamesSql);
+                                                $coCurricularExamNamesQuery->execute();
+                                                $coCurricularExamNames = $coCurricularExamNamesQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                // Summative exam names
+                                                $summativeExamNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = 'Summative' AND IsDeleted = 0";
+                                                $summativeExamNamesQuery = $dbh->prepare($summativeExamNamesSql);
+                                                $summativeExamNamesQuery->execute();
+                                                $summativeExamNames = $summativeExamNamesQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                                                foreach ($examNames as $exam) 
                                                 {
-                                                    echo "<th scope=col'>$examName</th>";
+                                                    echo "<th scope='col'>" . $exam['ExamName'] . "</th>";
                                                 }?>
                                                 <th>Total</th>
                                                 <th colspan="2">Max Marks</th>
@@ -163,30 +187,43 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                                <?php
-                                                $class = "%$className%";
-                                                // Fetch only those subjects of the class whose IsOptional is 0
-                                                $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 0 AND IsDeleted = 0";
-                                                $subjectsQuery = $dbh->prepare($subjectsSql);
-                                                $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
-                                                $subjectsQuery->execute();
-                                                $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+                                            <?php
+                                            $class = "%$className%";
+                                            // Fetch only those subjects of the class whose IsOptional is 0
+                                            $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 0 AND IsDeleted = 0";
+                                            $subjectsQuery = $dbh->prepare($subjectsSql);
+                                            $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
+                                            $subjectsQuery->execute();
+                                            $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                                                 // Loop through the subjects and display each one in its own table row
-                                                foreach ($subjects as $subject) 
+                                            // Array to store total marks obtained for each exam
+                                            $totalMarks = array_fill(0, count($examNames), 0);
+                                            $totalMaxMarks = array_fill(0, count($examNames), 0);
+                                            $totalPercentage = array_fill(0, count($examNames), 0);
+
+                                            foreach ($subjects as $subject) 
+                                            {
+                                                //Array to store marks for each exam
+                                                $examMarksArray = array_fill(0, count($examNames), '');
+                                                
+                                                // Co-curricular marks
+                                                $coCurricularMarksArray = array_fill(0, count($coCurricularExamNames), '');
+                                                
+                                                // Summative marks
+                                                $summativeMarksArray = array_fill(0, count($summativeExamNames), '');
+
+
+                                                // Fetch SubjectsJSON for the current subject from tblreports for all exam sessions
+                                                $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID";
+                                                $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
+                                                $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->execute();
+                                                $allSubjectsJson = $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_COLUMN);
+
+                                                // Loop through all subjects JSON data for the current subject
+                                                foreach ($allSubjectsJson as $subjectsJson) 
                                                 {
-                                                    // Initialize SubMarksObtained for the current subject
-                                                    $subMarksObtained = '';
-
-                                                    // Fetch SubjectsJSON for the current subject from tblreports
-                                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
-                                                    $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                    $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->execute();
-                                                    $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
-
                                                     // Decode the JSON to an associative array
                                                     $subjectsData = json_decode($subjectsJson, true);
 
@@ -195,36 +232,161 @@ else
                                                     {
                                                         if ($subjectData['SubjectID'] == $subject['ID']) 
                                                         {
-                                                            $subMarksObtained = $subjectData['SubMarksObtained'];
-                                                            break; 
+                                                            // Find the index of the exam ID in the $examNames array
+                                                            $examIndex = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
+
+                                                            // Update the corresponding index in the $examMarksArray with the marks obtained
+                                                            $examMarksArray[$examIndex] = $subjectData['SubMarksObtained'];
+
+                                                            // Add co-curricular marks if the exam type is co-curricular
+                                                            foreach ($coCurricularExamNames as $coCurricularExam) {
+                                                                if ($subjectData['ExamName'] == $coCurricularExam['ID']) {
+                                                                    $coCurricularIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($coCurricularExamNames, 'ID'));
+                                                                    $coCurricularMarksArray[$coCurricularIndex] = $subjectData['SubMarksObtained'];
+                                                                    break;
+                                                                }
+                                                            }
+                                                            // Add Summative marks if the exam type is Summative
+                                                            foreach ($summativeExamNames as $summativeExam) {
+                                                                if ($subjectData['ExamName'] == $summativeExam['ID']) {
+                                                                    $summativeIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
+                                                                    $summativeMarksArray[$summativeIndex] = $subjectData['SubMarksObtained'];
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            $totalMarks[$examIndex] += $subjectData['SubMarksObtained'];
+                                                            $totalMaxMarks[$examIndex] += $subjectData['SubMaxMarks'];
+
+                                                            break;
                                                         }
                                                     }
-
-                                                    // Display the subject name and SubMarksObtained in the table row
-                                                    echo "<tr>
-                                                            <td>{$subject['SubjectName']}</td>
-                                                            <td>{$subMarksObtained}</td>
-                                                        </tr>";
                                                 }
+
+                                                echo "<tr>
+                                                        <td>{$subject['SubjectName']}</td>";
+
+                                                foreach ($examMarksArray as $examMarks) {
+                                                    echo "<td>$examMarks</td>";
+                                                }
+                                                // Total marks obtained for each subject
+                                                echo "<td>" . array_sum($examMarksArray) . "</td>";
+
+                                                 // Co-curricular marks
+                                                foreach ($coCurricularMarksArray as $coCurricularMarks) {
+                                                    echo "<td colspan=''>$coCurricularMarks</td>";
+                                                }
+
+                                                 // Summative marks
+                                                foreach ($summativeMarksArray as $summativeMarks) {
+                                                    echo "<td colspan=''>$summativeMarks</td>";
+                                                }
+                                                // Total marks obtained for all assessments (FA+CA+SA)
+                                                echo "<td>" . (array_sum($examMarksArray) + array_sum($coCurricularMarksArray) + array_sum($summativeMarksArray)) . "</td>";
+                                                
+                                                echo "</tr>";
+                                            }
+
+                                            ?>
+                                            <tr>
+                                                <td class="font-weight-bold">Marks Obtained</td>
+                                                <?php
+                                                foreach ($totalMarks as $examTotalMarks) 
+                                                {
+                                                    if ($examTotalMarks > 0) 
+                                                    {
+                                                        echo "<td>$examTotalMarks</td>";
+                                                    } 
+                                                    else 
+                                                    {
+                                                        echo "<td></td>";
+                                                    }
+                                                }
+                                                // Total marks obtained of all subjects
+                                                echo "<td>" . array_sum($totalMarks) . "</td>";
                                                 ?>
-                                                <tr>
-                                                    <td class="font-weight-bold">Marks Obtained</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Maximum Marks</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Percentage</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Grade</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Rank</td>
-                                                </tr>
+                                            </tr>
+                                            <tr>
+                                                <td>Maximum Marks</td>
+                                                
+                                                <?php
+                                                foreach ($totalMaxMarks as $maxMarks) 
+                                                {
+                                                    if ($maxMarks > 0) 
+                                                    {
+                                                        echo "<td>$maxMarks</td>";
+                                                    } 
+                                                    else 
+                                                    {
+                                                        echo "<td></td>";
+                                                    }
+                                                }
+                                                // Total Max marks of all subjects
+                                                echo "<td>" . array_sum($totalMaxMarks) . "</td>";
+                                                ?>
+                                            </tr>
+                                            <tr>
+                                                <td>Percentage</td>
+                                                <?php
+                                                $totalMarksObtained = array_sum($totalMarks);
+                                                $totalMaxMarksObtained = array_sum($totalMaxMarks);
+
+                                                foreach ($totalMarks as $key => $examTotalMarks) 
+                                                {
+                                                    $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalMaxMarks[$key]) * 100, 2).'%' : '';
+                                                    echo "<td>$percentage</td>";
+                                                }
+                                                // total Percentage
+                                                $totalPercentage = round(($totalMarksObtained / $totalMaxMarksObtained) * 100, 2) . '%';
+                                                echo "<td>$totalPercentage</td>";
+                                                ?>
+                                            </tr>
+                                            <tr>
+                                                <td>Grade</td>
+                                                <?php
+                                                    // Grading system thresholds
+                                                    $gradingSystem = array(
+                                                        array('A+', 'A', 'B', 'C', 'D'),
+                                                        array(85, 70, 55, 40, 33),
+                                                        array(100, 85, 70, 55, 40)
+                                                    );
+
+                                                    foreach ($totalMarks as $key => $examTotalMarks) 
+                                                    {
+                                                        $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalMaxMarks[$key]) * 100, 2) : '';
+
+                                                        // Determine grade based on percentage
+                                                        $grade = '';
+                                                        for ($i = 0; $i < count($gradingSystem[0]); $i++) 
+                                                        {
+                                                            if ($percentage >= $gradingSystem[1][$i] && $percentage <= $gradingSystem[2][$i]) 
+                                                            {
+                                                                $grade = $gradingSystem[0][$i];
+                                                                break;
+                                                            }
+                                                        }
+                                                        echo "<td>$grade</td>";
+                                                    }
+                                                    // Total grade based on total percentage
+                                                    $totalGrade = '';
+                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                        if ($totalPercentage >= $gradingSystem[1][$i] && $totalPercentage <= $gradingSystem[2][$i]) {
+                                                            $totalGrade = $gradingSystem[0][$i];
+                                                            break;
+                                                        }
+                                                    }
+                                                    // Display total grade
+                                                    echo "<td >$totalGrade</td>";
+                                                ?>
+                                            </tr>
+                                            <tr>
+                                                <td>Rank</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
+
+
                                 <!-- Grading System -->
                                 <div class="d-flex flex-column mt-3">
                                     <table class="table table-bordered">
@@ -270,7 +432,7 @@ else
                                                     <?php
                                                         foreach ($examNames as $examName) 
                                                         {
-                                                            echo "<th scope=col'>$examName</th>";
+                                                            echo "<th scope=col'>". $examName['ExamName'] . "</th>";
                                                         }
                                                     ?>
                                                     <th colspan="2">GRADE</th>
@@ -443,7 +605,7 @@ else
                                                     $subMarksObtained = '';
 
                                                     // Fetch SubjectsJSON for the current subject from tblreports
-                                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
+                                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblcocurricularreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
                                                     $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
                                                     $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
                                                     $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
@@ -472,6 +634,11 @@ else
                                         </tbody>
                                     </table>
                                 </div>
+                                <footer class="d-flex justify-content-end mt-5">
+                                    <div class="mt-5">
+                                        <label>Signature of Tr. Incharge:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                    </div>
+                                </footer>
                             </div>
                         </div>
                     <?php

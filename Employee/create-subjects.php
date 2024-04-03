@@ -62,7 +62,7 @@ else
                 $msg = "Please enter Subject Name and select at least one class!";
             } 
             else 
-            {                
+            {
                 // Fetch IDs of selected classes
                 $selectedClassIds = [];
                 foreach ($classes as $className) 
@@ -78,41 +78,27 @@ else
                     }
                 }
 
-                // Fetch selected subject types
-                $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
+                $cName = implode(",", $selectedClassIds);
 
-                // Check if at least one subject type is selected
-                if (empty($subjectTypes)) 
+                // Insert subject with comma-separated class IDs, active session ID, and subject types
+                $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, IsOptional) VALUES (:subjectName, :cName, :sessionID, :isOptional)";
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
+                $query->bindParam(':cName', $cName, PDO::PARAM_STR);
+                $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                $query->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
+                $query->execute();
+                $LastInsertId = $dbh->lastInsertId();
+
+                if ($LastInsertId > 0) 
                 {
-                    $dangerAlert = true;
-                    $msg = "Please select at least one subject type!";
+                    $successAlert = true;
+                    $msg = "Subject has been created successfully!";
                 } 
                 else 
                 {
-                    $cName = implode(",", $selectedClassIds);
-                    $subjectTypeString = implode(",", $subjectTypes);
-
-                    // Insert subject with comma-separated class IDs, active session ID, and subject types
-                    $sql = "INSERT INTO tblsubjects (SubjectName, ClassName, SessionID, SubjectType, IsOptional) VALUES (:subjectName, :cName, :sessionID, :subjectTypes, :isOptional)";
-                    $query = $dbh->prepare($sql);
-                    $query->bindParam(':subjectName', $subjectName, PDO::PARAM_STR);
-                    $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-                    $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                    $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
-                    $query->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
-                    $query->execute();
-                    $LastInsertId = $dbh->lastInsertId();
-
-                    if ($LastInsertId > 0) 
-                    {
-                        $successAlert = true;
-                        $msg = "Subject has been created successfully!";
-                    } 
-                    else 
-                    {
-                        $dangerAlert = true;
-                        $msg = "Something went wrong! Please try again later.";
-                    }
+                    $dangerAlert = true;
+                    $msg = "Something went wrong! Please try again later.";
                 }
             }
         }
@@ -127,7 +113,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Student  Management System|| Create Subjects</title>
+        <title>TIbetan Public School|| Create Subjects</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -237,30 +223,7 @@ else
                                             </div>
                                         </div>
 
-                                        <div class="form-group">
-                                            <label>Subject Type</label>
-                                            <div class="checkbox-group d-flex justify-content-start">
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="theory">
-                                                        Theory
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="theory" id="theory">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="practical">
-                                                        Practical
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="practical" id="practical">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="viva">
-                                                        Viva
-                                                        <input class="form-check-input" type="checkbox" name="subjectTypes[]" value="viva" id="viva">
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
+                                
                                         <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                     </form>
                                 </div>

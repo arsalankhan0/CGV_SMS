@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'])==0)
 {
@@ -30,6 +30,16 @@ else
                     $originalImageName = $_FILES["images"]["name"][$key];
                     $image = $originalImageName;
 
+                    // Check file size
+                    $fileSize = $_FILES["images"]["size"][$key]; // Size in bytes
+                    $maxFileSize = 1024 * 1024;
+
+                    if ($fileSize > $maxFileSize) {
+                        $dangerAlert = true;
+                        $msg = "The file '" . $originalImageName . "' is larger than 1 MB. Please upload images smaller than 1 MB.";
+                        break;
+                    }
+                    
                     $ret = "SELECT imgPath FROM tblgallery WHERE imgPath = :imgPath";
                     $query = $dbh->prepare($ret);
                     $query->bindParam(':imgPath', $image, PDO::PARAM_STR);
@@ -94,7 +104,7 @@ else
 <html lang="en">
 <head>
 
-    <title>Student Management System || Gallery</title>
+    <title>Tibetan Public School || Gallery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -294,8 +304,8 @@ else
                             </div>
                         </div>  
                         <div class="d-flex justify-content-end">
-                            <a href="manage-gallery.php" class="btn btn-info mx-2">Manage Gallery</a>
                             <button type="button" class="btn btn-primary mr-2" id="uploadBtn" data-toggle="modal" data-target="#confirmationModal">Upload</button>
+                            <a href="manage-gallery.php" class="btn btn-info mx-2">Manage Gallery</a>
                         </div>
                         <!-- Confirmation Modal (Update) -->
                         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">

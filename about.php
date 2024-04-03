@@ -59,7 +59,7 @@
 				<div class="container">
 					<div class="row align-items-center">
 						<div class="col-lg-6 no-padding info-area-left">
-							<img class="img-fluid" src="./Main/img/about-img.jpg" alt="">
+							<img class="img-fluid" src="./Main/img/about.jpg" alt="">
 						</div>
 						<div class="col-lg-6 info-area-right">
 							<h1>Who we are</h1>

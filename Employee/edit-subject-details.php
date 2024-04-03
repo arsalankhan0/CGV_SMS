@@ -66,17 +66,12 @@ else
                 }
             }                
 
-            // Fetch selected subject types
-            $subjectTypes = isset($_POST['subjectTypes']) ? $_POST['subjectTypes'] : [];
-
             $cName = implode(",", $selectedClassIds);
-            $subjectTypeString = implode(",", $subjectTypes);
             $isOptional = isset($_POST['isOptional']) ? ($_POST['isOptional'] == 'yes' ? 1 : 0) : 0;
 
-            $sql = "UPDATE tblsubjects SET ClassName=:cName, SubjectType=:subjectTypes, IsOptional=:optional WHERE ID=:eid";
+            $sql = "UPDATE tblsubjects SET ClassName=:cName, IsOptional=:optional WHERE ID=:eid";
             $query = $dbh->prepare($sql);
             $query->bindParam(':cName', $cName, PDO::PARAM_STR);
-            $query->bindParam(':subjectTypes', $subjectTypeString, PDO::PARAM_STR);
             $query->bindParam(':optional', $isOptional, PDO::PARAM_INT);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
@@ -203,30 +198,6 @@ else
                                                 <div class="form-check-inline d-flex">
                                                     <input class="form-check-input" type="radio" name="isOptional" id="optionalNo" value="no" <?php echo ($subjectDetailsRow['IsOptional'] != 1) ? 'checked' : ''; ?>>
                                                     <label class="form-check-label" for="optionalNo">No</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Subject Type</label>
-                                            <div class="checkbox-group d-flex justify-content-start">
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="theory">
-                                                        Theory
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('theory', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="theory" id="theory">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="practical">
-                                                        Practical
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('practical', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="practical" id="practical">
-                                                    </label>
-                                                </div>
-                                                <div class="form-check mr-4">
-                                                    <label class="form-check-label" for="viva">
-                                                        Viva
-                                                        <input class="form-check-input" type="checkbox" <?php echo in_array('viva', $selectedSubjectTypes) ? 'checked' : ''; ?> name="subjectTypes[]" value="viva" id="viva">
-                                                    </label>
                                                 </div>
                                             </div>
                                         </div>

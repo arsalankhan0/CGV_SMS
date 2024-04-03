@@ -20,9 +20,9 @@ else
             $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
             $examTypes = isset($_POST['examTypes']) ? implode(",", $_POST['examTypes']) : '';
 
-            if (empty($examName) || empty($classIDs)) 
+            if (empty($examName) || empty($classIDs) || empty($examTypes)) 
             {
-                $msg = "Please enter Exam Name and select at least one class";
+                $msg = "Please fill all the fields and select at least one exam type!";
                 $dangerAlert = true;
             } 
             else 

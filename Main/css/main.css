@@ -2249,12 +2249,13 @@ body.mobile-nav-active #mobile-nav-toggle {
   transform: scale(1.1);
 }
 .search-course-area {
-  background: url(../img/s-bg.jpg) center;
+  /* background: url(../img/s-bg.jpg) center; */
+  background: url(../img/School/DSC_0211.JPG) center;
   background-size: cover;
 }
 .search-course-area .overlay-bg {
   /* background: rgba(4, 9, 30, 0.8); */
-  background-color: rgba(30, 4, 4, 0.8);
+  background-color: rgba(255, 255, 255, 0.289);
 }
 .search-course-area .search-course-left h1 {
   margin-bottom: 20px;
@@ -2576,7 +2577,8 @@ body.mobile-nav-active #mobile-nav-toggle {
   margin-bottom: 0px;
 }
 .about-banner {
-  background: url(../img/top-banner.jpg) right no-repeat;
+  /* background: url(../img/top-banner.jpg) right no-repeat; */
+  background: url(../img/School/DSC_0211.JPG) right no-repeat;
   background-size: cover;
 }
 .about-content {
@@ -3260,7 +3262,7 @@ dl.toggle.time-line:before {
 }
 .gallery-area .single-imgs .overlay-bg {
   /* background: rgba(247, 99, 27, 0.85); */
-  background-color: rgba(30, 4, 4, 0.8);
+  background-color: rgba(30, 4, 4, 0.558);
   opacity: 0;
   -webkit-transition: all 0.3s ease 0s;
   -moz-transition: all 0.3s ease 0s;

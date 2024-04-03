@@ -40,7 +40,7 @@ include('includes/dbconnection.php');
 			<?php include_once('includes/header.php'); ?>
 		
 			<!-- start banner Area -->
-			<section class="banner-area relative" id="home">
+			<!-- <section class="banner-area relative" id="home">
 				<div class="overlay overlay-bg"></div>	
 				<div class="container">
 					<div class="row fullscreen d-flex align-items-center justify-content-between">
@@ -55,7 +55,20 @@ include('includes/dbconnection.php');
 						</div>										
 					</div>
 				</div>					
-			</section>
+			</section> -->
+			<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+				<div class="carousel-inner">
+					<div class="carousel-item active">
+						<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px" style="object-fit: cover;" alt="...">
+					</div>
+					<div class="carousel-item">
+						<img src="./Main/img/School/DSC_0241.JPG" class="d-block w-100" height="700px" style="object-fit: cover;" alt="...">
+					</div>
+					<div class="carousel-item">
+						<img src="./Main/img/School/DSC_0247.JPG" height="700px" style="object-fit: cover;" class="d-block w-100" alt="...">
+					</div>
+				</div>
+			</div>
 			<!-- End banner Area -->
 
 			<!-- public notices -->
@@ -177,7 +190,7 @@ include('includes/dbconnection.php');
 								{
 									foreach($results as $row)
 									{               ?>
-										<h1 class="text-light"><?php  echo htmlentities($row->PageTitle);?></h1>
+										<h1 class="text-dark"><?php  echo htmlentities($row->PageTitle);?></h1>
 						</div>
 										<div class="col-lg-6 col-md-8 section-gap px-4">
 							
