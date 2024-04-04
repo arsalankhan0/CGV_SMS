@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid'])==0)
 {
@@ -29,6 +29,13 @@ else
                 {
                     $originalImageName = $_FILES["images"]["name"][$key];
                     $image = $originalImageName;
+
+                    // Check if the file is empty
+                    if ($_FILES["images"]["size"][$key] == 0) {
+                        $dangerAlert = true;
+                        $msg = "Please upload a valid image file!";
+                        break;
+                    }
 
                     // Check file size
                     $fileSize = $_FILES["images"]["size"][$key]; // Size in bytes
@@ -68,23 +75,26 @@ else
                         $imagePath = "gallery/" . $originalImageName;
                         move_uploaded_file($tmpFilePath, $imagePath);
 
-                        // Insert image path into tblgallery
-                        $sql = "INSERT INTO tblgallery (imgPath) VALUES (:imgPath)";
-                        $query = $dbh->prepare($sql);
-                        $query->bindParam(':imgPath', $image, PDO::PARAM_STR);
-                        $query->execute();
-
-                        $lastInsertId = $dbh->lastInsertId();
-
-                        if ($lastInsertId > 0) 
+                       // Insert image path into tblgallery only if it's not empty
+                        if (!empty($image)) 
                         {
-                            $successAlert = true;
-                            $msg = "Images uploaded successfully.";
-                        } 
-                        else 
-                        {
-                            $dangerAlert = true;
-                            $msg = "Something went wrong! Please try again.";
+                            $sql = "INSERT INTO tblgallery (imgPath) VALUES (:imgPath)";
+                            $query = $dbh->prepare($sql);
+                            $query->bindParam(':imgPath', $image, PDO::PARAM_STR);
+                            $query->execute();
+
+                            $lastInsertId = $dbh->lastInsertId();
+
+                            if ($lastInsertId > 0) 
+                            {
+                                $successAlert = true;
+                                $msg = "Images uploaded successfully.";
+                            } 
+                            else 
+                            {
+                                $dangerAlert = true;
+                                $msg = "Something went wrong! Please try again.";
+                            }
                         }
                     }
                 }

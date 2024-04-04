@@ -40,23 +40,8 @@ include('includes/dbconnection.php');
 			<?php include_once('includes/header.php'); ?>
 		
 			<!-- start banner Area -->
-			<!-- <section class="banner-area relative" id="home">
-				<div class="overlay overlay-bg"></div>	
-				<div class="container">
-					<div class="row fullscreen d-flex align-items-center justify-content-between">
-						<div class="banner-content col-lg-9 col-md-12">
-							<h1 class="text-uppercase welcome">
-								Welcome to Tibetan Public School
-							</h1>
-							<p class="pt-10 pb-10 text-light">
-								Registered students can login here
-							</p>
-							<a href="./user/login.php" class="primary-btn text-uppercase">Student Login</a>
-						</div>										
-					</div>
-				</div>					
-			</section> -->
-			<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+			<div id="carouselExampleIndicators" class="banner-area relative carousel slide" data-ride="carousel">
+				<div class="overlay overlay-bg"></div>
 				<div class="carousel-inner">
 					<div class="carousel-item active">
 						<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px" style="object-fit: cover;" alt="...">
@@ -66,6 +51,19 @@ include('includes/dbconnection.php');
 					</div>
 					<div class="carousel-item">
 						<img src="./Main/img/School/DSC_0247.JPG" height="700px" style="object-fit: cover;" class="d-block w-100" alt="...">
+					</div>
+					<div class="carousel-caption banner-content d-md-block">
+						<div class="row fullscreen d-flex align-items-center justify-content-start">
+							<div class="banner-content col-lg-9 col-md-12">
+								<h1 class="text-uppercase welcome">
+									Welcome to Tibetan Public School
+								</h1>
+								<p class="pt-10 pb-10 text-light">
+									Registered students can login here
+								</p>
+								<a href="./user/login.php" class="primary-btn text-uppercase">Student Login</a>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -235,7 +233,7 @@ include('includes/dbconnection.php');
 										<a href="<?php echo './admin/gallery/'.$imagePath; ?>" class="img-gal">
 											<div class="single-imgs relative">
 												<div class="overlay overlay-bg"></div>
-												<div class="relative">
+												<div class="relative overflow-hidden">
 													<img class="img-fluid gallery-img" src="<?php echo './admin/gallery/'.$imagePath; ?>" alt="img">
 												</div>
 											</div>

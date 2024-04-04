@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -128,7 +128,7 @@ catch (PDOException $e)
 <html lang="en">
 <head>
 
-    <title>Student Management System|||Promote Students</title>
+    <title>Tibetan Public School || Promote Students</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -274,26 +274,15 @@ catch (PDOException $e)
                                         $querySelectedClassName->execute();
                                         $filteredClassName = $querySelectedClassName->fetch(PDO::FETCH_ASSOC);
 
-                                        // Check if Result is published
-                                        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE IsResultPublished = 1
+                                        // Check if all available exam results are published for the current session
+                                        $checkResultPublishedSql = "SELECT COUNT(*) as total FROM tblexamination 
+                                                                    WHERE IsResultPublished = 0
                                                                     AND session_id = :session_id
                                                                     AND IsDeleted = 0";
                                         $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-                                        $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
+                                        $checkResultPublishedQuery->bindParam(':session_id', $activeSession, PDO::PARAM_STR);
                                         $checkResultPublishedQuery->execute();
-                                        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-                                        
-                                        // Check if all results are published
-                                        // $checkResultPublishedSql = "SELECT COUNT(*) as rowCount FROM tblexamination
-                                        //                             WHERE IsResultPublished = 1
-                                        //                             AND session_id = :session_id
-                                        //                             AND IsDeleted = 0";
-                                        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-                                        // $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
-                                        // $checkResultPublishedQuery->execute();
-                                        // $rowCountResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-
-
+                                        $publishedResult = $checkResultPublishedQuery->fetchColumn();
                                         
                                         // Fetch sections from the database
                                         $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :selectedSection AND IsDeleted = 0";
@@ -302,8 +291,7 @@ catch (PDOException $e)
                                         $sectionQuery->execute();
                                         $selectedSec = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                                         
-                                        // if (!empty($filteredReports) && $rowCountResult['rowCount'] > 0) 
-                                        if (!empty($filteredReports) && $publishedResult) 
+                                        if (!empty($filteredReports) && $publishedResult === 0) 
                                         {
                                             echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
                                             echo "<form method='POST' id='promoteForm' class='mt-3'>";
@@ -413,7 +401,7 @@ catch (PDOException $e)
                                                 $studentDetails = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
                                     
                                                 // Check if the student passed or failed based on subjects
-                                                $sqlPassOrFail = "SELECT IsPassed FROM tblreports WHERE StudentName = :studentID AND ClassName = :class AND ExamSession = :sessionID AND IsDeleted = 0";
+                                                $sqlPassOrFail = "SELECT DISTINCT IsPassed FROM tblreports WHERE StudentName = :studentID AND ClassName = :class AND ExamSession = :sessionID AND IsDeleted = 0";
                                                 $queryPassOrFail = $dbh->prepare($sqlPassOrFail);
                                                 $queryPassOrFail->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
                                                 $queryPassOrFail->bindParam(':class', $selectedClass, PDO::PARAM_STR);
@@ -448,7 +436,7 @@ catch (PDOException $e)
                                         } 
                                         else 
                                         {
-                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
+                                            echo "<strong>No Record found or the Result is not published of all exams for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
                                         }
                                     }
                                 }

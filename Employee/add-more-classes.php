@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid']) == 0) 
@@ -142,7 +142,7 @@ else
                                                 class="js-example-basic-multiple w-100">
                                             <?php
                                             $eid = $_GET['editid'];
-                                            $examClassesSql = "SELECT ClassName FROM tblexamination WHERE ID = :eid AND IsDeleted = 0";
+                                            $examClassesSql = "SELECT ClassName, ExamType FROM tblexamination WHERE ID = :eid AND IsDeleted = 0";
                                             $examClassesQuery = $dbh->prepare($examClassesSql);
                                             $examClassesQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
                                             $examClassesQuery->execute();
@@ -190,7 +190,7 @@ else
                                             }
                                             ?>
                                         </div>
-                                    </div>
+                                    </div>  
 
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Update
                                     </button>

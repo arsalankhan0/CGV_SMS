@@ -12453,9 +12453,9 @@ dl {
       margin: auto; } }
 
 .auth .brand-logo {
-  margin-bottom: 2rem; }
+  margin-bottom: 0.4rem; }
   .auth .brand-logo img {
-    width: 150px; }
+    width: 80px; }
 
 .auth form .form-group {
   margin-bottom: 1.5rem; }

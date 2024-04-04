@@ -23,7 +23,6 @@
         <div class="navbar-menu-wrapper d-flex align-items-center flex-grow-1">
           <h5 class="mb-0 font-weight-medium d-none d-lg-flex"><?php  echo htmlentities($row->AdminName);?> Welcome dashboard!</h5>
           <ul class="navbar-nav navbar-nav-right ml-auto">
-            <!-- <li class="nav-item dropdown d-none d-xl-inline-flex user-dropdown"> -->
             <li class="nav-item dropdown d-xl-inline-flex">
               <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
                 <img class="img-xs rounded-circle ml-2" src="images/faces/face8.jpg" alt="Profile image"> <span class="font-weight-normal"> <?php  echo htmlentities($row->AdminName);?> </span></a>

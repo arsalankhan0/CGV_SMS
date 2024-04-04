@@ -59,7 +59,7 @@ catch (PDOException $e)
 <html lang="en">
   <head>
   
-    <title>Student  Management System|| Student Login Page</title>
+    <title>Tibetan Public School || Student Login Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -82,9 +82,9 @@ catch (PDOException $e)
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <div class="brand-logo">
-                  <img src="images/logo.svg">
+                  <img src="../Main/img/logo1.png">
                 </div>
-                <h4>Hello! let's get started</h4>
+                <h4>Tibetan Public School</h4>
                 <h6 class="font-weight-light">Sign in to continue.</h6>
                 <form class="pt-3" id="login" method="post" name="login">
                   <!-- Dismissible Alert messages -->

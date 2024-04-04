@@ -34,10 +34,10 @@ body {
   color: #777;
   font-family: "Poppins", sans-serif;
   font-size: 14px;
-  font-weight: 300;
-  line-height: 1.625em;
-  position: relative;
-  overflow-x: hidden;
+  /* font-weight: 300; */
+  /* line-height: 1.625em; */
+  /* position: relative; */
+  /* overflow-x: hidden; */
 }
 ol,
 ul {
@@ -1034,7 +1034,7 @@ h6 {
   background-repeat: no-repeat !important;
   background-position: center center !important;
   background-size: cover !important;
-  height: 200px;
+  height: 100px;
   -webkit-transition: all 0.3s ease 0s;
   -moz-transition: all 0.3s ease 0s;
   -o-transition: all 0.3s ease 0s;
@@ -1729,7 +1729,7 @@ h6 {
 }
 #header {
   position: fixed;
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.493);
   max-height: 25vh;
   left: 0;
   top: 0;
@@ -1739,12 +1739,10 @@ h6 {
 }
 .welcome
 {
-
 	-webkit-text-stroke: 2px #800000;
 }
 #header.header-scrolled {
   transition: all 0.5s;
-  /* background-color: rgba(122, 18, 18, 0.9); */
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
@@ -1759,13 +1757,14 @@ h6 {
 }
 @media (max-width: 500px) {
   #logo img{
-    /* max-width: 20vh; */
+    max-width: 80vw;
+    margin-left: 10px !important;
   }
 }
 #header #logo img {
   padding: 0;
   margin: 0;
-  max-height: 15vh;
+  max-height: 13vh;
 }
 @media (max-width: 768px) {
   #header #logo h1 {
@@ -1837,7 +1836,7 @@ h6 {
   /* color: #fff; */
   color: #000;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
   text-transform: uppercase;
   outline: none;
 }
@@ -2072,9 +2071,8 @@ body.mobile-nav-active #mobile-nav-toggle {
   background-size: cover;
 }
 .banner-area .overlay-bg {
-  /* background-color: rgba(4, 9, 30, 0.8); */
-  /* background-color: rgba(30, 4, 4, 0.8); */
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(82, 8, 8, 0.2);
+  z-index: 1;
 }
 @media (max-width: 767px) {
   .fullscreen {
@@ -2090,6 +2088,9 @@ body.mobile-nav-active #mobile-nav-toggle {
   line-height: 1em;
   margin-top: 10px;
   color: #fff;
+}
+.banner-content p {
+  font-size: 1.3rem;
 }
 @media (max-width: 991.98px) {
   .banner-content h1 {
@@ -2255,7 +2256,7 @@ body.mobile-nav-active #mobile-nav-toggle {
 }
 .search-course-area .overlay-bg {
   /* background: rgba(4, 9, 30, 0.8); */
-  background-color: rgba(255, 255, 255, 0.289);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 .search-course-area .search-course-left h1 {
   margin-bottom: 20px;
@@ -4193,7 +4194,9 @@ dl.toggle.time-line:before {
 }
 .gallery-img
 {
-  max-height: 40vh !important;
+  max-height: 30vh !important;
+  max-width: 100% !important;
+  object-fit: cover !important;
 }
 
 /* Principal's Message */

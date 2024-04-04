@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 // Define permissions array
@@ -89,14 +89,13 @@ else
     }
 
     // Fetching subject details
-    $subjectDetailsSql = "SELECT SubjectName, ClassName, SubjectType, IsOptional FROM tblsubjects WHERE ID = :eid";
+    $subjectDetailsSql = "SELECT SubjectName, ClassName, IsOptional FROM tblsubjects WHERE ID = :eid";
     $subjectDetailsQuery = $dbh->prepare($subjectDetailsSql);
     $subjectDetailsQuery->bindParam(':eid', $eid, PDO::PARAM_STR);
     $subjectDetailsQuery->execute();
     $subjectDetailsRow = $subjectDetailsQuery->fetch(PDO::FETCH_ASSOC);
             
     $selectedClasses = explode(",", $subjectDetailsRow['ClassName']);
-    $selectedSubjectTypes = explode(",", $subjectDetailsRow['SubjectType']);
 ?>
 <!DOCTYPE html>
 <html lang="en">

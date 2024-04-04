@@ -33,7 +33,7 @@
 	<div class="container main-menu">
 		<div class="row align-items-center justify-content-between d-flex">
 			<div id="logo">
-				<a href="index.php"><img src="Main/img/LogoWithName.png" alt="" title="" /></a>
+				<a href="index.php"><img src="Main/img/logo.png" alt="logo" /></a>
 			</div>
 			<nav id="nav-menu-container">
 				<ul class="nav-menu">
