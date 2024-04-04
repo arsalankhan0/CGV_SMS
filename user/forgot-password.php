@@ -71,7 +71,7 @@ catch (PDOException $e)
 <html lang="en">
   <head>
   
-    <title>Student  Management System || Student Forgot Password</title>
+    <title>Tibetan Public School || Student Forgot Password</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -93,7 +93,7 @@ catch (PDOException $e)
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <div class="brand-logo">
-                  <img src="images/logo.svg"> SMS
+                <img src="../Main/img/logo1.png">
                 </div>
                 <h4>RECOVER PASSWORD</h4>
                 <h6 class="font-weight-light">Enter your email address and mobile number to reset password!</h6>

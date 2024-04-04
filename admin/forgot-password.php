@@ -136,7 +136,8 @@ catch (PDOException $e)
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <div class="brand-logo">
-                  <img src="images/logo.svg">
+                  <!-- <img src="images/logo.svg"> -->
+                  <img src="../Main/img/logo1.png">
                 </div>
                 <h4>RECOVER PASSWORD</h4>
                 <h6 class="font-weight-light">Enter your email address and mobile number to reset password!</h6>
