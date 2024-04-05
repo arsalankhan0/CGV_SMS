@@ -29,7 +29,7 @@ try
           if (!empty($_POST["remember"])) 
           {
               // COOKIES for username
-              setcookie("user_login", $_POST["stuid"], time() + (10 * 365 * 24 * 60 * 60));
+              setcookie("user_login", $_POST["stuid"], time() + (30 * 24 * 60 * 60));
           } 
           else 
           {

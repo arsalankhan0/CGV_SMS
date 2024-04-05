@@ -29,9 +29,9 @@ if(isset($_POST['login']))
 
           if (!empty($_POST["remember"])) 
           {
-              setcookie("user_login", $username, time() + (10 * 365 * 24 * 60 * 60));
-              setcookie("userpassword", $password, time() + (10 * 365 * 24 * 60 * 60));
-              setcookie("role", $role, time() + (10 * 365 * 24 * 60 * 60));
+              setcookie("user_login", $username, time() + (30 * 24 * 60 * 60));
+              setcookie("userpassword", $password, time() + (30 * 24 * 60 * 60));
+              setcookie("role", $role, time() + (30 * 24 * 60 * 60));
           } 
           else 
           {

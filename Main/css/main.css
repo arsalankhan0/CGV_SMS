@@ -1,11 +1,9 @@
 ::-moz-selection {
-  background-image: linear-gradient(90deg, #630606,#911F27);
-  background-image: -webkit-linear-gradient(90deg, #630606,#911F27);
   color: #fff;
+  background:#800000;
 }
 ::selection {
-  background-image: linear-gradient(90deg, #630606,#911F27);
-  background-image: -webkit-linear-gradient(90deg, #630606,#911F27);
+  background:#800000;
   color: #fff;
 }
 ::-webkit-input-placeholder {
