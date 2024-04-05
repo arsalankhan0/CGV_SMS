@@ -1,9 +1,9 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
-if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
+if (empty($_SESSION['sturecmsEMPid'])) 
 {
     header('location:logout.php');
 } 
@@ -33,6 +33,25 @@ else
         $sessionQuery->execute();
         $sessionID = $sessionQuery->fetchColumn();
 
+        function checkExistingMaxMarks($dbh, $sessionID, $classID, $examID, $subjectID) 
+        {
+            $checkExistingMaxSql = "SELECT SessionID, ClassID, ExamID, SubjectID, PassingPercentage FROM tblmaxmarks 
+                                    WHERE SessionID = :sessionID 
+                                    AND ClassID = :classID 
+                                    AND ExamID = :examID 
+                                    AND SubjectID = :subjectID
+                                    AND IsDeleted = 0";
+        
+            $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
+            $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+            $checkExistingMaxQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+            $checkExistingMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+            $checkExistingMaxQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+            $checkExistingMaxQuery->execute();
+            
+            return $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
+        }
+
         // Check if exam is published
         $checkPublishedSql = "SELECT * FROM tblexamination WHERE ID = :examId 
                                 AND IsPublished = 1 
@@ -56,6 +75,7 @@ else
         $checkResultPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
         $checkResultPublishedQuery->execute();
         $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        
 
         if (isset($_SESSION['classIDs']) && isset($_SESSION['examName'])) 
         {
@@ -168,13 +188,14 @@ else
                         $totalPass = true;
                         // studentSubjectsData array
                         $studentSubjectsData = array();
-                        
+
                         foreach ($subjects as $subject) 
                         {
                             // Form input names
                             $SubMaxMarks = isset($_POST['SubMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['SubMaxMarks'][$student['ID']][$subject['ID']] : 0;
                             $SubMarksObtained = isset($_POST['SubMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['SubMarksObtained'][$student['ID']][$subject['ID']] : 0;
 
+                            
                             $subjectID = $subject['ID'];
                             // Check if the GradingSystem is 1 for the current subject
                             $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND GradingSystem = 1";
@@ -183,6 +204,18 @@ else
                             $gradingSystemQuery->execute();
                             $gradingSystem = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
 
+                            $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $student['StudentClass'], $examID, $subject['ID']);
+
+                            // Calculate passing marks for each subject
+                            $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
+                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SubMaxMarks
+                            : $defaultPassPercent / 100 * $SubMaxMarks;
+
+                            // Check if the subject is optional
+                            $isOptional = $subject['IsOptional'];
+                            // Calculate IsPassed based on whether the subject is optional
+                            $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
+
                             // An array for subject data
                             $subjectData = array(
                                 'ExamName' => $examID,
@@ -190,7 +223,8 @@ else
                                 'SubMaxMarks' => $SubMaxMarks,
                                 'SubMarksObtained' => $SubMarksObtained,
                                 'IsOptional' => $subject['IsOptional'],
-                                'GradingSystem' => $gradingSystem,
+                                'IsPassed' => $isPassed, 
+                                'GradingSystem' =>  isset($gradingSystem['GradingSystem']) ? $gradingSystem['GradingSystem'] : 0,
                             );
 
                             $studentSubjectsData[] = $subjectData;
@@ -198,7 +232,7 @@ else
                             $subjectsJSON = json_encode($studentSubjectsData);
                             
                             // Check for existing entry in tblreports
-                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName, SubjectsJSON FROM tblreports 
+                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed FROM tblreports 
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
                                                     AND StudentName = :studentID 
@@ -213,19 +247,8 @@ else
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
                             // Check for existing entry in tblmaxmarks
-                            $checkExistingMaxSql = "SELECT SessionID, ClassID, ExamID, SubjectID, PassingPercentage FROM tblmaxmarks 
-                                                    WHERE SessionID = :sessionID 
-                                                    AND ClassID = :classID 
-                                                    AND ExamID = :examID 
-                                                    AND SubjectID = :subjectID
-                                                    AND IsDeleted = 0";
-                            $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
-                            $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
-                            $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                            $checkExistingMaxQuery->execute();
-                            $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
+                            $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $student['StudentClass'], $examID, $subject['ID']);
+
 
                             // Fetching the pass percentage
                             $passPercentID = 1;
@@ -306,11 +329,28 @@ else
                         {
                             $existingSubjectsJSON = json_decode($existingReportDetails['SubjectsJSON'], true);                        
                             $subjectFound = false;
+                            $isStudentPassed = 1; 
                         
                             foreach ($studentSubjectsData as $newSubjectData) 
                             {
                                 foreach ($existingSubjectsJSON as &$existingSubjectData) 
                                 {
+                                    // Calculate passing marks for each subject
+                                    $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
+                                    ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SubMaxMarks
+                                    : $defaultPassPercent / 100 * $SubMaxMarks;
+
+                                    // Check if the subject is optional
+                                    $isOptional = $subject['IsOptional'];
+                                    // Calculate IsPassed based on whether the subject is optional
+                                    $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
+
+                                     // Update $isStudentPassed flag if any subject is not passed
+                                    if ($existingSubjectData['IsPassed'] == 0) 
+                                    {
+                                        $isStudentPassed = 0;
+                                    }
+
                                     if ($existingSubjectData['SubjectID'] == $newSubjectData['SubjectID'] 
                                         && $existingSubjectData['ExamName'] == $newSubjectData['ExamName']
                                         ) 
@@ -318,6 +358,7 @@ else
                                         // If the subject already exists, update its marks
                                         $existingSubjectData['SubMaxMarks'] = $newSubjectData['SubMaxMarks'];
                                         $existingSubjectData['SubMarksObtained'] = $newSubjectData['SubMarksObtained'];
+                                        $existingSubjectData['IsPassed'] = $newSubjectData['IsPassed'];
                                         
                                         $subjectFound = true;
                                         break;
@@ -342,7 +383,7 @@ else
                         
                             $updateReportQuery = $dbh->prepare($updateReportSql);
                             $updateReportQuery->bindParam(':subjectsJSON', $updatedSubjectsJSON, PDO::PARAM_STR);
-                            $updateReportQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':isPassed', $isStudentPassed, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
