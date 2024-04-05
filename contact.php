@@ -9,11 +9,11 @@
 		<!-- Mobile Specific Meta -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<!-- Favicon-->
-		<link rel="shortcut icon" href="img/fav.png">
+		<link rel="shortcut icon" href="./Main/img/favicon.png">
 		<!-- Author Meta -->
-		<meta name="author" content="">
+		<meta name="author" content="Tibetan Public school">
 		<!-- Meta Description -->
-		<meta name="description" content="">
+		<meta name="description" content="Tibetan Public school Srinagar">
 		<!-- Meta Keyword -->
 		<meta name="keywords" content="Tibetan Public School">
 		<!-- meta character set -->
@@ -38,73 +38,70 @@
 		<body>	
 			<?php include_once('./includes/header.php'); ?>
 
-			<!-- start banner Area -->
-			<section class="banner-area relative about-banner" id="home">	
-				<div class="overlay overlay-bg"></div>
-				<div class="container">				
-					<div class="row d-flex align-items-center justify-content-center">
-						<div class="about-content col-lg-12">
-							<h1 class="text-white">
-								Contact Us				
-							</h1>	
-							<p class="text-white link-nav"><a href="index.php">Home </a>  <span class="lnr lnr-arrow-right"></span>  <a href="contact.php"> Contact Us</a></p>
-						</div>	
-					</div>
-				</div>
-			</section>
-			<!-- End banner Area -->				  
-
 			<!-- Start contact-page Area -->
-			<section class="contact-page-area section-gap">
+			<section class="contact-page-area section-gap mt-80">
 				<div class="container">
-					<div class="row">
-						<!-- <div class="map-wrap" style="width:100%; height: 445px;" id="map"></div> -->
-						<div class="col-lg-12 d-flex flex-column flex-md-row address-wrap">
-							<?php
-							$sql="SELECT * from tblpage where PageType='contactus'";
-							$query = $dbh->prepare($sql);
-							$query->execute();
-							$results=$query->fetchAll(PDO::FETCH_OBJ);
-
-							if($query->rowCount() > 0)
-							{
-								foreach($results as $row)
-								{
-							?>
-									<div class="single-contact-address col-md-4 d-flex flex-column flex-md-row">
-										<div class="icon">
-											<span class="lnr lnr-home"></span>
-										</div>
-										<div class="contact-details">
-											<h5>Address</h5>
-											<p>
-												<?php echo nl2br(htmlentities($row->PageDescription)); ?>
-											</p>
-										</div>
-									</div>
-									<div class="single-contact-address col-md-4 d-flex flex-column flex-md-row">
-										<div class="icon">
-											<span class="lnr lnr-phone-handset"></span>
-										</div>
-										<div class="contact-details">
-											<h5><?php echo "+91 ". htmlentities($row->MobileNumber); ?></h5>
-										</div>
-									</div>
-									<div class="single-contact-address col-md-4 d-flex flex-column flex-md-row">
-										<div class="icon">
-											<span class="lnr lnr-envelope"></span>
-										</div>
-										<div class="contact-details">
-											<h5><?php echo htmlentities($row->Email); ?></h5>
-											<p>Send us your query anytime!</p>
-										</div>
-									</div>						
-							<?php
-								}
-							}
-							?>
-						</div>
+					<div class="section-title text-center">
+						<h2>Contact Us</h2>
+						<p>Feel free to reach out to us</p>
 					</div>
+					<div class="row contact-section">
+						<?php
+						$sql="SELECT * from tblpage where PageType='contactus'";
+						$query = $dbh->prepare($sql);
+						$query->execute();
+						$results=$query->fetchAll(PDO::FETCH_OBJ);
+
+						if($query->rowCount() > 0)
+						{
+							foreach($results as $row)
+							{
+						?>
+							<div class="col-md-4 mb-4">
+								<div class="card h-100 shadow">
+									<div class="card-body">
+										<div class="icon">
+											<span class="lnr lnr-home large-icon"></span>
+										</div>
+										<div class="contact-details">
+											<h5 class="card-title">Address</h5>
+											<p class="card-text"><?php echo nl2br(htmlentities($row->PageDescription)); ?></p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4 mb-4">
+								<div class="card h-100 shadow">
+									<div class="card-body">
+										<div class="icon">
+											<span class="lnr lnr-phone-handset large-icon"></span>
+										</div>
+										<div class="contact-details">
+											<h5 class="card-title"><?php echo "+91 ". htmlentities($row->MobileNumber); ?></h5>
+											<p class="card-text">For inquiries or assistance, please feel free to call us!</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4 mb-4">
+								<div class="card h-100 shadow">
+									<div class="card-body">
+										<div class="icon">
+											<span class="lnr lnr-envelope large-icon"></span>
+										</div>
+										<div class="contact-details">
+											<h5 class="card-title"><?php echo htmlentities($row->Email); ?></h5>
+											<p class="card-text">Send us your query anytime!</p>
+										</div>
+									</div>
+								</div>
+							</div>                    
+						<?php
+							}
+						}
+						?>
+					</div>
+
 				</div>	
 			</section>
 			<!-- End contact-page Area -->

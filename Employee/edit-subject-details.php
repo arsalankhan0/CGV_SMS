@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 // Define permissions array
@@ -100,7 +100,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Tibetan Public School || Update Subject</title>
+        <title>TPS || Update Subject</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">

@@ -1,5 +1,5 @@
 <?php
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 // Fetch active session from tblsessions

@@ -1,9 +1,5 @@
 <?php 
-// DB credentials.
-define('DB_HOST','localhost');
-define('DB_USER','root');
-define('DB_PASS','');
-define('DB_NAME','studentmsdb');
+require_once __DIR__ . '/../../includes/config.php';
 // Establish database connection.
 try
 {

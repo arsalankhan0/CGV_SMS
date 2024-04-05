@@ -14,21 +14,21 @@ else
 <html lang="en">
   <head>
    
-    <title>Student Management System || View Students Profile</title>
+    <title>TPS || View Students Profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
-    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+    <link rel="stylesheet" href="../admin/vendors/simple-line-icons/css/simple-line-icons.css">
+    <link rel="stylesheet" href="../admin/vendors/flag-icon-css/css/flag-icon.min.css">
+    <link rel="stylesheet" href="../admin/vendors/css/vendor.bundle.base.css">
     <!-- endinject -->
     <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="vendors/select2/select2.min.css">
-    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+    <link rel="stylesheet" href="../admin/vendors/select2/select2.min.css">
+    <link rel="stylesheet" href="../admin/vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
     <!-- End plugin css for this page -->
     <!-- inject:css -->
     <!-- endinject -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../admin/css/style.css" />
   </head>
   <body>
     <div class="container-scroller">
@@ -162,20 +162,20 @@ else
     </div>
     <!-- container-scroller -->
     <!-- plugins:js -->
-    <script src="vendors/js/vendor.bundle.base.js"></script>
+    <script src="../admin/vendors/js/vendor.bundle.base.js"></script>
     <!-- endinject -->
     <!-- Plugin js for this page -->
-    <script src="vendors/select2/select2.min.js"></script>
-    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
+    <script src="../admin/vendors/select2/select2.min.js"></script>
+    <script src="../admin/vendors/typeahead.js/typeahead.bundle.min.js"></script>
     <!-- End plugin js for this page -->
     <!-- inject:js -->
-    <script src="js/off-canvas.js"></script>
-    <script src="js/misc.js"></script>
+    <script src="../admin/js/off-canvas.js"></script>
+    <script src="../admin/js/misc.js"></script>
     <!-- endinject -->
     <!-- Custom js for this page -->
-    <script src="js/typeahead.js"></script>
-    <script src="js/select2.js"></script>
-    <script src="./js/showFullProfile.js"></script>
+    <script src="../admin/js/typeahead.js"></script>
+    <script src="../admin/js/select2.js"></script>
+    <script src="../admin/js/showFullProfile.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

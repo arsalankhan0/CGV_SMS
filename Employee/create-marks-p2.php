@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
@@ -371,7 +371,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Tibetan Public School || Create Student Report</title>
+    <title>TPS || Create Student Report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">

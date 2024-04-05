@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']==0)) 
@@ -32,7 +32,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Student  Management System || View Permissions</title>
+    <title>TPS || View Permissions</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">

@@ -1,7 +1,7 @@
 <?php
 session_start();
 error_reporting(0);
-include('includes/dbconnection.php');
+include('../includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) 
 {
   header('location:logout.php');
@@ -18,9 +18,8 @@ else
     {
       $pagetitle=$_POST['pagetitle'];
       $pagedes=$_POST['pagedes'];
-      $sql="update tblpage set PageTitle=:pagetitle,PageDescription=:pagedes where  PageType='aboutus'";
+      $sql="UPDATE tblpage SET PageDescription=:pagedes WHERE  PageType='aboutus'";
       $query=$dbh->prepare($sql);
-      $query->bindParam(':pagetitle',$pagetitle,PDO::PARAM_STR);
       $query->bindParam(':pagedes',$pagedes,PDO::PARAM_STR);
       $query->execute();
 
@@ -40,7 +39,7 @@ else
 <html lang="en">
   <head>
    
-    <title>Student  Management System|| Update About Us</title>
+    <title>TPS || Update About Us</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -55,8 +54,6 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <script src="http://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
-<script type="text/javascript">bkLib.onDomLoaded(nicEditors.allTextAreas);</script>
   </head>
   <body>
     <div class="container-scroller">
@@ -121,13 +118,10 @@ else
                       foreach($results as $row)
                       {               
                         ?>      
-                      <div class="form-group">
-                        <label for="exampleInputName1">Page Title:</label>
-                        <input type="text" name="pagetitle" value="<?php  echo $row->PageTitle;?>" class="form-control" required='true'>
-                      </div>
+                      
                       <div class="form-group">
                         <label for="exampleInputName1">Page Description:</label>
-                        <textarea type="text" name="pagedes" class="form-control" required='true'><?php  echo $row->PageDescription;?></textarea>
+                        <textarea type="text" name="pagedes" class="form-control" required='true' rows="12"><?php  echo $row->PageDescription;?></textarea>
                       </div>
                       <?php $cnt=$cnt+1;}} ?>
                       <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>

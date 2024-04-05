@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']) == 0) 
@@ -128,7 +128,7 @@ catch (PDOException $e)
 <html lang="en">
 <head>
 
-    <title>Tibetan Public School || Promote Students</title>
+    <title>TPS || Promote Students</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">

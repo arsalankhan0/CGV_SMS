@@ -68,7 +68,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>TIbetan Public School || Add Exam</title>
+    <title>TPS || Add Exam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -159,20 +159,20 @@ else
                                     </div>
                                     <div class="form-group">
                                         <label>Exam Types</label>
-                                        <div class="checkbox-group d-flex justify-content-start">
-                                            <div class="form-check mr-4">
+                                        <div class="checkbox-group d-flex flex-wrap justify-content-start">
+                                            <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="formative">
                                                     Formative Assessment
                                                     <input class="form-check-input" type="checkbox" name="examTypes[]" value="Formative" id="formative">
                                                 </label>
                                             </div>
-                                            <div class="form-check mr-4">
+                                            <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="coCurricular">
                                                     Co-Curricular Activities
                                                     <input class="form-check-input" type="checkbox" name="examTypes[]" value="Co-Curricular" id="coCurricular">
                                                 </label>
                                             </div>
-                                            <div class="form-check mr-4">
+                                            <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="summative">
                                                     Summative Assessment
                                                     <input class="form-check-input" type="checkbox" name="examTypes[]" value="Summative" id="summative">

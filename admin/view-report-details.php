@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
@@ -73,7 +73,7 @@ else
                 <html lang="en">
 
                 <head>
-                    <title>Student Management System || Student Report</title>
+                    <title>TPS || Student Report</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
                     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">

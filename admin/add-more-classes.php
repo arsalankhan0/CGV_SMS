@@ -54,7 +54,7 @@ else
 <html lang="en">
 <head>
 
-    <title>Tibetan Public School || Manage Classes</title>
+    <title>TPS || Manage Classes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -166,7 +166,7 @@ else
 
                                     <div class="form-group">
                                         <label>Exam Types</label>
-                                        <div class="checkbox-group d-flex justify-content-start">
+                                        <div class="checkbox-group d-flex flex-wrap justify-content-start">
                                             <?php
                                             $examTypes = isset($examClassesRow->ExamType) ? explode(",", $examClassesRow->ExamType) : [];
 

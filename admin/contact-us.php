@@ -16,13 +16,11 @@ else
   {
     if(isset($_POST['submit']))
     {
-      $pagetitle=$_POST['pagetitle'];
       $pagedes=$_POST['pagedes'];
       $mobnum=$_POST['mobnum'];
       $email=$_POST['email'];
-      $sql="update tblpage set PageTitle=:pagetitle,PageDescription=:pagedes,Email=:email,MobileNumber=:mobnum where  PageType='contactus'";
+      $sql="UPDATE tblpage set PageDescription=:pagedes,Email=:email,MobileNumber=:mobnum where  PageType='contactus'";
       $query=$dbh->prepare($sql);
-      $query->bindParam(':pagetitle',$pagetitle,PDO::PARAM_STR);
       $query->bindParam(':pagedes',$pagedes,PDO::PARAM_STR);
       $query->bindParam(':email',$email,PDO::PARAM_STR);
       $query->bindParam(':mobnum',$mobnum,PDO::PARAM_STR);
@@ -44,7 +42,7 @@ else
 <html lang="en">
   <head>
    
-    <title>Student  Management System|| Update Contact Us</title>
+    <title>TPS || Update Contact Us</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -59,8 +57,6 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <script src="http://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
-<script type="text/javascript">bkLib.onDomLoaded(nicEditors.allTextAreas);</script>
   </head>
   <body>
     <div class="container-scroller">
@@ -125,12 +121,8 @@ else
                       {               
                         ?>    
                       <div class="form-group">
-                        <label for="exampleInputName1">Page Title:</label>
-                        <input type="text" name="pagetitle" value="<?php  echo $row->PageTitle;?>" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Page Description:</label>
-                        <textarea type="text" name="pagedes" class="form-control" required='true'><?php  echo $row->PageDescription;?></textarea>
+                        <label for="exampleInputName1">Address:</label>
+                        <textarea type="text" name="pagedes" class="form-control" required='true' rows="3"><?php  echo $row->PageDescription;?></textarea>
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Email:</label>

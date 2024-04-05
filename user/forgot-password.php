@@ -71,19 +71,19 @@ catch (PDOException $e)
 <html lang="en">
   <head>
   
-    <title>Tibetan Public School || Student Forgot Password</title>
+    <title>TPS || Student Forgot Password</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
-    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+    <link rel="stylesheet" href="../admin/vendors/simple-line-icons/css/simple-line-icons.css">
+    <link rel="stylesheet" href="../admin/vendors/flag-icon-css/css/flag-icon.min.css">
+    <link rel="stylesheet" href="../admin/vendors/css/vendor.bundle.base.css">
     <!-- endinject -->
     <!-- Plugin css for this page -->
     <!-- End plugin css for this page -->
     <!-- inject:css -->
     <!-- endinject -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../admin/css/style.css">
   </head>
   <body>
     <div class="container-scroller">
@@ -159,13 +159,13 @@ catch (PDOException $e)
     </div>
     <!-- container-scroller -->
     <!-- plugins:js -->
-    <script src="vendors/js/vendor.bundle.base.js"></script>
+    <script src="../admin/vendors/js/vendor.bundle.base.js"></script>
     <!-- endinject -->
     <!-- Plugin js for this page -->
     <!-- End plugin js for this page -->
     <!-- inject:js -->
-    <script src="js/off-canvas.js"></script>
-    <script src="js/misc.js"></script>
+    <script src="../admin/js/off-canvas.js"></script>
+    <script src="../admin/js/misc.js"></script>
     <script src="../admin/js/manageAlert.js"></script>
     <!-- endinject -->
   </body>

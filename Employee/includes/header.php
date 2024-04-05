@@ -3,7 +3,7 @@
           <a class="navbar-brand brand-logo" href="dashboard.php">
             <strong style="color: white;">TPS</strong>
           </a>
-          <a class="navbar-brand brand-logo-mini" href="dashboard.php"><img src="images/logo-mini.svg" alt="logo" /></a>
+          <a class="navbar-brand brand-logo-mini" href="dashboard.php"><img src="images/logo-mini.svg" alt="TPS" /></a>
         </div><?php
         $eid= $_SESSION['sturecmsEMPid'];
         $sql="SELECT * from tblemployees where ID=:eid";

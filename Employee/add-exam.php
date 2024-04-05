@@ -97,7 +97,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Student Management System|| Add Exam</title>
+    <title>TPS || Add Exam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -188,7 +188,7 @@ else
                                     </div>
                                     <div class="form-group">
                                         <label>Exam Types</label>
-                                        <div class="checkbox-group d-flex justify-content-start">
+                                        <div class="checkbox-group d-flex flex-wrap justify-content-start">
                                             <div class="form-check mr-4">
                                                 <label class="form-check-label" for="formative">
                                                     Formative Assessment

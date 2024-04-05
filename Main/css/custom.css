@@ -1,6 +1,6 @@
 .public-notice-scroll {
-  min-height: 40vh;
-  max-height: 45vh;
+  height: 55vh;
+  max-height: 55vh;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -23,7 +23,7 @@
   margin-bottom: 10px;
 }
 .stay-connected {
-  height: 50vh;
+  height: 60vh;
 }
 .single-feature {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,

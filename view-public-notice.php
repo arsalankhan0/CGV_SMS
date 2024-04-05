@@ -9,13 +9,13 @@
 		<!-- Mobile Specific Meta -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<!-- Favicon-->
-		<link rel="shortcut icon" href="img/fav.png">
+		<link rel="shortcut icon" href="./Main/img/favicon.png">
 		<!-- Author Meta -->
-		<meta name="author" content="colorlib">
+		<meta name="author" content="Tibetan Public School">
 		<!-- Meta Description -->
-		<meta name="description" content="">
+		<meta name="description" content="Tibetan Public school Srinagar">
 		<!-- Meta Keyword -->
-		<meta name="keywords" content="">
+		<meta name="keywords" content="Tibetan Public school">
 		<!-- meta character set -->
 		<meta charset="UTF-8">
 		<!-- Site Title -->
@@ -39,24 +39,14 @@
 		<body>	
 			<?php include_once('./includes/header.php'); ?>
 
-			<!-- start banner Area -->
-			<section class="banner-area relative about-banner" id="home">	
-				<div class="overlay overlay-bg"></div>
-				<div class="container">				
-					<div class="row d-flex align-items-center justify-content-center">
-						<div class="about-content col-lg-12">
-							<h1 class="text-white">
-								Notice Details				
-							</h1>	
-						</div>	
-					</div>
-				</div>
-			</section>
-			<!-- End banner Area -->	
 				
 			<!-- Start events-list Area -->
-			<section class="events-list-area section-gap event-page-lists">
+			<section class="events-list-area section-gap mt-80">
 				<div class="container">
+					<div class="section-title text-center">
+						<h2>Notice</h2>
+						<p>View Full Notice</p>
+					</div>
 					<div class="row align-items-center">
 					<table class="table table-bordered">
                     <?php

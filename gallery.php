@@ -9,11 +9,11 @@
 		<!-- Mobile Specific Meta -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<!-- Favicon-->
-		<link rel="shortcut icon" href="img/fav.png">
+		<link rel="shortcut icon" href="./Main/img/favicon.png">
 		<!-- Author Meta -->
-		<meta name="author" content="">
+		<meta name="author" content="Tibetan Public school">
 		<!-- Meta Description -->
-		<meta name="description" content="">
+		<meta name="description" content="Tibetan Public school Srinagar">
 		<!-- Meta Keyword -->
 		<meta name="keywords" content="Tibetan Public School">
 		<!-- meta character set -->
@@ -38,25 +38,15 @@
 		<body>	
 			<?php include_once('./includes/header.php'); ?>
 
-			<!-- start banner Area -->
-			<section class="banner-area relative about-banner" id="home">	
-				<div class="overlay overlay-bg"></div>
-				<div class="container">				
-					<div class="row d-flex align-items-center justify-content-center">
-						<div class="about-content col-lg-12">
-							<h1 class="text-white">
-								Gallery				
-							</h1>	
-							<p class="text-white link-nav"><a href="index.php">Home </a>  <span class="lnr lnr-arrow-right"></span>  <a href="gallery.php"> Gallery</a></p>
-						</div>	
-					</div>
-				</div>
-			</section>
-			<!-- End banner Area -->	
+
 				
 			<!-- Start gallery Area -->
-			<section class="gallery-area section-gap">
+			<section class="gallery-area section-gap mt-80">
 				<div class="container">
+					<div class="section-title text-center">
+						<h2>Gallery</h2>
+						<p>Explore our gallery</p>
+					</div>
 					<div class="row">
 						<?php
 							// Fetch image paths from tblgallery
@@ -93,6 +83,7 @@
 							?>
 					</div>
 				</div>	
+			</div>
 			</section>
 			<!-- End gallery Area -->
 

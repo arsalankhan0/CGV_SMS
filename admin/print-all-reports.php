@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 // Function to check if there is grading system
@@ -52,7 +52,7 @@ else
         <!DOCTYPE html>
         <html lang="en">
         <head>
-            <title>Tibetan Public School || Student Reports</title>
+            <title>TPS || Student Reports</title>
             <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
             <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
             <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">

@@ -14,7 +14,7 @@ else
 <html lang="en">
   <head>
   
-    <title>Student  Management System || Dashboard</title>
+    <title>TPS || Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -50,7 +50,7 @@ else
                     <div class="row">
                       <div class="col-md-12">
                         <div class="d-sm-flex align-items-baseline report-summary-header">
-                          <h5 class="font-weight-semibold">Report Summary</h5> <span class="ml-auto">Updated Report</span> <button class="btn btn-icons border-0 p-2"><i class="icon-refresh"></i></button>
+                          <h5 class="font-weight-semibold">Report Summary</h5> <span class="ml-auto">Updated Report</span> <button class="btn btn-icons border-0 p-2" onclick="location.reload();"><i class="icon-refresh"></i></button>
                         </div>
                       </div>
                     </div>
