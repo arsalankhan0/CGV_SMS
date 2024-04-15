@@ -35,7 +35,7 @@ else
 
         function checkExistingMaxMarks($dbh, $sessionID, $classID, $examID, $subjectID) 
         {
-            $checkExistingMaxSql = "SELECT SessionID, ClassID, ExamID, SubjectID, PassingPercentage FROM tblmaxmarks 
+            $checkExistingMaxSql = "SELECT ID, SessionID, ClassID, ExamID, SubjectID, PassingPercentage FROM tblmaxmarks 
                                     WHERE SessionID = :sessionID 
                                     AND ClassID = :classID 
                                     AND ExamID = :examID 
@@ -206,10 +206,18 @@ else
 
                             $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $student['StudentClass'], $examID, $subject['ID']);
 
+                            // Fetching the pass percentage
+                            $passPercentID = 1;
+                            $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent WHERE ID = :passPercentID";
+                            $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
+                            $defaultPassMarksQuery->bindParam(':passPercentID', $passPercentID, PDO::PARAM_INT);
+                            $defaultPassMarksQuery->execute();
+                            $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
+
                             // Calculate passing marks for each subject
                             $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SubMaxMarks
-                            : $defaultPassPercent / 100 * $SubMaxMarks;
+                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
+                            : $defaultPassPercent / 100 * (int)$SubMaxMarks;
 
                             // Check if the subject is optional
                             $isOptional = $subject['IsOptional'];
@@ -251,26 +259,12 @@ else
 
 
                             // Fetching the pass percentage
-                            $passPercentID = 1;
-                            $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent WHERE ID = :passPercentID";
-                            $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
-                            $defaultPassMarksQuery->bindParam(':passPercentID', $passPercentID, PDO::PARAM_INT);
-                            $defaultPassMarksQuery->execute();
-                            $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
-
-                            if (!$subject['IsOptional']) 
-                            {
-                                // Calculate passing marks for each subject
-                                $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                                ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SubMaxMarks
-                                : $defaultPassPercent / 100 * $SubMaxMarks;
-
-                                // Check if marks obtained are less than passing marks for each subject
-                                if ($SubMarksObtained < $SubPassMarks) 
-                                {
-                                    $totalPass = false;
-                                }
-                            }
+                            // $passPercentID = 1;
+                            // $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent WHERE ID = :passPercentID";
+                            // $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
+                            // $defaultPassMarksQuery->bindParam(':passPercentID', $passPercentID, PDO::PARAM_INT);
+                            // $defaultPassMarksQuery->execute();
+                            // $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
 
                             // Insert Max Marks in tblmaxmarks
                             if(!$existingMaxReportDetails)
@@ -308,6 +302,19 @@ else
                                 $updateAdminMaxQuery->execute();
                             }
                         }
+                        if (!$subject['IsOptional']) 
+                        {
+                            // Calculate passing marks for each subject
+                            $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
+                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
+                            : $defaultPassPercent / 100 * (int)$SubMaxMarks;
+
+                            // Check if marks obtained are less than passing marks for each subject
+                            if ($SubMarksObtained < $SubPassMarks) 
+                            {
+                                $totalPass = false;
+                            }
+                        }
                         if (!$existingReportDetails) 
                         {
                             $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed)
@@ -333,19 +340,20 @@ else
                         
                             foreach ($studentSubjectsData as $newSubjectData) 
                             {
+                                // $subjectFound = false;
                                 foreach ($existingSubjectsJSON as &$existingSubjectData) 
                                 {
                                     // Calculate passing marks for each subject
                                     $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                                    ? $existingMaxReportDetails['PassingPercentage'] / 100 * $SubMaxMarks
-                                    : $defaultPassPercent / 100 * $SubMaxMarks;
+                                    ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
+                                    : $defaultPassPercent / 100 * (int)$SubMaxMarks;
 
                                     // Check if the subject is optional
                                     $isOptional = $subject['IsOptional'];
                                     // Calculate IsPassed based on whether the subject is optional
                                     $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
 
-                                     // Update $isStudentPassed flag if any subject is not passed
+                                    // Update $isStudentPassed flag if any subject is not passed
                                     if ($existingSubjectData['IsPassed'] == 0) 
                                     {
                                         $isStudentPassed = 0;
@@ -359,7 +367,6 @@ else
                                         $existingSubjectData['SubMaxMarks'] = $newSubjectData['SubMaxMarks'];
                                         $existingSubjectData['SubMarksObtained'] = $newSubjectData['SubMarksObtained'];
                                         $existingSubjectData['IsPassed'] = $newSubjectData['IsPassed'];
-                                        
                                         $subjectFound = true;
                                         break;
                                     }
@@ -370,11 +377,12 @@ else
                                     $existingSubjectsJSON[] = $newSubjectData;
                                 }
                             }
-                        
+
+                    
                             $updatedSubjectsJSON = json_encode($existingSubjectsJSON);
                         
                             $updateReportSql = "UPDATE tblreports SET 
-                                                SubjectsJSON = :subjectsJSON, 
+                                                SubjectsJSON = :subjectsJSON,
                                                 IsPassed = :isPassed
                                                 WHERE ExamSession = :sessionID 
                                                 AND ClassName = :classID 
@@ -529,7 +537,7 @@ else
                                                         // If the GradingSystem is 1, hide the Max Marks column and show the Marks Obtained column as input type text
                                                         $isGradingSystem1 = $gradingSystemResult !== false;
                                                     ?>
-                                                            <th colspan="2" class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']);?></th>
+                                                            <th colspan=<?php echo ($isGradingSystem1) ? '' : '2';?> class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']);?></th>
                                                     <?php 
                                                     }?>
                                                 </tr>
@@ -573,6 +581,7 @@ else
                                                                 // Display marks obtained if they exist; otherwise, display an empty field
                                                                 $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
 
+                                                                $SubMarksObtained = '';
                                                                 // Find the subject in the SubjectsJSON array and extract the marks
                                                                 foreach ($subjectsJSON as $subjectData) 
                                                                 {

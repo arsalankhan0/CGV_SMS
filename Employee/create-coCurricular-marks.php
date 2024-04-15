@@ -195,7 +195,7 @@ else
                         
                         foreach ($subjects as $subject) 
                         {   
-                            $coCurricularMaxMarks = isset($_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']]) ? $_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']] : 0;
+                            $coCurricularMaxMarks = isset($_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']]) ? (int)$_POST['CoCurricularMaxMarks'][$student['ID']][$subject['ID']] : 0;
                             $coCurricularMarksObtained = isset($_POST['CoCurricularMarksObtained'][$student['ID']][$subject['ID']]) ? $_POST['CoCurricularMarksObtained'][$student['ID']][$subject['ID']] : 0;
 
                             // An array for subject data
@@ -467,19 +467,6 @@ else
                                                         ?>
                                                 </tr>
                                                 <tr>
-                                                    <?php foreach ($subjects as $subject) 
-                                                    { 
-                                                         // Check if subject is co-curricular
-                                                        $isCurricularSubject = $subject['IsCurricularSubject'];
-
-                                                        if ($isCurricularSubject == 1) 
-                                                        {
-                                                        ?>
-                                                            <th colspan="2"></th>
-                                                        <?php
-                                                        } 
-                                                    }
-                                                        ?>
                                                 </tr>
                                                 <tr>
                                                     <?php foreach ($subjects as $subject) 
