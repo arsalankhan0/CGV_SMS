@@ -19,8 +19,22 @@
 						if($query->rowCount() > 0)
 						{
 							foreach($results as $row)
-							{               ?>
-								<a href="<?php  echo 'tel:+91 ' . htmlentities($row->MobileNumber);?>"><span class="lnr lnr-phone-handset"></span> <span class="text"><?php  echo '+91 ' . htmlentities($row->MobileNumber);?></span></a>
+							{             
+								$mobileNumber = htmlentities($row->MobileNumber);
+								// if the mobile number starts with '0194' and contains a hyphen '-'
+								if (strpos($mobileNumber, '01') === 0 && strpos($mobileNumber, '-') !== false) 
+								{
+									$phoneNumber = $mobileNumber;
+								} 
+								else 
+								{
+									$phoneNumber = '+91 ' . $mobileNumber;
+								}
+								?>
+								<a href="tel:<?php echo $phoneNumber; ?>">
+									<span class="lnr lnr-phone-handset"></span>
+									<span class="text"><?php echo $phoneNumber; ?></span>
+								</a>								
 								<a href="<?php  echo 'mailto:' . htmlentities($row->Email);?>"><span class="lnr lnr-envelope"></span> <span class="text"><?php  echo htmlentities($row->Email);?></span></a>			
 							<?php
 							}

@@ -129,8 +129,8 @@ else
                         <input type="text" name="email" id="email" required="true" value="<?php  echo $row->Email;?>" class="form-control">
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Mobile Number:</label>
-                        <input type="text" name="mobnum" id="mobnum" required="true" value="<?php  echo $row->MobileNumber;?>" class="form-control" maxlength="10" pattern="[0-9]+">
+                        <label for="exampleInputName1">Contact Number:</label>
+                        <input type="text" name="mobnum" id="mobnum" required="true" value="<?php  echo $row->MobileNumber;?>" class="form-control" >
                       </div>
                       <?php $cnt=$cnt+1;}} ?>
                       <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>
@@ -183,6 +183,7 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script src="./js/contact-num-validation.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

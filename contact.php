@@ -77,7 +77,20 @@
 											<span class="lnr lnr-phone-handset large-icon"></span>
 										</div>
 										<div class="contact-details">
-											<h5 class="card-title"><?php echo "+91 ". htmlentities($row->MobileNumber); ?></h5>
+											<?php
+											$mobileNumber = htmlentities($row->MobileNumber);
+											// if the mobile number starts with '0194' and contains a hyphen '-'
+											if (strpos($mobileNumber, '01') === 0 && strpos($mobileNumber, '-') !== false) 
+											{
+												$phoneNumber = $mobileNumber;
+											} 
+											else 
+											{
+												$phoneNumber = '+91 ' . $mobileNumber;
+											}
+											?>
+											<!-- <h5 class="card-title"><?php echo "+91 ". htmlentities($row->MobileNumber); ?></h5> -->
+											<h5 class="card-title"><?php echo $phoneNumber; ?></h5>
 											<p class="card-text">For inquiries or assistance, please feel free to call us!</p>
 										</div>
 									</div>
