@@ -59,7 +59,7 @@ include('includes/dbconnection.php');
 					class="d-block w-100" alt="img">
 			</div>
 			<div class="carousel-caption banner-content d-md-block">
-				<div class="row fullscreen d-flex align-items-center justify-content-start">
+				<div class="row fullscreen d-flex align-items-center pt-5 justify-content-start">
 					<div class="banner-content col-lg-9 col-md-12">
 						<h1 class="text-uppercase welcome">
 							Welcome to Tibetan Public School
@@ -104,7 +104,7 @@ include('includes/dbconnection.php');
 										$currentDateTime = new DateTime();
 										$currentDateTime->modify('-24 hours');
 										
-										$sql = "SELECT * FROM tblpublicnotice WHERE IsDeleted = 0 ORDER BY CreationDate DESC";
+										$sql = "SELECT * FROM tblpublicnotice ORDER BY CreationDate DESC";
 										$query = $dbh->prepare($sql);
 										$query->execute();
 										$results = $query->fetchAll(PDO::FETCH_OBJ);

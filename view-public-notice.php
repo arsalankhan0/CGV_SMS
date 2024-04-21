@@ -71,6 +71,18 @@
                                 <th>Message</th>
                                 <td><?php echo $row->NoticeMessage; ?></td>
                             </tr>
+							<tr>
+								<th>Attachment</th>
+								<td>
+									<?php 
+									if (!empty($row->Attachment)) {
+										echo "<a href='admin/" . $row->Attachment . "' target='_blank'>View Attachment</a>";
+									} else {
+										echo "No attachment available";
+									}
+									?>
+								</td>
+							</tr>
                     <?php
                             $cnt = $cnt + 1;
                         }

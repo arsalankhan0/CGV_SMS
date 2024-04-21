@@ -181,6 +181,20 @@
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#resources" aria-expanded="false" aria-controls="resources">
+                <span class="menu-title">Resources</span>
+                <i class="icon-book-open menu-icon"></i>
+              </a>
+              <div class="collapse" id="resources">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="add-syllabus.php">Add Syllabus</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-syllabus.php">Manage Syllabus</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="add notes.php">Add Notes</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="manage-notes.php">Manage Notes</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" data-toggle="collapse" href="#auth1" aria-expanded="false" aria-controls="auth">
                 <span class="menu-title">Public Notice</span>
                 <i class="icon-doc menu-icon"></i>

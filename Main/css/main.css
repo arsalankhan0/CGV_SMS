@@ -1753,27 +1753,48 @@ h6 {
 @media (max-width: 673px) {
   #logo img{
     max-height: 10vh;
-    /* margin-left: 20px; */
+  }
+}
+@media (max-width: 1630px) {
+  #logo img{
+    max-height: 10vh !important;
+  }
+}
+@media (max-width: 1430px) {
+  #logo img{
+    max-height: 7vh !important;
+  }
+}
+@media (max-width: 1210px) {
+  #logo img{
+    max-height: 5vh !important;
+  }
+}
+@media (max-width: 1070px) {
+  #logo img{
+    max-height: 4vh !important;
+  }
+}
+@media (max-width: 960px) {
+  #logo img{
+    max-height: 10vh !important;
   }
 }
 @media (max-width: 500px) {
   #logo img{
-    max-width: 80vw;
+    max-width: 80vw !important;
     margin-left: 10px !important;
   }
 }
 #header #logo img {
   padding: 0;
   margin: 0;
-  max-height: 13vh;
+  max-height: 13vh !important;
 }
 @media (max-width: 768px) {
-  #header #logo h1 {
-    font-size: 28px;
-  }
   #header #logo img {
     /* max-height: 40px; */
-    max-height: 8vh;
+    max-height: 8vh !important;
   }
   #header
   {
@@ -4291,4 +4312,31 @@ dl.toggle.time-line:before {
 .large-icon {
   font-size: 2em; 
   color: #800000;
+}
+/* RESOURCES STYLE */
+.resource-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.resource-menu li {
+  margin-bottom: 10px;
+}
+.resource-menu a {
+  display: block;
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  color: #333;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+.resource-menu a:hover {
+  background-color: #e0e0e0;
+}
+.resource-content {
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
 }

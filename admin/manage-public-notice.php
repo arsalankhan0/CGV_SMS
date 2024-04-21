@@ -18,10 +18,24 @@ else
     {
       $rid=intval($_POST['noticeID']);
 
-      $sql="UPDATE tblpublicnotice SET IsDeleted = 1 WHERE ID=:rid";
+      // Fetch the PDF file path
+      $sqlSelect = "SELECT Attachment FROM tblpublicnotice WHERE ID=:rid";
+      $querySelect = $dbh->prepare($sqlSelect);
+      $querySelect->bindParam(':rid', $rid, PDO::PARAM_INT);
+      $querySelect->execute();
+      $row = $querySelect->fetch(PDO::FETCH_ASSOC);
+      $pdfFilePath = $row['Attachment'];
+
+      $sql="DELETE FROM tblpublicnotice WHERE ID=:rid";
       $query=$dbh->prepare($sql);
       $query->bindParam(':rid',$rid,PDO::PARAM_STR);
       $query->execute();
+
+      // Delete the attached PDF file from the server directory
+      if (file_exists($pdfFilePath)) 
+      {
+        unlink($pdfFilePath);
+      }
     
       $successAlert = true;
       $msg = "Notice deleted successfully.";  
@@ -139,7 +153,7 @@ else
                             $results1=$query1->fetchAll(PDO::FETCH_OBJ);
                             $total_rows=$query1->rowCount();
                             $total_pages = ceil($total_rows / $no_of_records_per_page);
-                            $sql="SELECT * from tblpublicnotice WHERE IsDeleted = 0";
+                            $sql="SELECT * from tblpublicnotice ORDER BY CreationDate DESC";
                             $query = $dbh -> prepare($sql);
                             $query->execute();
                             $results=$query->fetchAll(PDO::FETCH_OBJ);

@@ -4,9 +4,9 @@
 			<div class="row">
 				<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
 					<ul>
-						<li><a href="#"><i class="fa fa-facebook"></i></a></li>
+						<li><a href="https://www.facebook.com/profile.php?id=100063700347020&mibextid=LQQJ4d" target="_blank"><i class="fa fa-facebook"></i></a></li>
 						<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-						<li><a href="#"><i class="fa fa-instagram"></i></a></li>
+						<li><a href="https://www.instagram.com/tibetan_school_official?igsh=YnhsYnRzNDJ5bzc0" target="_blank"><i class="fa fa-instagram"></i></a></li>
 					</ul>			
 				</div>
 				<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
@@ -44,7 +44,7 @@
 			</div>			  					
 		</div>
 	</div>
-	<div class="container main-menu">
+	<div class="container-fluid px-5 main-menu">
 		<div class="row align-items-center justify-content-between d-flex">
 			<div id="logo">
 				<a href="index.php"><img src="Main/img/logo.png" alt="logo" /></a>
@@ -53,7 +53,8 @@
 				<ul class="nav-menu">
 					<li><a href="./index.php">Home</a></li>
 					<li><a href="./about.php">About</a></li>
-					<li><a href="./gallery.php">Gallery</a></li>					          					          		          
+					<li><a href="./gallery.php">Gallery</a></li>	
+					<li><a href="./resources.php">Resources</a></li>				          					          		          
 					<li><a href="./contact.php">Contact</a></li>
 					<li><a href="./admin/login.php">Admin</a></li>
 					<li><a href="./user/login.php">Student</a></li>

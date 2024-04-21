@@ -2,43 +2,93 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['sturecmsaid']==0)) 
+if (strlen($_SESSION['sturecmsaid']) == 0) 
 {
-  header('location:logout.php');
+    header('location:logout.php');
 } 
-else
+else 
 {
-  $successAlert = false;
-  $dangerAlert = false;
-  $msg = "";
+    $successAlert = false;
+    $dangerAlert = false;
+    $msg = "";
 
-  try
-  {
-    if(isset($_POST['submit']))
+    try 
     {
-      $nottitle=$_POST['nottitle'];
-      $notmsg=$_POST['notmsg'];
-      $eid=$_GET['editid'];
+      if (isset($_POST['submit'])) 
+      {
+        $nottitle = $_POST['nottitle'];
+        $notmsg = $_POST['notmsg'];
 
-      $sql="update tblpublicnotice set NoticeTitle=:nottitle,NoticeMessage=:notmsg where ID=:eid";
-      $query=$dbh->prepare($sql);
-      $query->bindParam(':nottitle',$nottitle,PDO::PARAM_STR);
-      $query->bindParam(':notmsg',$notmsg,PDO::PARAM_STR);
-      $query->bindParam(':eid',$eid,PDO::PARAM_STR);
-      $query->execute();
+        // Check if a file is uploaded
+        if (!empty($_FILES['attachment']['name'])) {
+            $attachmentName = $_FILES['attachment']['name'];
+            $attachmentTmpName = $_FILES['attachment']['tmp_name'];
+            $attachmentSize = $_FILES['attachment']['size'];
+            $attachmentError = $_FILES['attachment']['error'];
 
-      $successAlert = true;
-      $msg = "Notice has been updated successfully.";
+            // File upload validation
+            if ($attachmentError === UPLOAD_ERR_OK) {
+                // Get file extension
+                $fileExt = strtolower(pathinfo($attachmentName, PATHINFO_EXTENSION));
+
+                // Check if the file is a PDF
+                if ($fileExt === 'pdf') {
+                    // Check file size
+                    $maxSizeAllowed = 2 * 1024 * 1024; // 2 MB
+
+                    if ($attachmentSize > $maxSizeAllowed) {
+                        $dangerAlert = true;
+                        $msg = "Error! Attachment size exceeds the limit of 2MB.";
+                    } else {
+                        // Move the uploaded file to the desired directory
+                        $uploadPath = 'attachments/';
+                        $attachmentPath = $uploadPath . $attachmentName;
+                        move_uploaded_file($attachmentTmpName, $attachmentPath);
+
+                         // Update data in the database
+                        $eid = $_GET['editid']; // Make sure to get the ID from the query string
+                        $sql = "UPDATE tblpublicnotice SET NoticeTitle=:nottitle, NoticeMessage=:notmsg, Attachment=:attachment WHERE ID=:eid";
+                        $query = $dbh->prepare($sql);
+                        $query->bindParam(':nottitle', $nottitle, PDO::PARAM_STR);
+                        $query->bindParam(':notmsg', $notmsg, PDO::PARAM_STR);
+                        $query->bindParam(':attachment', $attachmentPath, PDO::PARAM_STR);
+                        $query->bindParam(':eid', $eid, PDO::PARAM_INT);
+                        $query->execute();
+
+                        $successAlert = true;
+                        $msg = "Notice has been updated successfully.";
+                    }
+                } else {
+                    $dangerAlert = true;
+                    $msg = "Only PDF files are allowed.";
+                }
+            } else {
+                $dangerAlert = true;
+                $msg = "Error uploading file.";
+            }
+        } else {
+            // No file uploaded, update data in the database without attachment
+            $eid = $_GET['editid']; // Make sure to get the ID from the query string
+            $sql = "UPDATE tblpublicnotice SET NoticeTitle=:nottitle, NoticeMessage=:notmsg WHERE ID=:eid";
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':nottitle', $nottitle, PDO::PARAM_STR);
+            $query->bindParam(':notmsg', $notmsg, PDO::PARAM_STR);
+            $query->bindParam(':eid', $eid, PDO::PARAM_INT);
+            $query->execute();
+
+            $successAlert = true;
+            $msg = "Notice has been updated successfully.";
+        }
     }
-  }
-  catch(PDOException $e)
-  {
-    $dangerAlert = true;
-    $msg = "Ops! An error occurred while updating public notice.";
-    echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
-  }
+    } 
+    catch (PDOException $e) 
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while updating public notice.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+    }
 
-  ?>
+    ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -62,7 +112,7 @@ else
   <body>
     <div class="container-scroller">
       <!-- partial:partials/_navbar.html -->
-      <?php include_once('includes/header.php');?>
+      <!-- <?php include_once('includes/header.php');?> -->
       <!-- partial -->
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
@@ -130,6 +180,20 @@ else
                             <label for="exampleInputName1">Notice Message</label>
                             <textarea name="notmsg" value="" class="form-control" required='true'><?php  echo htmlentities($row->NoticeMessage);?></textarea>
                           </div>
+                          <div class="form-group">
+                              <label for="attachment">Attachment (PDF only)</label>
+                              <div class="file-input-wrapper">
+                                  <input type="file" name="attachment" class="form-control-file border-border-dark" id="attachmentInput" onchange="updateFileName(this)">
+                                  <span id="fileNameLabel"><?php
+                                    // Show the attachment file if already selected
+                                    if (!empty($row->Attachment)) {
+                                      $fileName = basename($row->Attachment);
+                                        // echo "<p>" . $fileName . "</p>";
+                                    }
+                                    ?>
+                                  </span>
+                              </div>
+                          </div>
                           <?php $cnt=$cnt+1;
                         }
                       } 
@@ -185,6 +249,21 @@ else
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script>
+
+    // Function to set the value of the file input field
+    function setFileInputValue(input, fileName) 
+    {
+        let file = new File([""], fileName, {type: "application/pdf"});
+        let dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+    }
+    let input = document.getElementById('attachmentInput'); 
+        let fileName = '<?php echo $fileName; ?>'; 
+        setFileInputValue(input, fileName); 
+
+    </script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

@@ -54,9 +54,9 @@
 							Tibetan Public school Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved </a>
 						</p>
 						<div class="col-lg-6 col-sm-12 footer-social">
-							<a href="#"><i class="fa fa-facebook"></i></a>
+							<a href="https://www.facebook.com/profile.php?id=100063700347020&mibextid=LQQJ4d" target="_blank"><i class="fa fa-facebook"></i></a>
 							<a href="#"><i class="fa fa-twitter"></i></a>
-							<a href="#"><i class="fa fa-instagram"></i></a>
+							<a href="https://www.instagram.com/tibetan_school_official?igsh=YnhsYnRzNDJ5bzc0" target="_blank"><i class="fa fa-instagram"></i></a>
 						</div>
 					</div>						
 				</div>
