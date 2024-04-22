@@ -15,16 +15,16 @@ else
     {
         if(isset($_POST['confirmDelete']))
         {
-            $rid = intval($_POST['syllabusID']);
+            $rid = intval($_POST['notesID']);
 
-            $getFilePathSql = "SELECT Syllabus FROM tblsyllabus WHERE ID = :rid";
+            $getFilePathSql = "SELECT Notes FROM tblnotes WHERE ID = :rid";
             $getFilePathQuery = $dbh->prepare($getFilePathSql);
             $getFilePathQuery->bindParam(':rid', $rid, PDO::PARAM_INT);
             $getFilePathQuery->execute();
             $filePath = $getFilePathQuery->fetchColumn();
 
             $fileName = basename($filePath);
-            $directory = 'syllabus/';
+            $directory = 'notes/';
             $fullFilePath = $directory . $fileName;
 
             if (file_exists($fullFilePath)) 
@@ -32,18 +32,18 @@ else
                 unlink($fullFilePath);
             }
 
-            $sql = "DELETE FROM tblsyllabus WHERE ID = :rid";
+            $sql = "DELETE FROM tblnotes WHERE ID = :rid";
             $query = $dbh->prepare($sql);
             $query->bindParam(':rid', $rid, PDO::PARAM_STR);
             $query->execute();
             $successAlert = true;
-            $msg = "Syllabus of the selected class deleted successfully.";
+            $msg = "Notes deleted successfully.";
         }
     }
     catch (PDOException $e) 
     {
         $dangerAlert = true;
-        $msg = "Ops! An error occurred while deleting the Syllabus!";
+        $msg = "Ops! An error occurred while deleting the Notes!";
         echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
         
@@ -51,7 +51,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>TPS || Manage Syllabus</title>
+        <title>TPS || Manage Notes</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -80,11 +80,11 @@ else
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
-                            <h3 class="page-title"> Manage Syllabus</h3>
+                            <h3 class="page-title"> Manage Notes</h3>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
                                     <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page"> Manage Syllabus</li>
+                                    <li class="breadcrumb-item active" aria-current="page"> Manage Notes</li>
                                 </ol>
                             </nav>
                         </div>
@@ -93,7 +93,7 @@ else
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-sm-flex align-items-center mb-4">
-                                            <h4 class="card-title mb-sm-0">Manage Syllabus</h4>
+                                            <h4 class="card-title mb-sm-0">Manage Notes</h4>
                                         </div>
                                         <!-- Dismissible Alert messages -->
                                         <?php 
@@ -123,8 +123,10 @@ else
                                                 <thead>
                                                     <tr>
                                                         <th class="font-weight-bold">S.No</th>
+                                                        <th class="font-weight-bold">Title</th>
                                                         <th class="font-weight-bold">Classes</th>
-                                                        <th class="font-weight-bold">Syllabus</th>
+                                                        <th class="font-weight-bold">Subject</th>
+                                                        <th class="font-weight-bold">Notes</th>
                                                         <th class="font-weight-bold">Action</th>
                                                     </tr>
                                                 </thead>
@@ -139,7 +141,7 @@ else
                                                     // Formula for pagination
                                                     $no_of_records_per_page = 15;
                                                     $offset = ($pageno - 1) * $no_of_records_per_page;
-                                                    $ret = "SELECT * FROM tblsyllabus LIMIT $offset, $no_of_records_per_page";
+                                                    $ret = "SELECT * FROM tblnotes LIMIT $offset, $no_of_records_per_page";
                                                     $query1 = $dbh->prepare($ret);
                                                     $query1->execute();
                                                     $results1 = $query1->fetchAll(PDO::FETCH_OBJ);
@@ -152,6 +154,7 @@ else
                                                     ?>
                                                             <tr>
                                                                 <td><?php echo htmlentities($cnt); ?></td>
+                                                                <td><?php echo htmlentities($row->Title); ?></td>
                                                                 <td>
                                                                     <?php
                                                                     // Fetch class name based on class ID
@@ -164,10 +167,22 @@ else
                                                                     echo htmlentities($className);
                                                                     ?>
                                                                 </td>
-                                                                <td><a href="<?php echo "syllabus/".htmlentities($row->Syllabus); ?>" target="_blank">View Syllabus</a></td>
+                                                                <td>
+                                                                    <?php
+                                                                    // Fetch class name based on class ID
+                                                                    $subjectId = $row->Subject;
+                                                                    $subjectSql = "SELECT SubjectName FROM tblsubjects WHERE ID = :subjectId AND IsDeleted = 0";
+                                                                    $subjectQuery = $dbh->prepare($subjectSql);
+                                                                    $subjectQuery->bindParam(':subjectId', $subjectId, PDO::PARAM_STR);
+                                                                    $subjectQuery->execute();
+                                                                    $subjectName = $subjectQuery->fetchColumn();
+                                                                    echo htmlentities($subjectName);
+                                                                    ?>
+                                                                </td>
+                                                                <td><a href="<?php echo "notes/".htmlentities($row->Notes); ?>" target="_blank">View Notes</a></td>
                                                                 <td>
                                                                     <div>
-                                                                        <a href="edit-syllabus-details.php?editid=<?php echo htmlentities($row->ID);?>"><i class="icon-pencil"></i></a>
+                                                                        <a href="edit-notes-details.php?editid=<?php echo htmlentities($row->ID);?>"><i class="icon-pencil"></i></a>
                                                                         || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                                                                 <i class="icon-trash"></i>
                                                                             </a>
@@ -221,7 +236,7 @@ else
                     </div>
                     <div class="modal-footer">
                         <form id="deleteForm" action="" method="post">
-                        <input type="hidden" name="syllabusID" id="syllabusID">
+                        <input type="hidden" name="notesID" id="notesID">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
                         </form>
@@ -250,7 +265,7 @@ else
         <script>
             function setDeleteId(id) 
             {
-                document.getElementById('syllabusID').value = id;
+                document.getElementById('notesID').value = id;
             }
         </script>
     </body>

@@ -189,7 +189,7 @@
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"> <a class="nav-link" href="add-syllabus.php">Add Syllabus</a></li>
                   <li class="nav-item"> <a class="nav-link" href="manage-syllabus.php">Manage Syllabus</a></li>
-                  <li class="nav-item"> <a class="nav-link" href="add notes.php">Add Notes</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="add-notes.php">Add Notes</a></li>
                   <li class="nav-item"> <a class="nav-link" href="manage-notes.php">Manage Notes</a></li>
                 </ul>
               </div>

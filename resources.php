@@ -1,6 +1,6 @@
 <?php 
     session_start();
-    // error_reporting(0);
+    error_reporting(0);
     include('./includes/dbconnection.php');
 ?>
 <!DOCTYPE html>
@@ -63,6 +63,7 @@
                         </ul>
                     </div>
                     <div class="col-lg-9">
+                        <!-- Syllabus -->
                         <?php
                             $sql = "SELECT s.*, c.ClassName 
                             FROM tblsyllabus s 
@@ -114,6 +115,23 @@
                                 echo "<div id='syllabus' class='resource-content'><h3>Syllabus List</h3>No records found</div>";
                             }
                         ?>
+                        <!-- Notes -->
+                        <?php
+                            // Fetching current active session.
+                            $sqlActiveSession = "SELECT session_id FROM tblsessions WHERE is_active = 1";
+                            $queryActiveSession = $dbh->prepare($sqlActiveSession);
+                            $queryActiveSession->execute();
+                            $activeSession = $queryActiveSession->fetch(PDO::FETCH_COLUMN);
+
+                            // Query to fetch optional subjects
+                            $sqlOptionalSubjects = "SELECT ID, SubjectName 
+                                                    FROM tblsubjects
+                                                    WHERE IsDeleted = 0 AND SessionID = :activeSession AND IsOptional = 1";
+                            $queryOptionalSubjects = $dbh->prepare($sqlOptionalSubjects);
+                            $queryOptionalSubjects->bindParam(':activeSession', $activeSession, PDO::PARAM_INT);
+                            $queryOptionalSubjects->execute();
+                            $optionalSubjects = $queryOptionalSubjects->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
                         <div id="notes" class="resource-content">
                             <h3>Notes</h3>
                             <div class="row">
@@ -122,8 +140,15 @@
                                         <label for="classDropdown">Select Class</label>
                                         <select class="form-control" id="classDropdown">
                                             <option value="">Select Class</option>
-                                            <option value="class1">Class 1</option>
-                                            <option value="class2">Class 2</option>
+                                            <?php
+                                            $sqlClass = "SELECT * FROM tblclass WHERE IsDeleted = 0";
+                                            $queryClass = $dbh->prepare($sqlClass);
+                                            $queryClass->execute();
+                                            $classes = $queryClass->fetchAll(PDO::FETCH_ASSOC);
+                                            foreach ($classes as $class) {
+                                                echo "<option value='" . htmlentities($class['ID']) . "'>" . htmlentities($class['ClassName']) . "</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
                                 </div>
@@ -132,8 +157,6 @@
                                         <label for="subjectDropdown">Select Subject</label>
                                         <select class="form-control" id="subjectDropdown">
                                             <option value="">Select Subject</option>
-                                            <option value="subject1">Subject 1</option>
-                                            <option value="subject2">Subject 2</option>
                                         </select>
                                     </div>
                                 </div>
@@ -149,18 +172,13 @@
                                                 <th scope="col">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>Note 1</td>
-                                                <td>
-                                                    <a href="#" class="btn btn-primary">Download/View</a>
-                                                </td>
-                                            </tr>
+                                        <tbody id="notesTableBody">
+
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+
                         </div>
 
                     </div>
@@ -185,20 +203,6 @@
         <script src="./Main/js/owl.carousel.min.js"></script>                                    
         <script src="./Main/js/mail-script.js"></script>    
         <script src="./Main/js/main.js"></script>    
-
-        <script>
-            $(document).ready(function() {
-                // Hide all resource content initially
-                $(".resource-content").hide();
-
-                // Show the corresponding resource content when its link is clicked
-                $(".resource-menu a").click(function() {
-                    var target = $(this).attr("href");
-                    $(".resource-content").hide();
-                    $(target).fadeIn();
-                    return false;
-                });
-            });
-        </script>
+        <script src="./Main/js/resources.js"></script>    
     </body>
-</html> 
+</html>
