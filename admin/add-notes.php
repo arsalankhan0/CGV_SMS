@@ -153,8 +153,9 @@ else
                                         <input type="text" name="title" class="form-control" id="title" placeholder="Enter title" required='true'>
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleFormControlSelect2">Select Class</label>
-                                        <select name="class" class="form-control w-100">
+                                        <label for="classDropdown">Select Class</label>
+                                        <select name="class" class="form-control w-100" id="classDropdown">
+                                            <option value="">Select Class</option>
                                             <?php
                                             $sql = "SELECT * FROM tblclass WHERE IsDeleted = 0";
                                             $query = $dbh->prepare($sql);
@@ -179,21 +180,22 @@ else
                                         $activeSession = $queryActiveSession->fetch(PDO::FETCH_COLUMN);
                                         ?>
                                         <div class="form-group">
-                                            <label for="subject">Select Subject</label>
-                                            <select name="subject" class="form-control w-100" id="subject">
+                                            <label for="subjectDropdown">Select Subject</label>
+                                            <select name="subject" class="form-control w-100" id="subjectDropdown">
+                                                <option value="">Select Subject</option>
                                                     <?php
-                                                    // Fetching main subjects
-                                                    $sqlMainSubjects = "SELECT ID, SubjectName 
-                                                                        FROM tblsubjects
-                                                                        WHERE IsDeleted = 0 AND SessionID = :activeSession AND IsOptional = 0 AND IsCurricularSubject = 0";
-                                                    $queryMainSubjects = $dbh->prepare($sqlMainSubjects);
-                                                    $queryMainSubjects->bindParam(':activeSession', $activeSession, PDO::PARAM_INT);
-                                                    $queryMainSubjects->execute();
-                                                    $mainSubjects = $queryMainSubjects->fetchAll(PDO::FETCH_ASSOC);
+                                                    // // Fetching main subjects
+                                                    // $sqlMainSubjects = "SELECT ID, SubjectName 
+                                                    //                     FROM tblsubjects
+                                                    //                     WHERE IsDeleted = 0 AND SessionID = :activeSession AND IsOptional = 0 AND IsCurricularSubject = 0";
+                                                    // $queryMainSubjects = $dbh->prepare($sqlMainSubjects);
+                                                    // $queryMainSubjects->bindParam(':activeSession', $activeSession, PDO::PARAM_INT);
+                                                    // $queryMainSubjects->execute();
+                                                    // $mainSubjects = $queryMainSubjects->fetchAll(PDO::FETCH_ASSOC);
 
-                                                    foreach ($mainSubjects as $subject) {
-                                                        echo "<option value='" . htmlentities($subject['ID']) . "'>" . htmlentities($subject['SubjectName']) . "</option>";
-                                                    }
+                                                    // foreach ($mainSubjects as $subject) {
+                                                    //     echo "<option value='" . htmlentities($subject['ID']) . "'>" . htmlentities($subject['SubjectName']) . "</option>";
+                                                    // }
                                                     ?>
                                             </select>
                                         </div>
@@ -234,6 +236,7 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
+<script src="../Main/js/resources.js"></script> 
 <!-- End custom js for this page -->
 </body>
 </html>
