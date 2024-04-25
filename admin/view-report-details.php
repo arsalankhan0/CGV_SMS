@@ -119,6 +119,11 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                         {
                             padding: 0 100px;
                         }
+                        table 
+                        { 
+                            table-layout:fixed;
+                            width: 100%;                
+                        }
                     </style>
                 </head>
 
@@ -184,11 +189,11 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr class="text-center">
-                                                <th rowspan="2" style="vertical-align: middle;">Subjects</th>
-                                                <th colspan="7">Formative Assessment<br><br>Max. Marks: 5x6 = 30</th>
-                                                <th colspan="2">Co-Curricular Activities</th>
-                                                <th colspan="2">Summative Assessment</th>
-                                                <th colspan="2">Total (FA+CA+SA)</th>
+                                                <th rowspan="2" colspan="2" style="vertical-align: middle;">Subjects</th>
+                                                <th colspan="7">Formative Assessment <br><br>Max. Marks: 5x6 = 30</th>
+                                                <th colspan="2" class="text-wrap">Co-Curricular Activities</th>
+                                                <th colspan="2" class="text-wrap">Summative Assessment</th>
+                                                <th colspan="2" class="text-wrap">Total (FA+CA+SA)</th>
                                             </tr>
                                             <tr class="text-center">
                                                 <?php
@@ -217,10 +222,10 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                 {
                                                     echo "<th scope='col'>" . $exam['ExamName'] . "</th>";
                                                 }?>
-                                                <th>Total</th>
-                                                <th colspan="2">Max Marks</th>
-                                                <th colspan="2">Max Marks</th>
-                                                <th colspan="2">Max Marks</th>
+                                                <th>Total(30)</th>
+                                                <th colspan="2">Max Marks: 20</th>
+                                                <th colspan="2">Max Marks: 50</th>
+                                                <th colspan="2">Max Marks: 100</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -295,9 +300,9 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                                     $coCurricularIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($coCurricularExamNames, 'ID'));
                                                                     $coCurricularMarksArray[$coCurricularIndex] = $subjectData['SubMarksObtained'];
                                                                     // Getting total marks obtained in co-curricular exam.
-                                                                    $totalCoCurricularMarks[$coCurricularExamIndex] += (int)$subjectData['SubMarksObtained']; 
+                                                                    $totalCoCurricularMarks[$coCurricularExamIndex] += (float)$subjectData['SubMarksObtained']; 
                                                                     // Getting total max marks in co-curricular exam.
-                                                                    $totalCoCurricularMaxMarks[$coCurricularExamIndex] += (int)$subjectData['SubMaxMarks']; 
+                                                                    $totalCoCurricularMaxMarks[$coCurricularExamIndex] += (float)$subjectData['SubMaxMarks']; 
                                                                     break;
                                                                 }
                                                             }
@@ -307,17 +312,17 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                                     $summativeIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
                                                                     $summativeMarksArray[$summativeIndex] = $subjectData['SubMarksObtained'];
                                                                     // Getting total marks obtained in summative exam.
-                                                                    $totalSummativeMarks[$summativeExamIndex] += (int)$subjectData['SubMarksObtained']; 
+                                                                    $totalSummativeMarks[$summativeExamIndex] += (float)$subjectData['SubMarksObtained']; 
                                                                     // Getting total max marks in summative exam.
-                                                                    $totalSummativeMaxMarks[$summativeExamIndex] += (int)$subjectData['SubMaxMarks']; 
+                                                                    $totalSummativeMaxMarks[$summativeExamIndex] += (float)$subjectData['SubMaxMarks']; 
                                                                     break;
                                                                 }
                                                             }
                                                             
                                                              // Update total marks and max marks
                                                             if ($examIndex !== false) {
-                                                                $totalMarks[$examIndex] += (int)$subjectData['SubMarksObtained'];
-                                                                $totalMaxMarks[$examIndex] += (int)$subjectData['SubMaxMarks'];
+                                                                $totalMarks[$examIndex] += (float)$subjectData['SubMarksObtained'];
+                                                                $totalMaxMarks[$examIndex] += (float)$subjectData['SubMaxMarks'];
                                                             }
 
                                                         }
@@ -325,7 +330,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                 }
 
                                                 echo "<tr>
-                                                        <td>{$subject['SubjectName']}</td>";
+                                                        <td colspan='2'>{$subject['SubjectName']}</td>";
                                                         foreach ($examMarksArray as $examMarks) {
                                                             echo "<td>$examMarks</td>";
                                                         }
@@ -349,7 +354,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             ?>
                                             <!-- Marks Obtained -->
                                             <tr>
-                                                <td class="font-weight-bold">Marks Obtained</td>
+                                                <td class="font-weight-bold text-right" colspan="2">Marks Obtained</td>
                                                 <?php
                                                 // Total marks of each formative exam(column) in all subjects
                                                 foreach ($totalMarks as $examTotalMarks) 
@@ -396,7 +401,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             </tr>
                                             <!-- Maximum Marks -->
                                             <tr>
-                                                <td>Maximum Marks</td>
+                                                <td class="text-right" colspan="2">Maximum Marks</td>
                                                 
                                                 <?php
                                                 // Total max marks of all formative exam(column) in all subjects
@@ -443,7 +448,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             </tr>
                                             <!-- Percentage -->
                                             <tr>
-                                                <td>Percentage</td>
+                                                <td class="text-right" colspan="2">Percentage</td>
                                                 <?php
                                                 // total marks obtained for each type of exam
                                                 $totalMarksObtained = array_sum($totalMarks);
@@ -483,7 +488,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             </tr>
                                             <!-- Grade -->
                                             <tr>
-                                                <td>Grade</td>
+                                                <td class="text-right" colspan="2">Grade</td>
                                                 <?php
                                                     // Grading system thresholds
                                                     $gradingSystem = array(
@@ -573,8 +578,114 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                 ?>
                                             </tr>
                                             <!-- Rank -->
+                                            <!-- <tr>
+                                                <td class="text-right" colspan="2">Rank</td>
+                                            </tr> -->
+                                            <!-- Rank -->
                                             <tr>
-                                                <td>Rank</td>
+                                                <td class="text-right" colspan="2">Rank</td>
+                                                <?php
+                                                // Rank mappings
+                                                $rankMappings = array(
+                                                    'A+' => 'SKY',
+                                                    'A' => 'MOUNTAIN',
+                                                    'B' => 'MOUNTAIN',
+                                                    'C' => 'MOUNTAIN',
+                                                    'D' => 'RIVER'
+                                                );
+
+                                                foreach ($totalMarks as $key => $examTotalMarks) {
+                                                    $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalMaxMarks[$key]) * 100, 2) : '';
+
+                                                    // Determine grade based on percentage
+                                                    $grade = '';
+                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                        if ($percentage >= $gradingSystem[1][$i] && $percentage <= $gradingSystem[2][$i]) {
+                                                            $grade = $gradingSystem[0][$i];
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    // Determine rank based on grade
+                                                    $rank = isset($rankMappings[$grade]) ? $rankMappings[$grade] : '';
+
+                                                    // Display the rank
+                                                    echo "<td class='text-wrap' style='font-size: 0.7rem'>$rank</td>";
+                                                }
+
+                                                // Determine total grade based on total percentage
+                                                $totalFormativeGrade = '';
+                                                for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                    if ($totalFormativePercentage >= $gradingSystem[1][$i] && $totalFormativePercentage <= $gradingSystem[2][$i]) {
+                                                        $totalFormativeGrade = $gradingSystem[0][$i];
+                                                        break;
+                                                    }
+                                                }
+
+                                                // Determine total rank based on total grade
+                                                $totalRank = isset($rankMappings[$totalFormativeGrade]) ? $rankMappings[$totalFormativeGrade] : '';
+
+                                                // Display the total rank
+                                                echo "<td class='text-wrap' style='font-size: 0.7rem'>$totalRank</td>";
+
+                                                // Calculating Co-curricular rank
+                                                foreach ($totalCoCurricularMarks as $key => $examTotalMarks) {
+                                                    $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalCoCurricularMaxMarks[$key]) * 100, 2) : '';
+
+                                                    // Determine grade based on percentage
+                                                    $CoCurricularGrade = '';
+                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                        if ($percentage >= $gradingSystem[1][$i] && $percentage <= $gradingSystem[2][$i]) {
+                                                            $CoCurricularGrade = $gradingSystem[0][$i];
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    // Determine rank based on grade
+                                                    $CoCurricularRank = isset($rankMappings[$CoCurricularGrade]) ? $rankMappings[$CoCurricularGrade] : '';
+
+                                                    // Display the rank
+                                                    echo "<td colspan='2'>$CoCurricularRank</td>";
+                                                }
+
+                                                // Calculating Summative rank
+                                                foreach ($totalSummativeMarks as $key => $examTotalMarks) {
+                                                    $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalSummativeMaxMarks[$key]) * 100, 2) : '';
+
+                                                    // Determine grade based on percentage
+                                                    $SummativeGrade = '';
+                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                        if ($percentage >= $gradingSystem[1][$i] && $percentage <= $gradingSystem[2][$i]) {
+                                                            $SummativeGrade = $gradingSystem[0][$i];
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    // Determine rank based on grade
+                                                    $SummativeRank = isset($rankMappings[$SummativeGrade]) ? $rankMappings[$SummativeGrade] : '';
+
+                                                    // Display the rank
+                                                    echo "<td colspan='2'>$SummativeRank</td>";
+                                                }
+
+                                                // Determine total grade based on total percentage
+                                                $totalPercentage = ($totalMarksObtained + $totalCoCurricularMarksObtained + $totalSummativeMarksObtained) > 0 ? round((($totalMarksObtained + $totalCoCurricularMarksObtained + $totalSummativeMarksObtained) / ($totalMaxMarksObtained + $totalCoCurricularMaxMarksObtained + $totalSummativeMaxMarksObtained)) * 100, 2) : 0;
+
+                                                // Determine total grade based on total percentage
+                                                $totalGrade = '';
+                                                for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                    if ($totalPercentage >= $gradingSystem[1][$i] && $totalPercentage <= $gradingSystem[2][$i]) {
+                                                        $totalGrade = $gradingSystem[0][$i];
+                                                        break;
+                                                    }
+                                                }
+
+                                                // Determine total rank based on total grade
+                                                $totalRank = isset($rankMappings[$totalGrade]) ? $rankMappings[$totalGrade] : '';
+
+                                                // Display the total rank
+                                                echo "<td colspan='2'>$totalRank</td>";
+                                                ?>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -586,7 +697,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <th class="text-center" style="vertical-align: middle;" rowspan="2">GRADING SYSTEM</th>
+                                                <th class="text-center text-wrap" style="vertical-align: middle;" rowspan="2" colspan="2">GRADING SYSTEM</th>
                                                 <th colspan="2">A+</th>
                                                 <th colspan="2">>85% upto 100%</th>
                                                 <th colspan="2">B</th>
@@ -613,13 +724,13 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr class="text-center">
-                                                    <th rowspan="3" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
-                                                    <th colspan="12">FORMATIVE / SUMMATIVE ASSESSMENT</th>
+                                                    <th rowspan="3" colspan="2" class="text-wrap" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
+                                                    <th colspan="12" class="text-wrap">FORMATIVE / SUMMATIVE ASSESSMENT</th>
                                                 </tr>
                                                 <tr class="text-center">
                                                     <th colspan="8">GRADE</th>
-                                                    <th colspan="2">Summative Assessment</th>
-                                                    <th colspan="2">TOTAL (FA+SA)</th>
+                                                    <th colspan="2" class="text-wrap">Summative Assessment</th>
+                                                    <th colspan="2" class="text-warp">TOTAL (FA+SA)</th>
                                                 </tr>
                                                 <tr class="text-center">
                                                     <!-- FA Exam Names for Optional Subjects -->
@@ -713,14 +824,14 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             <table class="table table-bordered">
                                                 <thead>
                                                     <tr class="text-center">
-                                                        <th rowspan="3" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
+                                                        <th rowspan="3" colspan="2" class="text-wrap" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
                                                         <th colspan="14">FORMATIVE / CO-CURRICULAR / SUMMATIVE ASSESSMENT</th>
                                                     </tr>
                                                     <tr class="text-center">
-                                                        <th colspan="8">Formative Assessment</th>
-                                                        <th colspan="2">Co-curricular Activities</th>
-                                                        <th colspan="2">Summative Assessment</th>
-                                                        <th colspan="2">TOTAL (FA+CA+SA)</th>
+                                                        <th colspan="8">Formative Assessment<br><br> Max. Marks: 5x6 = 30</th>
+                                                        <th colspan="2" class="text-wrap">Co-curricular Activities</th>
+                                                        <th colspan="2" class="text-wrap">Summative Assessment</th>
+                                                        <th colspan="2" class="text-wrap">TOTAL (FA+CA+SA)</th>
                                                     </tr>
                                                     <tr class="text-center">
                                                         <!-- FA Exam Names for Optional Subjects -->
@@ -730,10 +841,10 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                                 echo "<th scope='col'>".$examName['ExamName']."</th>";
                                                             }
                                                         ?>
-                                                        <th colspan="2">TOTAL</th>
-                                                        <th colspan="2">Max Marks</th>
-                                                        <th colspan="2">Max Marks</th>
-                                                        <th colspan="2">Max Marks</th>
+                                                        <th colspan="2">TOTAL(30)</th>
+                                                        <th colspan="2" class="text-wrap">Max Marks: 20</th>
+                                                        <th colspan="2" class="text-wrap">Max Marks: 50</th>
+                                                        <th colspan="2" class="text-wrap">Max Marks: 100</th>
                                                     </tr>
                                                     <?php
                                                         // Fetch only those subjects of the class whose IsOptional is 1
@@ -797,7 +908,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                             }
 
                                                             echo "<tr>
-                                                                    <td>{$subject['SubjectName']}</td>";
+                                                                    <td colspan='2'>{$subject['SubjectName']}</td>";
                                                                     // All Formative Exams marks
                                                                     foreach ($examMarksArrayOptional as $examMarks) {
                                                                         echo "<td>$examMarks</td>";
@@ -845,10 +956,10 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
 
                                                 foreach ($subjects as $subject) 
                                                 {
-                                                    echo "<th>{$subject['SubjectName']}</th>";
+                                                    echo "<th class='text-wrap' colspan='2'>{$subject['SubjectName']}</th>";
                                                 }
                                                 ?>
-                                                <th colspan='2'>Marks Obtained</th>
+                                                <th colspan='2'>Marks Obtained<br>(20)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -880,7 +991,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                         }
                                                     }
 
-                                                    echo "<td>" . $subMarksObtained . "</td>";
+                                                    echo "<td colspan='2'>" . $subMarksObtained . "</td>";
                                                 }
                                                 $totalMarksObtained = array_sum(array_column($subjectsData, 'CoCurricularMarksObtained'));
 
@@ -890,7 +1001,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                         </tbody>
                                     </table>
                                 </div>
-                                <footer class="d-flex justify-content-end mt-5">
+                                <footer class="d-flex justify-content-end mt-3">
                                     <div class="mt-5">
                                         <label>Signature of Tr. Incharge:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>

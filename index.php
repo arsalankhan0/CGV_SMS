@@ -167,7 +167,7 @@ include('includes/dbconnection.php');
 	<!-- End feature Area -->
 
 	<!-- Start principal's message Area -->
-	<section class="principal-msg my-5 container">
+	<!-- <section class="principal-msg my-5 container">
 		<div class="principal-msg-container">
 			<div class="title text-center">
 				<h2 class="mb-10">Principal's Message</h2>
@@ -223,8 +223,26 @@ include('includes/dbconnection.php');
 				</div>
 			</div>
 		</div>
-	</section>
+	</section> -->
 	<!-- End principal's message Area -->
+	<!-- Start principal's message Area -->
+	<section class="container principal-msg my-5">
+				<div class="principal-msg-container">
+					<div class="title text-center">
+						<h1 class="mb-10">Principal's Message</h1>
+					</div>
+					<div class="message-box">
+						<p>Dear Students, Parents, and Guardians,</p>
+						<p>Welcome to Tibetan Public School, where we are dedicated to providing an exceptional educational experience that transcends traditional boundaries. At TPS, we believe in fostering an environment where curiosity is nurtured, creativity is celebrated, and collaboration thrives. With a relentless commitment to excellence, integrity, and respect, we empower every student to embrace their unique talents and abilities, equipping them with the skills and confidence to navigate an ever-changing world. As principal, I am honored to lead this journey of transformation, working hand in hand with our dedicated team of educators to inspire a love for learning that extends far beyond the classroom walls. Together, let us embark on an extraordinary adventure of discovery and growth, shaping a future where every student's potential knows no limits.</p>
+						<div class="signature">
+							<p>Warm regards,</p>
+							<p>Abida Ali</p>
+							<p>Principal, TPS</p>
+						</div>
+					</div>
+				</div>
+			</section>
+			<!-- End principal's message Area -->
 
 	<!-- About Us Area -->
 	<section id="about" class="about-section mt-5">

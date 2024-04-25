@@ -172,7 +172,7 @@ else
             if (isset($_POST['submit'])) 
             {
                 // Fetch Assigned Subjects for the selected class
-                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND ClassName LIKE :classID AND IsCurricularSubject = 0 AND IsDeleted = 0";
+                $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND ClassName LIKE :classID AND IsDeleted = 0";
                 $subjectQuery = $dbh->prepare($subjectSql);
                 $classID = '%' . unserialize($_SESSION['classIDs']) . '%';
                 $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);
@@ -216,13 +216,22 @@ else
 
                             // Calculate passing marks for each subject
                             $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
-                            : $defaultPassPercent / 100 * (int)$SubMaxMarks;
+                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * (float)$SubMaxMarks
+                            : $defaultPassPercent / 100 * (float)$SubMaxMarks;
 
                             // Check if the subject is optional
                             $isOptional = $subject['IsOptional'];
-                            // Calculate IsPassed based on whether the subject is optional
-                            $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
+
+                            if ((empty($SubMaxMarks) && empty($SubMarksObtained)) || ($SubMaxMarks == 0 && $SubMarksObtained == 0) || empty($SubMarksObtained) || empty($SubMaxMarks)) 
+                            {
+                                $isPassed = 1;
+                            } 
+                            else 
+                            {
+                                // Calculate IsPassed based on whether the subject is optional
+                                $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
+                            }
+                            
 
                             // An array for subject data
                             $subjectData = array(
@@ -231,6 +240,7 @@ else
                                 'SubMaxMarks' => $SubMaxMarks,
                                 'SubMarksObtained' => $SubMarksObtained,
                                 'IsOptional' => $subject['IsOptional'],
+                                'IsCoCurricular' => $subject['IsCurricularSubject'],
                                 'IsPassed' => $isPassed, 
                                 'GradingSystem' =>  isset($gradingSystem['GradingSystem']) ? $gradingSystem['GradingSystem'] : 0,
                             );
@@ -257,15 +267,6 @@ else
                             // Check for existing entry in tblmaxmarks
                             $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $student['StudentClass'], $examID, $subject['ID']);
 
-
-                            // Fetching the pass percentage
-                            // $passPercentID = 1;
-                            // $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent WHERE ID = :passPercentID";
-                            // $defaultPassMarksQuery = $dbh->prepare($defaultPassMarksSql);
-                            // $defaultPassMarksQuery->bindParam(':passPercentID', $passPercentID, PDO::PARAM_INT);
-                            // $defaultPassMarksQuery->execute();
-                            // $defaultPassPercent = $defaultPassMarksQuery->fetch(PDO::FETCH_COLUMN);
-
                             // Insert Max Marks in tblmaxmarks
                             if(!$existingMaxReportDetails)
                             {
@@ -277,7 +278,7 @@ else
                                     $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                                     $insertAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
                                     $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                                    $insertAdminMaxQuery->bindParam(':SubMaxMarks', $SubMaxMarks, PDO::PARAM_INT);           
+                                    $insertAdminMaxQuery->bindParam(':SubMaxMarks', $SubMaxMarks, PDO::PARAM_STR);           
                                     $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
                                     $insertAdminMaxQuery->execute();
                             }
@@ -294,7 +295,7 @@ else
                                                 AND IsDeleted = 0";
                             
                                 $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
-                                $updateAdminMaxQuery->bindParam(':SubMaxMarks', $SubMaxMarks, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':SubMaxMarks', $SubMaxMarks, PDO::PARAM_STR);
                                 $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
                                 $updateAdminMaxQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
@@ -302,17 +303,16 @@ else
                                 $updateAdminMaxQuery->execute();
                             }
                         }
-                        if (!$subject['IsOptional']) 
-                        {
-                            // Calculate passing marks for each subject
-                            $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                            ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
-                            : $defaultPassPercent / 100 * (int)$SubMaxMarks;
 
-                            // Check if marks obtained are less than passing marks for each subject
-                            if ($SubMarksObtained < $SubPassMarks) 
+                        foreach ($studentSubjectsData as $subjectData) {
+                            // Check if the subject is not optional and not co-curricular
+                            if ($subjectData['IsOptional'] == 0 && $subjectData['IsCoCurricular'] == 0) 
                             {
-                                $totalPass = false;
+                                if ($subjectData['IsPassed'] == 0) 
+                                {
+                                    $totalPass = false;
+                                    break; 
+                                }
                             }
                         }
                         if (!$existingReportDetails) 
@@ -345,13 +345,13 @@ else
                                 {
                                     // Calculate passing marks for each subject
                                     $SubPassMarks = ($existingMaxReportDetails && isset($existingMaxReportDetails['PassingPercentage']))
-                                    ? $existingMaxReportDetails['PassingPercentage'] / 100 * (int)$SubMaxMarks
-                                    : $defaultPassPercent / 100 * (int)$SubMaxMarks;
+                                    ? $existingMaxReportDetails['PassingPercentage'] / 100 * (float)$SubMaxMarks
+                                    : $defaultPassPercent / 100 * (float)$SubMaxMarks;
 
                                     // Check if the subject is optional
                                     $isOptional = $subject['IsOptional'];
                                     // Calculate IsPassed based on whether the subject is optional
-                                    $isPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
+                                    $isStudentPassed = $isOptional ? 1 : ($SubMarksObtained >= $SubPassMarks ? 1 : 0);
 
                                     // Update $isStudentPassed flag if any subject is not passed
                                     if ($existingSubjectData['IsPassed'] == 0) 
@@ -436,6 +436,7 @@ else
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css"/>
     <link rel="stylesheet" href="../css/remove-spinner.css"/>
+
     
 </head>
 <body>
@@ -517,7 +518,7 @@ else
                                                     <th rowspan="3">Student Name</th>
                                                     <?php 
                                                     // Fetch Assigned Subjects for the selected class
-                                                    $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND ClassName LIKE :classID AND IsCurricularSubject = 0 AND IsDeleted = 0";
+                                                    $subjectSql = "SELECT * FROM tblsubjects WHERE ID IN (" . implode(",", $assignedSubjectsIDs) . ") AND ClassName LIKE :classID AND IsDeleted = 0";
                                                     $subjectQuery = $dbh->prepare($subjectSql);
                                                     $classID = '%' . unserialize($_SESSION['classIDs']) . '%';
                                                     $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);
@@ -608,18 +609,20 @@ else
                                                                 {
                                                                 ?>
                                                                     <td>
-                                                                        <input type='number' min="0" class='border border-secondary max-marks-input' name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <input type='number' min="0" step="any" class='border border-secondary max-marks-input' name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                             <?php echo $disabledSub; ?>
                                                                             value="<?php echo ($SubMaxMarksToShow !== null) ? $SubMaxMarksToShow : ''; ?>"
+                                                                            data-subject-id="<?php echo $subject['ID']; ?>"
                                                                             >
                                                                     </td>
                                                                 <?php
                                                                 }
                                                                 ?>
                                                                     <td>
-                                                                        <input type=<?php echo ($isGradingSystem1) ? 'text' : 'number'?> class='border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                        <input type=<?php echo ($isGradingSystem1) ? 'text' : 'number step="any"'?> class='border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                             <?php echo $disabledSub; ?>
                                                                             value="<?php echo $SubMarksObtained; ?>">
+                                                                            <div class="error-message text-wrap"></div>
                                                                     </td>
                                                                 <?php 
                                                         } ?>
@@ -637,6 +640,24 @@ else
                                         >
                                             Assign Marks
                                         </button>
+                                        <?php
+                                            $examID = $_SESSION['examName'];
+                                            $teacherID = $_SESSION['sturecmsEMPid'];
+                                            $classID = unserialize($_SESSION['classIDs']);
+                                            $sectionID = unserialize($_SESSION['SectionIDs']);
+
+                                            // Check if the exam type is "Formative" for the current exam session
+                                            $examTypeSql = "SELECT ExamType FROM tblexamination WHERE ID = :examID";
+                                            $examTypeQuery = $dbh->prepare($examTypeSql);
+                                            $examTypeQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+                                            $examTypeQuery->execute();
+                                            $examTypeResult = $examTypeQuery->fetch(PDO::FETCH_ASSOC);
+
+                                            // Render the button if the exam type is "Formative"
+                                            if ($examTypeResult && $examTypeResult['ExamType'] === "Formative") {
+                                                echo '<a href="fa-preview.php?exam='.$examID.'&teacher='.$teacherID.'&class='.$classID.'&section='.$sectionID.'" class="btn btn-dark mr-2">Preview</a>';
+                                            }
+                                        ?>
                                     </div>
                                     <!-- Confirmation Modal (Update) -->
                                     <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -694,6 +715,9 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
+<!-- Include this script in your HTML -->
+<script src="./js/marksAssignValidation.js"></script>
+
 <!-- End custom js for this page -->
 </body>
 </html>

@@ -190,7 +190,6 @@ else
                     foreach ($students as $student) 
                     {
                         $totalPass = true;
-                        // studentSubjectsData array
                         $studentSubjectsData = array();
                         
                         foreach ($subjects as $subject) 
@@ -223,19 +222,6 @@ else
                             $checkExistingQuery->execute();
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
-                            // Check for existing entry in tblmaxmarks
-                            // $checkExistingMaxSql = "SELECT SessionID, ClassID, SubjectID, PassingPercentage FROM tblmaxmarks 
-                            //                         WHERE SessionID = :sessionID 
-                            //                         AND ClassID = :classID 
-                            //                         AND SubjectID = :subjectID
-                            //                         AND IsDeleted = 0";
-                            // $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
-                            // $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                            // $checkExistingMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            // $checkExistingMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                            // $checkExistingMaxQuery->execute();
-                            // $existingMaxReportDetails = $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
-
                             // Fetching the pass percentage
                             $passPercentID = 1;
                             $defaultPassMarksSql = "SELECT DefaultPassMarks FROM tblpasspercent WHERE ID = :passPercentID";
@@ -253,37 +239,6 @@ else
                                 $totalPass = false;
                             }
 
-                            // Insert Max Marks in tblmaxmarks
-                            // if(!$existingMaxReportDetails)
-                            // {
-                            //         $insertAdminSql = "INSERT INTO tblmaxmarks (SessionID, ClassID, SubjectID, CoCurricularMaxMarks, PassingPercentage)
-                            //                     VALUES (:sessionID, :classID, :subjectID, :CoCurricularMaxMarks, :passingPercentage)";
-                
-                            //         $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
-                            //         $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                            //         $insertAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            //         $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                            //         $insertAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $CoCurricularMaxMarks, PDO::PARAM_INT);
-                            //         $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
-                            //         $insertAdminMaxQuery->execute();
-                            // }
-                            // Update Max Marks in tblmaxmarks
-                            // else
-                            // {
-                            //     // If an existing entry is found in tblmaxmarks, update the data
-                            //     $updateAdminSql = "UPDATE tblmaxmarks SET 
-                            //                     CoCurricularMaxMarks = :CoCurricularMaxMarks, 
-                            //                     WHERE SessionID = :sessionID 
-                            //                     AND ClassID = :classID 
-                            //                     AND SubjectID = :subjectID 
-                            //                     AND IsDeleted = 0";
-                            //     $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
-                            //     $updateAdminMaxQuery->bindParam(':CoCurricularMaxMarks', $FAMaxMarks, PDO::PARAM_INT);
-                            //     $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                            //     $updateAdminMaxQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                            //     $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
-                            //     $updateAdminMaxQuery->execute();
-                            // }
                         }
                         // If the student is not in tblcocurricularreports, insert the student
                         if (!$existingReportDetails) 
@@ -518,11 +473,6 @@ else
                                                                 }
                                                             }
                                                             
-                                                            // Storing max marks that admin gives, in variables.
-                                                            // $adminCoCurricularMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular');
-                                                            
-                                                            // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                            // $coCurricularMaxMarksToShow = ($adminCoCurricularMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'CoCurricular') : $adminCoCurricularMaxMarks;
                                                             $coCurricularMaxMarksToShow = getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'CoCurricular');
                                                             
                                                             // Disable the input fields if the condition matches. 
@@ -535,14 +485,17 @@ else
                                                             {
                                                             ?>
                                                                 <td>
-                                                                    <input type='number' min="0" class='border border-secondary' name="CoCurricularMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                    <input type='number' min="0" step="any" class='border border-secondary max-marks-input' name="CoCurricularMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                         <?php echo $disabledCoCurricular; ?>
-                                                                        value="<?php echo ($coCurricularMaxMarksToShow !== null) ? $coCurricularMaxMarksToShow : ''; ?>">
+                                                                        value="<?php echo ($coCurricularMaxMarksToShow !== null) ? $coCurricularMaxMarksToShow : ''; ?>"
+                                                                        data-subject-id="<?php echo $subject['ID']; ?>"
+                                                                        >
                                                                 </td>
                                                                 <td>
-                                                                    <input type='number' class='border border-secondary' name="CoCurricularMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                    <input type='number' class='border border-secondary marks-obtained-input' step="any" name="CoCurricularMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                         <?php echo $disabledCoCurricular; ?>    
                                                                         value="<?php echo $coCurricularMarksObtained; ?>">
+                                                                        <div class="error-message text-wrap"></div>
                                                                 </td>
                                                             <?php
                                                             }
@@ -617,6 +570,7 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
+<script src="./js/marksAssignValidation.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>
