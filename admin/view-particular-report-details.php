@@ -269,7 +269,7 @@ else
                                                     }
                                                 }
                                                 // total marks obtained and maximum marks for the current subject
-                                                $totalMarksObtained += intval($marksObtained);
+                                                $totalMarksObtained += (float)$marksObtained;
                                                 
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
@@ -373,7 +373,7 @@ else
                                                     // Loop through the decoded JSON to find the max marks for the current subject
                                                     foreach ($subjectsData as $subjectData) 
                                                     {
-                                                        if ($subjectData['SubjectID'] == $subject['ID']) 
+                                                        if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) 
                                                         {
                                                             $maxMarks = $subjectData['SubMaxMarks'];
                                                             break;

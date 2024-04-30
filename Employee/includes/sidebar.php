@@ -195,11 +195,12 @@
                     <?php
                     if ($coCurricularAssigned) 
                     {
-                        ?>
+                    ?>
                     <li class="nav-item"> <a class="nav-link" href="add-coCurricular-score.php"> Add Co-Curricular Score</a></li>
                     <?php
                     }
                     ?>
+                    <li class="nav-item"> <a class="nav-link" href="preview.php">Preview</a></li>
                 </ul>
             </div>
         </li>

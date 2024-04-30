@@ -1726,12 +1726,12 @@ h6 {
 .main-menu {
   padding-bottom: 20px;
   padding-top: 20px;
-  border-bottom: 1px solid #39353e;
+  /* border-bottom: 1px solid #39353e; */
 }
 #header {
   position: fixed;
   background-color: rgba(255, 255, 255, 0.493);
-  max-height: 25vh;
+  height: 25vh;
   left: 0;
   top: 0;
   right: 0;
@@ -1749,6 +1749,52 @@ h6 {
 }
 #header.header-scrolled .main-menu {
   border-color: transparent;
+}
+/* LOGO */
+#header #logo img {
+  padding: 0;
+  margin: 0;
+  max-height: 13vh;
+}
+
+
+@media (min-width: 1125px) {
+  #header
+  {
+    min-height: 25vh;
+  }
+}
+@media (max-width: 1125px) {
+  #header
+  {
+    max-height: 18vh;
+  }
+}
+@media (min-width: 765px){
+  #logo img{
+    min-height: 5vh !important;
+    max-width: 50vw !important;
+  }
+  #header
+  {
+    max-height: 40vh;
+  }
+}
+@media (min-width: 480px) {
+  #header
+  {
+    max-height: 10vh;
+  }
+}
+@media (max-height: 500px) {
+  #logo img{
+    min-height: 15vh !important;
+    width: 30vw;
+  }
+  #header
+  {
+    min-height: 40vh;
+  }
 }
 @media (max-width: 673px) {
   #logo img{
@@ -1785,6 +1831,10 @@ h6 {
     max-width: 80vw !important;
     margin-left: 10px !important;
   }
+  #header
+  {
+    height: 20vh;
+  }
 }
 #header #logo img {
   padding: 0;
@@ -1793,14 +1843,42 @@ h6 {
 }
 @media (max-width: 768px) {
   #header #logo img {
-    /* max-height: 40px; */
     max-height: 8vh !important;
   }
+}
+/* Show dropdown in Desktop View */
+@media screen and (min-width: 1024px) {
   #header
   {
-    max-height: 20vh;
+    min-height: 25vh !important;
+  }
+  #header #logo img {
+    padding: 0;
+    margin: 0;
+    min-height: 13vh !important;
   }
 }
+
+@media (min-width: 960px) {
+  .desktop-hide {
+      display: none;
+  }
+
+  .desktop-show {
+      display: block !important;
+  }
+}
+/* hide dropdown in mobile view */
+@media (max-width: 960px) {
+  .desktop-hide {
+      display: block !important;
+  }
+
+  .desktop-show {
+      display: none;
+  }
+}
+
 .nav-menu,
 .nav-menu * {
   margin: 0;

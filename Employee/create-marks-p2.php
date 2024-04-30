@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsEMPid'])) 
@@ -128,24 +128,23 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type)
+                // function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type)
+                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
 
                     $sql = "SELECT SubjectsJSON FROM tblreports 
                             WHERE ClassName = :classID 
                             AND ExamSession = :sessionID 
-                            AND ExamName = :examID 
+                            -- AND ExamName = :examID 
                             AND IsDeleted = 0";
-
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
-                    $query->bindParam(':examID', $examID, PDO::PARAM_INT);
+                    // $query->bindParam(':examID', $examID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-
                     $query->execute();
                     $result = $query->fetchAll(PDO::FETCH_ASSOC);
-
+                    
                     if ($result) 
                     {
                         foreach ($result as $row) 
@@ -370,6 +369,10 @@ else
                                         $subjectFound = true;
                                         break;
                                     }
+                                    else
+                                    {   
+                                        $existingSubjectsJSON[] = $newSubjectData;
+                                    }
                                 }
                                 // If the subject doesn't exist, add it to the existing subjects JSON
                                 if (!$subjectFound) 
@@ -377,7 +380,6 @@ else
                                     $existingSubjectsJSON[] = $newSubjectData;
                                 }
                             }
-
                     
                             $updatedSubjectsJSON = json_encode($existingSubjectsJSON);
                         
@@ -537,10 +539,11 @@ else
                                                         
                                                         // If the GradingSystem is 1, hide the Max Marks column and show the Marks Obtained column as input type text
                                                         $isGradingSystem1 = $gradingSystemResult !== false;
-                                                    ?>
+                                                        ?>
                                                             <th colspan=<?php echo ($isGradingSystem1) ? '' : '2';?> class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']);?></th>
-                                                    <?php 
-                                                    }?>
+                                                        <?php 
+                                                    }
+                                                    ?>
                                                 </tr>
                                                 <tr>
                                                     <?php foreach ($subjects as $subject) 
@@ -558,16 +561,19 @@ else
                                                     ?>
                                                 </tr>
                                             <tbody>
-                                                <?php foreach ($students as $student) 
-                                                { ?>
+                                                <?php
+                                                foreach ($students as $student) 
+                                                { 
+                                                    ?>
                                                     <tr>
                                                         <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
                                                         <?php 
                                                         foreach ($subjects as $subject) 
                                                         {  
+
                                                                 $subjectID = $subject['ID'];
                                                                 // Check if marks exist in tblreports for the student, exam, and subject type
-                                                                $checkMarksSql = "SELECT * FROM tblreports 
+                                                                $checkMarksSql = "SELECT SubjectsJSON FROM tblreports 
                                                                                     WHERE ExamSession = :sessionID 
                                                                                     AND ClassName = :classID 
                                                                                     AND StudentName = :studentID 
@@ -597,13 +603,11 @@ else
                                                                 $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
                                                                 
                                                                 // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                                $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
+                                                                // $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
+                                                                $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
                                                                 
                                                                 // Disable the input fields if the condition matches. 
-                                                                $disabledSub = ($publishedResult) ? 'disabled' : '';  
-                                                                
-                                                                // Check if subject is optional
-                                                                $isOptional = $subject['IsOptional'];
+                                                                $disabledSub = ($publishedResult) ? 'disabled' : '';                                                                  
                                                                 
                                                                 if(!$isGradingSystem1)
                                                                 {
@@ -625,7 +629,8 @@ else
                                                                             <div class="error-message text-wrap"></div>
                                                                     </td>
                                                                 <?php 
-                                                        } ?>
+                                                        }
+                                                            ?>
                                                     </tr>
                                                     <?php 
                                                 } 
@@ -640,24 +645,6 @@ else
                                         >
                                             Assign Marks
                                         </button>
-                                        <?php
-                                            $examID = $_SESSION['examName'];
-                                            $teacherID = $_SESSION['sturecmsEMPid'];
-                                            $classID = unserialize($_SESSION['classIDs']);
-                                            $sectionID = unserialize($_SESSION['SectionIDs']);
-
-                                            // Check if the exam type is "Formative" for the current exam session
-                                            $examTypeSql = "SELECT ExamType FROM tblexamination WHERE ID = :examID";
-                                            $examTypeQuery = $dbh->prepare($examTypeSql);
-                                            $examTypeQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
-                                            $examTypeQuery->execute();
-                                            $examTypeResult = $examTypeQuery->fetch(PDO::FETCH_ASSOC);
-
-                                            // Render the button if the exam type is "Formative"
-                                            if ($examTypeResult && $examTypeResult['ExamType'] === "Formative") {
-                                                echo '<a href="fa-preview.php?exam='.$examID.'&teacher='.$teacherID.'&class='.$classID.'&section='.$sectionID.'" class="btn btn-dark mr-2">Preview</a>';
-                                            }
-                                        ?>
                                     </div>
                                     <!-- Confirmation Modal (Update) -->
                                     <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">

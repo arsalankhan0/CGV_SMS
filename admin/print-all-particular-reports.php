@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
@@ -240,7 +240,7 @@ else
                                                     }
                                                 }
                                                 // total marks obtained and maximum marks for the current subject
-                                                $totalMarksObtained += intval($marksObtained);
+                                                $totalMarksObtained += (float)$marksObtained;
                                                 
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
@@ -344,7 +344,7 @@ else
                                                     // Loop through the decoded JSON to find the max marks for the current subject
                                                     foreach ($subjectsData as $subjectData) 
                                                     {
-                                                        if ($subjectData['SubjectID'] == $subject['ID']) 
+                                                        if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) 
                                                         {
                                                             $maxMarks = $subjectData['SubMaxMarks'];
                                                             break;

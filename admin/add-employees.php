@@ -231,6 +231,7 @@ else
                                             <option value="Non-Teaching">Non-Teaching</option>
                                         </select>
                                     </div>
+
                                     <div class="form-group" id="assignClassesSection">
                                         <label for="exampleInputName1">Assign Classes</label>
                                         <select name="assignedClasses[]" multiple="multiple" class="js-example-basic-multiple w-100">
@@ -310,6 +311,12 @@ else
                                             </optgroup>
                                         </select>
                                     </div>
+
+
+
+
+
+
 
 
                                     <div class="form-group">
@@ -418,6 +425,7 @@ else
     <script src="js/select2.js"></script>
     <script src="./js/showMoreInput.js"></script>
     <script src="./js/manageAlert.js"></script>
+
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

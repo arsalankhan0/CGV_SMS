@@ -251,7 +251,8 @@ catch (PDOException $e)
                                         $activeSession = $session['session_id'];
                                     
                                         // Fetch reports that match the selected class and session
-                                        $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
+                                        // $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
+                                        $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.SubjectsJSON, r.ClassName, r.ExamSession, s.StudentSection
                                                                 FROM tblreports r
                                                                 JOIN tblstudent s ON r.StudentName = s.ID
                                                                 WHERE r.ClassName = :class 
@@ -290,6 +291,7 @@ catch (PDOException $e)
                                         $sectionQuery->bindParam(':selectedSection', $selectedSection, PDO::PARAM_STR);
                                         $sectionQuery->execute();
                                         $selectedSec = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+
                                         
                                         if (!empty($filteredReports) && $publishedResult === 0) 
                                         {
@@ -408,9 +410,24 @@ catch (PDOException $e)
                                                 $queryPassOrFail->bindParam(':sessionID', $activeSession, PDO::PARAM_STR);
                                                 $queryPassOrFail->execute();
                                                 $results = $queryPassOrFail->fetchAll(PDO::FETCH_COLUMN);
+
+                                                $subJson = json_decode($report['SubjectsJSON'], true);
+                                                $passed = true;
+                                                foreach ($subJson as $subjectData) {
+                                                    // Check if the subject is not optional and not co-curricular
+                                                    if ($subjectData['IsOptional'] == 0 && $subjectData['IsCoCurricular'] == 0) 
+                                                    {
+                                                        if ($subjectData['IsPassed'] == 0) 
+                                                        {
+                                                            $passed = false;
+                                                            break; 
+                                                        }
+                                                    }
+                                                }
                                     
                                                 // Check if all subjects have IsPassed set to 1 (True)
-                                                $overallResult = (count(array_unique($results)) == 1 && end($results) == 1) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
+                                                // $overallResult = (count(array_unique($results)) == 1 && end($results) == 1) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
+                                                $overallResult = ($passed) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
                                     
                                                 echo "<tr>";
                                                 echo "<td>";
@@ -444,6 +461,7 @@ catch (PDOException $e)
                                 {
                                     $dangerAlert = true;
                                     $msg = "Ops! An error occurred while fetching students.";
+                                    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
                                 }
                                 ?>
                             </div>

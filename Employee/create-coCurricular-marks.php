@@ -275,6 +275,10 @@ else
                                         $subjectFound = true;
                                         break;
                                     }
+                                    else
+                                    {
+                                        $existingSubjectsJSON[] = $newSubjectData;
+                                    }
                                 }
                                 // If the subject doesn't exist, add it to the existing subjects JSON
                                 if (!$subjectFound) 

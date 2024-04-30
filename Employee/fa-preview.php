@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
@@ -10,105 +10,133 @@ if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid']))
 else 
 {
 
-    if (isset($_GET['exam']) && isset($_GET['teacher']) && isset($_GET['class']) && isset($_GET['section'])) 
-    {
-        $examID = $_GET['exam'];
-        $teacherID = $_GET['teacher'];
-        $classID = $_GET['class'];
-        $sectionID = $_GET['section'];
 
-        // Get the active session ID and Name
+    if (isset($_GET['studentName'])) 
+    {
+        $studentID = filter_var($_GET['studentName'], FILTER_VALIDATE_INT);
+
+        $sqlStudent = "SELECT * FROM tblstudent WHERE ID = :studentName AND IsDeleted = 0";
+        $queryStudent = $dbh->prepare($sqlStudent);
+        $queryStudent->bindParam(':studentName', $studentID, PDO::PARAM_INT);
+        $queryStudent->execute();
+        $studentDetails = $queryStudent->fetch(PDO::FETCH_ASSOC);
+
         $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
         $sessionQuery = $dbh->prepare($getSessionSql);
         $sessionQuery->execute();
         $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
-        $sessionID = $session['session_id'];
-        $sessionName = $session['session_name'];
 
-        // Fetch all students and their reports based on the specified criteria
-        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
-        $stmtReports = $dbh->prepare($sqlReports);
-        $stmtReports->bindParam(':className', $classID, PDO::PARAM_STR);
-        $stmtReports->bindParam(':examSession', $sessionID, PDO::PARAM_STR);
-        $stmtReports->execute();
-        $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
-
-        // Filter the reports based on examID
-        $allReports = array_filter($allReports, function($report) use ($examID) {
-            // Extract ExamName from SubjectsJSON and compare with examID
-            $subjectsJSON = json_decode($report['SubjectsJSON'], true);
-            foreach ($subjectsJSON as $subject) {
-                if ($subject['ExamName'] === $examID) {
-                    return true; // Keep the report if the examName matches
-                }
-            }
-            return false; // Exclude the report if no match is found
-        });
-
-        if (!$allReports) 
+        if ($studentDetails) 
         {
-            echo "<script>alert('No data found for the selected criteria.');</script>";
-        }
-        ?>
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <title>TPS || Reports Preview</title>
-            <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-            <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-            <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-            <link rel="stylesheet" href="vendors/select2/select2.min.css">
-            <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
-            <link rel="stylesheet" href="css/style.css" />
-            <style>
-                .card 
+            $stdClassID = $studentDetails['StudentClass'];
+            $sqlStudentClass = "SELECT * FROM tblclass WHERE ID = :stdClassID AND IsDeleted = 0";
+            $queryStudentClass = $dbh->prepare($sqlStudentClass);
+            $queryStudentClass->bindParam(':stdClassID', $stdClassID, PDO::PARAM_INT);
+            $queryStudentClass->execute();
+            $studentClass = $queryStudentClass->fetch(PDO::FETCH_ASSOC);
+
+            try 
+            {
+                $examSession = $session['session_id'];
+                $className = $_GET['className'];
+                $examName = $_GET['examName'];
+                $studentName = $_GET['studentName'];
+
+                $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentName AND IsDeleted = 0";
+                $stmtReports = $dbh->prepare($sqlReports);
+                $stmtReports->bindParam(':className', $className, PDO::PARAM_STR);
+                $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
+                $stmtReports->bindParam(':studentName', $studentName, PDO::PARAM_INT);
+                $stmtReports->execute();
+                $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
+
+                // Filter the reports based on examName
+                $reports = array_filter($reports, function($report) use ($examName) {
+                    // Extract ExamName from SubjectsJSON and compare with examName
+                    $subjectsJSON = json_decode($report['SubjectsJSON'], true);
+                    foreach ($subjectsJSON as $subject) {
+                        if ($subject['ExamName'] === $examName) {
+                            return true; // Keep the report if the examName matches
+                        }
+                    }
+                    return false; // Exclude the report if no match is found
+                });
+
+                if (!$reports) 
                 {
-                    page-break-after: always;
+                    echo "<script>alert('No data found for the selected student, class, and exam.');</script>";
                 }
-                .signature-line
-                {
-                    padding: 0 100px;
-                }
-                table 
-                { 
-                    table-layout:fixed;
-                    width: 100%;                
-                }
-                td, th
-                { 
-                    overflow: hidden; 
-                    text-overflow: ellipsis; 
-                    word-wrap: break-word;
-                    text-wrap: wrap !important;
-                }
-                </style>
-        </head>
-        <body>
-            
-            <div class="container-scroller">
+            } 
+            catch (PDOException $e) 
+            {
+                echo '<script>alert("Ops! An Error occurred.")</script>';
+                echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+            }
+
+            $sqlSubjects = "SELECT * FROM tblsubjects WHERE SessionID = :examSession AND IsDeleted = 0";
+            $querySubjects = $dbh->prepare($sqlSubjects);
+            $querySubjects->bindParam(':examSession', $examSession, PDO::PARAM_INT);
+            $querySubjects->execute();
+            $subjects = $querySubjects->fetchAll(PDO::FETCH_ASSOC);
+
+
+            // Get the active session ID and Name
+            $getSessionSql = "SELECT session_id, session_name FROM tblsessions WHERE session_id = :selectedSession AND IsDeleted = 0";
+            $sessionQuery = $dbh->prepare($getSessionSql);
+            $sessionQuery->bindParam(':selectedSession', $examSession, PDO::PARAM_STR);
+            $sessionQuery->execute();
+            $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
+            $sessionID = $session['session_id'];
+            $sessionName = $session['session_name'];
+
+
+            if (isset($reports)) {
+            ?>
+                <!DOCTYPE html>
+                <html lang="en">
+
+                <head>
+                    <title>TPS || Student Preview</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
+                    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
+                    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+                    <link rel="stylesheet" href="vendors/select2/select2.min.css">
+                    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+                    <link rel="stylesheet" href="css/style.css" />
+                    <style>
+                        .card 
+                        {
+                            page-break-after: always;
+                        }
+                        .signature-line
+                        {
+                            padding: 0 100px;
+                        }
+                        table 
+                        { 
+                            table-layout:fixed;
+                            width: 100%;                
+                        }
+                        td, th
+                        { 
+                            overflow: hidden; 
+                            text-overflow: ellipsis; 
+                            word-wrap: break-word;
+                            text-wrap: wrap !important;
+                        }
+                    </style>
+                </head>
+
+                <body>
+                <div class="container-scroller">
                 <div class="container page-body-wrapper d-flex flex-column">
                     <?php
-                    $groupedReports = [];
 
-                    foreach ($allReports as $report) 
-                    {
-                        // key to group by
-                        $studentName = $report['StudentName'];
-
-                        if (!isset($groupedReports[$studentName])) 
-                        {
-                            $groupedReports[$studentName] = [];
-                        }
-
-                        $groupedReports[$studentName][] = $report;
-                    }
-
-                    foreach ($groupedReports as $studentName => $studentReports) 
-                    {
                         // Fetch student details
                         $studentDetailsSql = "SELECT ID, StudentName, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                         $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
-                        $studentDetailsQuery->bindParam(':studentID', $studentReports[0]['StudentName'], PDO::PARAM_INT);
+                        $studentDetailsQuery->bindParam(':studentID', $_GET['studentName'], PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
                         $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
 
@@ -129,26 +157,16 @@ else
                         // Fetch Exam Name from the database
                         $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
                         $examNameQuery = $dbh->prepare($examNameSql);
-                        $examNameQuery->bindParam(':examName', $examID, PDO::PARAM_STR);
+                        $examNameQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
                         $examNameQuery->execute();
                         $examNameRow = $examNameQuery->fetch(PDO::FETCH_COLUMN);
-
-                        // Fetch assigned subjects for the teacher
-                        $teacherID = $_SESSION['sturecmsEMPid'];
-                        $assignedSubjectsSql = "SELECT AssignedSubjects FROM tblemployees WHERE ID = :teacherID AND IsDeleted = 0";
-                        $assignedSubjectsQuery = $dbh->prepare($assignedSubjectsSql);
-                        $assignedSubjectsQuery->bindParam(':teacherID', $teacherID, PDO::PARAM_INT);
-                        $assignedSubjectsQuery->execute();
-                        $assignedSubjects = $assignedSubjectsQuery->fetchColumn();
-
-                        $assignedSubjectsArray = explode(',', $assignedSubjects);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
                                     <!-- <strong>Result of Formative Assessment<span class="border-bottom border-secondary ml-2 px-5"></span></strong> -->
-                                    <strong>Preview Result of <?php echo htmlspecialchars($examNameRow); ?></strong>
+                                    <strong>Preview of <?php echo htmlspecialchars($examNameRow); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
@@ -189,9 +207,9 @@ else
                                         $maxMarks = '';
                                         // Query to fetch max marks based on classID, examID, and sessionID
                                         $maxMarksQuery = $dbh->prepare("SELECT SubMaxMarks FROM tblmaxmarks WHERE ClassID = :classID AND ExamID = :examID AND SessionID = :sessionID");
-                                        $maxMarksQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
-                                        $maxMarksQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
-                                        $maxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                        $maxMarksQuery->bindParam(':classID', $className, PDO::PARAM_INT);
+                                        $maxMarksQuery->bindParam(':examID', $examName, PDO::PARAM_INT);
+                                        $maxMarksQuery->bindParam(':sessionID', $examSession, PDO::PARAM_INT);
                                         $maxMarksQuery->execute();
                                         $maxMarksRow = $maxMarksQuery->fetch(PDO::FETCH_ASSOC);
 
@@ -211,16 +229,12 @@ else
                                         </thead>
                                         <tbody>
                                             <?php
-
-                                            $class = "%$classID%";
+                                            $class = "%$className%";
                                             // Fetch only those subjects of the class whose IsOptional is 0
-                                            $subjectsSql = "SELECT * FROM tblsubjects 
-                                                            WHERE IsOptional = 0 
-                                                            AND IsCurricularSubject = 0 
-                                                            AND IsDeleted = 0 
-                                                            AND FIND_IN_SET(ID, (SELECT AssignedSubjects FROM tblemployees WHERE ID = :teacherID))";
+                                            $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
                                             $subjectsQuery = $dbh->prepare($subjectsSql);
-                                            $subjectsQuery->bindParam(':teacherID', $teacherID, PDO::PARAM_STR);
+                                            $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
+                                            $subjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                                             $subjectsQuery->execute();
                                             $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -232,10 +246,10 @@ else
                                                 // Fetch SubjectsJSON for the current subject from tblreports for all exam sessions
                                                 $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID AND ExamSession = :sessionID AND JSON_EXTRACT(SubjectsJSON, '$[*].ExamName') LIKE :examName";
                                                 $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                $fetchSubjectsJsonQuery->bindParam(':className', $classID, PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindValue(':examName', '%' . $examID . '%', PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':sessionID', $examSession, PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindValue(':examName', '%' . $examName . '%', PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->execute();
                                                 $allSubjectsJsonArray = $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -246,7 +260,7 @@ else
                                                     $subjectData = json_decode($row['SubjectsJSON'], true);
                                                     foreach ($subjectData as $data) 
                                                     {
-                                                        if ($data['ExamName'] === $examID && $data['SubjectID'] === $subject['ID']) 
+                                                        if ($data['ExamName'] === $examName && $data['SubjectID'] === $subject['ID']) 
                                                         {
                                                             $marksObtained = $data['SubMarksObtained'];
                                                             $totalMaxMarks += (float)$data['SubMaxMarks'];
@@ -254,7 +268,6 @@ else
                                                         }
                                                     }
                                                 }
-
                                                 // total marks obtained and maximum marks for the current subject
                                                 $totalMarksObtained += (float)$marksObtained;
                                                 
@@ -335,14 +348,10 @@ else
                                         <thead>
                                             <tr class="text-center">
                                                 <?php
-                                                // Fetch only those subjects of the class whose IsOptional is 0
-                                                $subjectsSql = "SELECT * FROM tblsubjects 
-                                                                WHERE IsOptional = 0 
-                                                                AND IsCurricularSubject = 1 
-                                                                AND IsDeleted = 0 
-                                                                AND FIND_IN_SET(ID, (SELECT AssignedSubjects FROM tblemployees WHERE ID = :teacherID))";
+                                                // Fetch only those subjects of the class whose Co-curricular is 1
+                                                $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 1 AND IsDeleted = 0";
                                                 $subjectsQuery = $dbh->prepare($subjectsSql);
-                                                $subjectsQuery->bindParam(':teacherID', $teacherID, PDO::PARAM_STR);
+                                                $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
                                                 $subjectsQuery->execute();
                                                 $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
 
@@ -350,7 +359,7 @@ else
                                                 $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
                                                 $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
                                                 $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':examSession', $exam, PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->execute();
                                                 $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
@@ -358,13 +367,14 @@ else
                                                 $subjectsData = !empty($subjectsJson) ? json_decode($subjectsJson, true) : [];
                                                 
                                                 $studentTotalMaxMarks = 0;
+                                                
                                                 foreach ($subjects as $subject) 
                                                 {
                                                     $maxMarks = '';
                                                     // Loop through the decoded JSON to find the max marks for the current subject
                                                     foreach ($subjectsData as $subjectData) 
                                                     {
-                                                        if ($subjectData['SubjectID'] == $subject['ID']) 
+                                                        if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) 
                                                         {
                                                             $maxMarks = $subjectData['SubMaxMarks'];
                                                             break;
@@ -414,13 +424,10 @@ else
                                     <table class="table table-bordered">
                                         <?php
                                         // Fetch only those subjects of the class whose IsOptional is 0
-                                        $optionalSubjectsSql = "SELECT * FROM tblsubjects 
-                                                        WHERE IsOptional = 1 
-                                                        AND IsCurricularSubject = 0 
-                                                        AND IsDeleted = 0 
-                                                        AND FIND_IN_SET(ID, (SELECT AssignedSubjects FROM tblemployees WHERE ID = :teacherID))";
+                                        $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
                                         $optionalSubjectsQuery = $dbh->prepare($optionalSubjectsSql);
-                                        $optionalSubjectsQuery->bindParam(':teacherID', $teacherID, PDO::PARAM_STR);
+                                        $optionalSubjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
+                                        $optionalSubjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                                         $optionalSubjectsQuery->execute();
                                         $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
@@ -476,25 +483,35 @@ else
                                 </footer>
                             </div>
                         </div>
-                    <?php
-                    }
-                    ?>
                 </div>
             </div>
-            <script src="vendors/js/vendor.bundle.base.js"></script>
-            <script src="vendors/select2/select2.min.js"></script>
-            <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
-            <script src="js/off-canvas.js"></script>
-            <script src="js/misc.js"></script>
-            <script src="js/typeahead.js"></script>
-            <script src="js/select2.js"></script>
-            <script src="./js/resultGeneration.js"></script>
-            <script src="./js/printReportCard.js"></script>
-        </body>
-        </html>
-        <?php
-    } else {
-        echo "<script>alert('No Preview Available!');</script>";
+
+                    <script src="vendors/js/vendor.bundle.base.js"></script>
+                    <script src="vendors/select2/select2.min.js"></script>
+                    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
+                    <script src="js/off-canvas.js"></script>
+                    <script src="js/misc.js"></script>
+                    <script src="js/typeahead.js"></script>
+                    <script src="js/select2.js"></script>
+                    <!-- <script src="./js/resultGeneration.js"></script>
+                    <script src="./js/printReportCard.js"></script> -->
+                </body>
+                </html>
+<?php
+            } 
+            else 
+            {
+                echo "<script>alert('Student not found.'); window.location.href='view-result.php';</script>";
+            }
+        } 
+        else 
+        {
+            echo "<script>alert('Student not selected.'); window.location.href='view-result.php';</script>";
+        }
+    }
+    else 
+    {
+        echo "<script>alert('Invalid Request.'); window.location.href='view-result.php';</script>";
     }
 }
 ?>

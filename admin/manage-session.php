@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid'] == 0)) 
@@ -68,7 +68,6 @@ else
                                             <th class="font-weight-bold">S.No</th>
                                             <th class="font-weight-bold">Session Name</th>
                                             <th class="font-weight-bold">Status</th>
-                                            <!-- <th class="font-weight-bold">Action</th> -->
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -114,11 +113,6 @@ else
                                                         }
                                                         ?>
                                                     </td>
-                                                    <!-- <td>
-                                                        <a href="manage-session.php?delid=<?php echo ($row->session_id); ?>"
-                                                            onclick="return confirm('Do you really want to Delete ?');">
-                                                            <i class="icon-trash"></i></a></div>
-                                                    </td> -->
                                                 </tr>
                                                 <?php $cnt = $cnt + 1;
                                             }
@@ -165,7 +159,7 @@ else
     </div>
     <!-- page-body-wrapper ends -->
 </div>
-    <!-- Confirmation Modal -->
+<!-- Confirmation Modal -->
 <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -174,16 +168,37 @@ else
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                Do you really want to set this session as active?
+                Are you sure you want to set this session as active?
+                Please note that this will reflect throughout the website!
+            </div>
+            <div class="modal-footer">
+                <!-- <input type="hidden" id="sessionid"> -->
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <!-- <button type="button" class="btn btn-primary" id="confirmButton">Yes</button> -->
+                <button type="button" class="btn btn-primary" id="nextButton">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Confirmation Subject Import Modal -->
+<div class="modal fade" id="importSubjectsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                Do you want to import previous Subjects in this session?
             </div>
             <div class="modal-footer">
                 <input type="hidden" id="sessionid">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-default" id="noButton" data-dismiss="modal">No</button>
                 <button type="button" class="btn btn-primary" id="confirmButton">Yes</button>
             </div>
         </div>
     </div>
 </div>
+
 <!-- container-scroller -->
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
@@ -201,29 +216,54 @@ else
 <script src="js/select2.js"></script>
 <!-- End custom js for this page -->
 <script>
-    function setActive(sessionId) 
-    {
-        // Get the modal element
-        var modal = $('#confirmationModal');
+   function setActive(sessionId) {
+    // Get the first confirmation modal element
+    var confirmationModal = $('#confirmationModal');
 
-        // Get the input field for session ID
-        var sessionIdInput = $('#sessionid');
+    // Get the second modal element
+    var importSubjectsModal = $('#importSubjectsModal');
 
-        // Set the session ID in the modal
-        sessionIdInput.val(sessionId);
+    // Get the input field for session ID in the second modal
+    var sessionIdInput = $('#sessionid');
 
-        // Display the modal
-        modal.modal('show');
+    // Set the session ID in the second modal
+    sessionIdInput.val(sessionId);
 
-        // Handle confirmation in the modal
-        $('#confirmButton').on('click', function () {
-            let sessionId = sessionIdInput.val();
+    // Display the first confirmation modal
+    confirmationModal.modal('show');
 
-            window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId;
+    // Handle confirmation in the first modal
+    $('#nextButton').on('click', function() {
+        // Hide the first confirmation modal
+        confirmationModal.modal('hide');
 
-            modal.modal('hide');
-        });
-    }
+        // Display the second modal
+        importSubjectsModal.modal('show');
+    });
+
+    // Handle confirmation in the second modal
+    $('#confirmButton').on('click', function() {
+        let sessionId = sessionIdInput.val();
+
+        // Redirect or perform any action you want
+        window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId;
+
+        // Hide the second modal
+        importSubjectsModal.modal('hide');
+    });
+    
+    // Handle confirmation in the second modal - No button
+    $('#noButton').on('click', function() {
+        let sessionId = sessionIdInput.val();
+
+        // Redirect or perform any action you want
+        window.location.href = 'manage-session.php?setActive=true&session_id=' + sessionId + '&importSubjects=false';
+
+        // Hide the second modal
+        importSubjectsModal.modal('hide');
+    });
+}
+
 </script>
 
 </body>
@@ -233,31 +273,85 @@ else
     $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
     $sessionQuery = $dbh->prepare($getSessionSql);
     $sessionQuery->execute();
-    $sessionID = $sessionQuery->fetchColumn();
+    $currentSessionID = $sessionQuery->fetchColumn();
 
         if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
         {
             $session_id = $_GET['session_id'];
+        
+            if (isset($_GET['importSubjects']) && $_GET['importSubjects'] == 'false') 
+            {
+                try
+                {
+                    $dbh->beginTransaction();
 
-            // Here we are setting all sessions to inactive
-            $updateInactive = "UPDATE tblsessions SET is_active = 0";
-            $queryInactive = $dbh->prepare($updateInactive);
-            $queryInactive->execute();
+                    // Set all sessions to inactive
+                    $updateInactive = "UPDATE tblsessions SET is_active = 0";
+                    $queryInactive = $dbh->prepare($updateInactive);
+                    $queryInactive->execute();
+                
+                    // Set the selected session to active
+                    $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
+                    $queryActive = $dbh->prepare($updateActive);
+                    $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+                    $queryActive->execute();
+                
+                    // Reset the published exam, result, and session_id to 0 in tblexamination
+                    $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+                    $resetPublished = $dbh->prepare($resetPublishedSql);
+                    $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
+                    $resetPublished->execute();
+                }
+                catch(PDOException $e)
+                {
+                    $dbh->rollBack();
+                    echo "Error: " . $e->getMessage();
+                }
+            } 
+            else 
+            {
+                $dbh->beginTransaction();
 
-            // And here we Set the selected session to active
-            $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
-            $queryActive = $dbh->prepare($updateActive);
-            $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-            $queryActive->execute();
+                try 
+                {
+                    // Insert subjects of the current session into tblsubjecthistory
+                    $insertHistorySql = "INSERT INTO tblsubjecthistory (SubjectID, SessionID) 
+                                        SELECT ID, SessionID FROM tblsubjects WHERE SessionID = :currentSessionID";
+                    $queryHistory = $dbh->prepare($insertHistorySql);
+                    $queryHistory->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
+                    $queryHistory->execute();
 
-            // And Here we reset the published exam, result and session_id to 0 in tblexamination 
-            $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
-            $resetPublished = $dbh->prepare($resetPublishedSql);
-            $resetPublished->bindParam(':activeSession', $sessionID, PDO::PARAM_INT);
-            $resetPublished->execute();
+                    // Update session IDs of subjects to the new active session ID
+                    $updateSubSession = "UPDATE tblsubjects SET SessionID = :newSessionID WHERE SessionID = :currentSessionID";
+                    $querySubSession = $dbh->prepare($updateSubSession);
+                    $querySubSession->bindParam(':newSessionID', $session_id, PDO::PARAM_INT);
+                    $querySubSession->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
+                    $querySubSession->execute();
 
-            // echo "<script>alert('Active session set successfully.');</script>";
+                    // Set all sessions to inactive except the selected one
+                    $updateSessions = "UPDATE tblsessions SET is_active = CASE WHEN session_id = :session_id THEN 1 ELSE 0 END";
+                    $querySessions = $dbh->prepare($updateSessions);
+                    $querySessions->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+                    $querySessions->execute();
+
+                    // Reset the published exam, result, and session_id to 0 in tblexamination
+                    $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+                    $resetPublished = $dbh->prepare($resetPublishedSql);
+                    $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
+                    $resetPublished->execute();
+
+                    // Commit the transaction
+                    $dbh->commit();
+                } 
+                catch (PDOException $e) 
+                {
+                    $dbh->rollBack();
+                    echo "Error: " . $e->getMessage();
+                }
+            }
+
             echo "<script>window.location.href ='manage-session.php'</script>";
         }
+        
 }
 ?>
