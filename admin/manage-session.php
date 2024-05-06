@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid'] == 0)) 
@@ -269,89 +269,162 @@ else
 </body>
 </html>
 <?php
-    // Get the active session ID
-    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-    $sessionQuery = $dbh->prepare($getSessionSql);
-    $sessionQuery->execute();
-    $currentSessionID = $sessionQuery->fetchColumn();
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $currentSessionID = $sessionQuery->fetchColumn();
 
-        if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
-        {
-            $session_id = $_GET['session_id'];
-        
-            if (isset($_GET['importSubjects']) && $_GET['importSubjects'] == 'false') 
+            if (isset($_GET['setActive']) && isset($_GET['session_id'])) 
             {
-                try
+                $session_id = $_GET['session_id'];
+            
+                // if (isset($_GET['importSubjects']) && $_GET['importSubjects'] == 'false') 
+                // {
+                //     try
+                //     {
+                //         $dbh->beginTransaction();
+
+                //         // Set all sessions to inactive
+                //         $updateInactive = "UPDATE tblsessions SET is_active = 0";
+                //         $queryInactive = $dbh->prepare($updateInactive);
+                //         $queryInactive->execute();
+                    
+                //         // Set the selected session to active
+                //         $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
+                //         $queryActive = $dbh->prepare($updateActive);
+                //         $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+                //         $queryActive->execute();
+                    
+                //         // Reset the published exam, result, and session_id to 0 in tblexamination
+                //         $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+                //         $resetPublished = $dbh->prepare($resetPublishedSql);
+                //         $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
+                //         $resetPublished->execute();
+                        
+                //         $dbh->commit();
+                //     }
+                //     catch(PDOException $e)
+                //     {
+                //         $dbh->rollBack();
+                //         echo "Error: " . $e->getMessage();
+                //     }
+                //     finally
+                //     {
+                //         echo "<script>window.location.href ='manage-session.php'</script>";
+                //     }
+                // } 
+
+                if (isset($_GET['importSubjects']) && $_GET['importSubjects'] == 'false') 
+                {
+                    try 
+                    {
+                        $dbh->beginTransaction();
+                
+                        // Set all sessions to inactive
+                        $updateInactive = "UPDATE tblsessions SET is_active = 0";
+                        $queryInactive = $dbh->prepare($updateInactive);
+                        $queryInactive->execute();
+                
+                        // Set the selected session to active
+                        $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
+                        $queryActive = $dbh->prepare($updateActive);
+                        $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+                        $queryActive->execute();
+                
+                        // Reset the published exam, result, and session_id to 0 in tblexamination
+                        $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+                        $resetPublished = $dbh->prepare($resetPublishedSql);
+                        $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
+                        $resetPublished->execute();
+                
+                        // Select Subjects from tblsubjects
+                        $fetchSubjectsSql = "SELECT ID FROM tblsubjects WHERE IsDeleted = 0";
+                        $fetchSubjectsQuery = $dbh->prepare($fetchSubjectsSql);
+                        $fetchSubjectsQuery->execute();
+                        $subjectIDs = $fetchSubjectsQuery->fetchAll(PDO::FETCH_COLUMN);
+
+                        foreach ($subjectIDs as $subjectID) 
+                        {
+                            // Check if subject ID exists in tblsubjecthistory for the new active session
+                            $checkSubjectHistorySql = "SELECT COUNT(*) FROM tblsubjecthistory WHERE SessionID = :newSessionID AND SubjectID = :subjectID";
+                            $checkSubjectHistory = $dbh->prepare($checkSubjectHistorySql);
+                            $checkSubjectHistory->bindParam(':newSessionID', $session_id, PDO::PARAM_INT);
+                            $checkSubjectHistory->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                            $checkSubjectHistory->execute();
+                            $subjectHistoryCount = $checkSubjectHistory->fetchColumn();
+
+                            if ($subjectHistoryCount > 0) 
+                            {
+                                // Update session IDs of subjects to the new active session ID
+                                $updateSubSession = "UPDATE tblsubjects SET SessionID = :newSessionID WHERE ID = :subjectID";
+                                $querySubSession = $dbh->prepare($updateSubSession);
+                                $querySubSession->bindParam(':newSessionID', $session_id, PDO::PARAM_INT);
+                                $querySubSession->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+                                $querySubSession->execute();
+                            }
+                        }               
+                        $dbh->commit();
+                    } 
+                    catch (PDOException $e) 
+                    {
+                        $dbh->rollBack();
+                        echo "Error: " . $e->getMessage();
+                    } 
+                    finally 
+                    {
+                        echo "<script>window.location.href ='manage-session.php'</script>";
+                    }
+                }                
+                else 
                 {
                     $dbh->beginTransaction();
+                    try 
+                    {   
+                        // Insert subjects of the current session into tblsubjecthistory if they don't already exist
+                        $insertHistorySql = "INSERT INTO tblsubjecthistory (SubjectID, SessionID) 
+                                            SELECT ID, SessionID FROM tblsubjects 
+                                            WHERE SessionID = :currentSessionID 
+                                            AND NOT EXISTS (
+                                                SELECT 1 FROM tblsubjecthistory 
+                                                WHERE tblsubjecthistory.SubjectID = tblsubjects.ID 
+                                                AND tblsubjecthistory.SessionID = tblsubjects.SessionID
+                                            )";
+                        $queryHistory = $dbh->prepare($insertHistorySql);
+                        $queryHistory->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
+                        $queryHistory->execute();
+       
+                        // Update session IDs of subjects to the new active session ID
+                        $updateSubSession = "UPDATE tblsubjects SET SessionID = :newSessionID WHERE SessionID = :currentSessionID";
+                        $querySubSession = $dbh->prepare($updateSubSession);
+                        $querySubSession->bindParam(':newSessionID', $session_id, PDO::PARAM_INT);
+                        $querySubSession->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
+                        $querySubSession->execute();
+       
+                        // Set all sessions to inactive except the selected one
+                        $updateSessions = "UPDATE tblsessions SET is_active = CASE WHEN session_id = :session_id THEN 1 ELSE 0 END";
+                        $querySessions = $dbh->prepare($updateSessions);
+                        $querySessions->bindParam(':session_id', $session_id, PDO::PARAM_INT);
+                        $querySessions->execute();
+       
+                        // Reset the published exam, result, and session_id to 0 in tblexamination
+                        $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
+                        $resetPublished = $dbh->prepare($resetPublishedSql);
+                        $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
+                        $resetPublished->execute();
 
-                    // Set all sessions to inactive
-                    $updateInactive = "UPDATE tblsessions SET is_active = 0";
-                    $queryInactive = $dbh->prepare($updateInactive);
-                    $queryInactive->execute();
-                
-                    // Set the selected session to active
-                    $updateActive = "UPDATE tblsessions SET is_active = 1 WHERE session_id = :session_id";
-                    $queryActive = $dbh->prepare($updateActive);
-                    $queryActive->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-                    $queryActive->execute();
-                
-                    // Reset the published exam, result, and session_id to 0 in tblexamination
-                    $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
-                    $resetPublished = $dbh->prepare($resetPublishedSql);
-                    $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
-                    $resetPublished->execute();
-                }
-                catch(PDOException $e)
-                {
-                    $dbh->rollBack();
-                    echo "Error: " . $e->getMessage();
-                }
-            } 
-            else 
-            {
-                $dbh->beginTransaction();
-
-                try 
-                {
-                    // Insert subjects of the current session into tblsubjecthistory
-                    $insertHistorySql = "INSERT INTO tblsubjecthistory (SubjectID, SessionID) 
-                                        SELECT ID, SessionID FROM tblsubjects WHERE SessionID = :currentSessionID";
-                    $queryHistory = $dbh->prepare($insertHistorySql);
-                    $queryHistory->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
-                    $queryHistory->execute();
-
-                    // Update session IDs of subjects to the new active session ID
-                    $updateSubSession = "UPDATE tblsubjects SET SessionID = :newSessionID WHERE SessionID = :currentSessionID";
-                    $querySubSession = $dbh->prepare($updateSubSession);
-                    $querySubSession->bindParam(':newSessionID', $session_id, PDO::PARAM_INT);
-                    $querySubSession->bindParam(':currentSessionID', $currentSessionID, PDO::PARAM_INT);
-                    $querySubSession->execute();
-
-                    // Set all sessions to inactive except the selected one
-                    $updateSessions = "UPDATE tblsessions SET is_active = CASE WHEN session_id = :session_id THEN 1 ELSE 0 END";
-                    $querySessions = $dbh->prepare($updateSessions);
-                    $querySessions->bindParam(':session_id', $session_id, PDO::PARAM_INT);
-                    $querySessions->execute();
-
-                    // Reset the published exam, result, and session_id to 0 in tblexamination
-                    $resetPublishedSql = "UPDATE tblexamination SET IsPublished = 0, IsResultPublished = 0, session_id = 0 WHERE session_id = :activeSession";
-                    $resetPublished = $dbh->prepare($resetPublishedSql);
-                    $resetPublished->bindParam(':activeSession', $currentSessionID, PDO::PARAM_INT);
-                    $resetPublished->execute();
-
-                    // Commit the transaction
-                    $dbh->commit();
+                        $dbh->commit();
+                    } 
+                    catch (PDOException $e) 
+                    {
+                        $dbh->rollBack();
+                        echo "Error: " . $e->getMessage();
+                    }
+                    finally
+                    {
+                        echo "<script>window.location.href ='manage-session.php'</script>";
+                    }
                 } 
-                catch (PDOException $e) 
-                {
-                    $dbh->rollBack();
-                    echo "Error: " . $e->getMessage();
-                }
             }
-
-            echo "<script>window.location.href ='manage-session.php'</script>";
-        }
-        
 }
 ?>

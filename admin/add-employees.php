@@ -38,7 +38,6 @@ else
             $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
             $username = filter_var($_POST['username'], FILTER_SANITIZE_STRING);
             $password = password_hash(filter_var($_POST['password'], FILTER_SANITIZE_STRING), PASSWORD_DEFAULT);
-            $image = $_FILES["image"]["name"];
 
             $ret = "SELECT UserName FROM tblemployees WHERE UserName = :username OR EmpID = :empid";
             $query = $dbh->prepare($ret);
@@ -49,14 +48,11 @@ else
 
             if ($query->rowCount() == 0) 
             {
-                $extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
-                $allowed_extensions = array("jpg", "jpeg", "png");
-
-                if (!in_array($extension, $allowed_extensions)) 
+                if (strlen($contactnumber) < 10)
                 {
+                    $msg = "Contact Number must be at least 10 digits";
                     $dangerAlert = true;
-                    $msg = "Image has Invalid format! Only jpg / jpeg / png format are allowed.";
-                } 
+                }
                 else if (strlen($_POST['password']) < 8) 
                 {
                     $msg = "Password must be at least 8 characters long!";
@@ -74,10 +70,7 @@ else
                 }
                 else 
                 {
-                    $image = md5($image) . time() . '.' . $extension;
-                    move_uploaded_file($_FILES["image"]["tmp_name"], "images/" . $image);
-
-                    if ($role === 'Teaching') 
+                    if ($empType === 'Teaching') 
                     {
                         $selectedClasses = implode(',', $_POST['assignedClasses']);
                         $selectedSections = implode(',', $_POST['assignedSection']);
@@ -90,13 +83,12 @@ else
                         $selectedSubjects = '';
                     }
 
-                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSections, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password, Image) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSections, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password, :image)";
+                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSections, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSections, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':name', $name, PDO::PARAM_STR);
                     $query->bindParam(':email', $email, PDO::PARAM_STR);
                     $query->bindParam(':role', $role, PDO::PARAM_STR);
-                    $query->bindParam(':role', $role, PDO::PARAM_STR);
-                    $query->bindParam(':empType', $empType, PDO::PARAM_INT);
+                    $query->bindParam(':empType', $empType, PDO::PARAM_STR);
                     $query->bindParam(':assignedClasses', $selectedClasses, PDO::PARAM_STR);
                     $query->bindParam(':assignedSections', $selectedSections, PDO::PARAM_STR);
                     $query->bindParam(':assignedSubjects', $selectedSubjects, PDO::PARAM_STR);
@@ -109,7 +101,6 @@ else
                     $query->bindParam(':address', $address, PDO::PARAM_STR);
                     $query->bindParam(':username', $username, PDO::PARAM_STR);
                     $query->bindParam(':password', $password, PDO::PARAM_STR);
-                    $query->bindParam(':image', $image, PDO::PARAM_STR);
                     $query->execute();
 
                     $lastInsertId = $dbh->lastInsertId();
@@ -162,6 +153,7 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../Main/css/remove-spinner.css" />
     
     </head>
     <body>
@@ -312,13 +304,6 @@ else
                                         </select>
                                     </div>
 
-
-
-
-
-
-
-
                                     <div class="form-group">
                                         <label for="role">Role</label>
                                         <select name="role" id="role" class="form-control" required>
@@ -354,10 +339,6 @@ else
                                         <label for="exampleInputName1">Employee ID</label>
                                         <input type="text" name="empid" class="form-control" required>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="exampleInputName1">Employee Photo</label>
-                                        <input type="file" name="image" class="form-control" required>
-                                    </div>
                                     <h3>Parents/Guardian's details</h3>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Guardian's/Father's Name</label>
@@ -365,11 +346,11 @@ else
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Contact Number</label>
-                                        <input type="text" name="contactnumber" class="form-control" required maxlength="10" pattern="[0-9]+">
+                                        <input type="number" name="contactnumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Alternate Contact Number</label>
-                                        <input type="text" name="alternatenumber" class="form-control" required maxlength="10" pattern="[0-9]+">
+                                        <input type="number" name="alternatenumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Address</label>
