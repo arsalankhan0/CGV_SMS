@@ -336,9 +336,11 @@ else
                                         <input type="date" name="dob" class="form-control" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleInputName1">Employee ID</label>
-                                        <input type="text" name="empid" class="form-control" required>
+                                        <label for="empid">Employee ID</label>
+                                        <input type="text" id="empid" name="empid" class="form-control" required>
+                                        <div id="empidAvailability" class="text-danger"></div>
                                     </div>
+
                                     <h3>Parents/Guardian's details</h3>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Guardian's/Father's Name</label>
@@ -358,12 +360,15 @@ else
                                     </div>
                                     <h3>Login details</h3>
                                     <div class="form-group">
-                                        <label for="exampleInputName1">User Name</label>
-                                        <input type="text" name="username" class="form-control" required>
+                                        <label for="username">Username</label>
+                                        <input type="text" id="username" name="username" class="form-control" required>
+                                        <div id="usernameAvailability" class="text-danger"></div>
                                     </div>
                                     <div class="form-group">
                                         <label for="exampleInputName1">Password</label>
-                                        <input type="password" name="password" class="form-control" required>
+                                        <input type="password" name="password" id="password" class="form-control" required onkeyup="validatePassword()">
+                                        <p id="passwordValidationMessage" class="text-danger"></p>
+
                                         <p class="text-muted mb-0 mt-2">
                                             Password must:
                                             <ul class="text-muted">
@@ -406,6 +411,9 @@ else
     <script src="js/select2.js"></script>
     <script src="./js/showMoreInput.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script src="./js/validatePassword.js"></script>
+    <script src="./js/employeeAvailability.js"></script>
+
 
     <!-- End custom js for this page -->
   </body>

@@ -290,8 +290,11 @@ include('includes/dbconnection.php');
                         <input type="text" name="uname" value="" class="form-control" required='true'>
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Password</label>
-                        <input type="Password" name="password" value="" class="form-control" required='true'>
+                        <label for="password">Password</label>
+                        <!-- <input type="Password" name="password" value="" class="form-control" required='true'> -->
+                        <input type="password" name="password" id="password" class="form-control" required onkeyup="validatePassword()">
+                        <p id="passwordValidationMessage" class="text-danger"></p>
+                        
                         <p class="text-muted mb-0 mt-2">
                             Password must:
                             <ul class="text-muted">
@@ -334,6 +337,7 @@ include('includes/dbconnection.php');
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script src="./js/validatePassword.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>
