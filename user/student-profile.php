@@ -70,11 +70,9 @@ else
                                                     tblstudent.FatherName,
                                                     tblstudent.MotherName,
                                                     tblstudent.ContactNumber,
-                                                    tblstudent.AltenateNumber,
                                                     tblstudent.Address,
                                                     tblstudent.UserName,
                                                     tblstudent.Password,
-                                                    tblstudent.Image,
                                                     tblstudent.DateofAdmission,
                                                     tblclass.ClassName,
                                                     tblsections.SectionName
@@ -121,31 +119,20 @@ else
                                                 <tr>
                                                     <th>Contact Number</th>
                                                     <td><?php echo $row->ContactNumber; ?></td>
-                                                    <th>Alternate Number</th>
-                                                    <td><?php echo $row->AltenateNumber; ?></td>
-                                                </tr>
-                                                <tr>
                                                     <th>Address</th>
                                                     <td><?php echo $row->Address; ?></td>
+                                                </tr>
+                                                <tr>
                                                     <th>User Name</th>
                                                     <td><?php echo $row->UserName; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Profile Pics</th>
-                                                    <td colspan="3"><img src="../admin/images/<?php echo $row->Image; ?>" id="profileImage" class="clickable-image"></td>
-                                                </tr>
-                                                <tr>
                                                     <th>Date of Admission</th>
                                                     <td colspan="3"><?php echo $row->DateofAdmission; ?></td>
                                                 </tr>
+                                              
                                         <?php
                                             }
                                         } ?>
                                     </table>
-                                    <!-- Full profile Image when clicking on the profile image -->
-                                    <div class="profile-image-modal" id="profileImageModal">
-                                        <img src="../admin/images/<?php echo $row->Image; ?>" alt="Profile Image" id="largeProfileImage">
-                                    </div>
                   </div>
                 </div>
               </div>
@@ -175,7 +162,6 @@ else
     <!-- Custom js for this page -->
     <script src="../admin/js/typeahead.js"></script>
     <script src="../admin/js/select2.js"></script>
-    <script src="../admin/js/showFullProfile.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

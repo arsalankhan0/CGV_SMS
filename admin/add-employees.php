@@ -96,7 +96,6 @@ else
                     $query->bindParam(':empid', $empid, PDO::PARAM_STR);
                     $query->bindParam(':fathername', $fathername, PDO::PARAM_STR);
                     $query->bindParam(':contactnumber', $contactnumber, PDO::PARAM_STR);
-                    // $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
                     $query->bindParam(':address', $address, PDO::PARAM_STR);
                     $query->bindParam(':username', $username, PDO::PARAM_STR);
                     $query->bindParam(':password', $password, PDO::PARAM_STR);
@@ -349,10 +348,6 @@ else
                                         <label for="exampleInputName1">Contact Number</label>
                                         <input type="number" name="contactnumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
                                     </div>
-                                    <!-- <div class="form-group">
-                                        <label for="exampleInputName1">Alternate Contact Number</label>
-                                        <input type="number" name="alternatenumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
-                                    </div> -->
                                     <div class="form-group">
                                         <label for="exampleInputName1">Address</label>
                                         <textarea name="address" class="form-control" required></textarea>
@@ -412,8 +407,6 @@ else
     <script src="./js/manageAlert.js"></script>
     <script src="./js/validatePassword.js"></script>
     <script src="./js/employeeAvailability.js"></script>
-
-
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>
