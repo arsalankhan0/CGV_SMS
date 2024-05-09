@@ -30,7 +30,6 @@ else
             $dob = filter_var($_POST['dob'], FILTER_SANITIZE_STRING);
             $fathername = filter_var($_POST['fathername'], FILTER_SANITIZE_STRING);
             $contactnumber = filter_var($_POST['contactnumber'], FILTER_SANITIZE_STRING);
-            $alternatenumber = filter_var($_POST['alternatenumber'], FILTER_SANITIZE_STRING);
             $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
             $eid = filter_var($_GET['editid'], FILTER_SANITIZE_STRING);
 
@@ -48,7 +47,6 @@ else
                     DOB = :dob, 
                     FatherName = :fathername, 
                     ContactNumber = :contactnumber, 
-                    AlternateNumber = :alternatenumber, 
                     Address = :address,
                     AssignedClasses = :assignedClasses,
                     AssignedSections = :assignedSections,
@@ -64,7 +62,6 @@ else
             $query->bindParam(':dob', $dob, PDO::PARAM_STR);
             $query->bindParam(':fathername', $fathername, PDO::PARAM_STR);
             $query->bindParam(':contactnumber', $contactnumber, PDO::PARAM_STR);
-            $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
             $query->bindParam(':assignedClasses', $assignedClasses, PDO::PARAM_STR);
             $query->bindParam(':assignedSections', $assignedSections, PDO::PARAM_STR);
@@ -320,10 +317,6 @@ else
                                         <div class="form-group">
                                             <label for="exampleInputName1">Contact Number</label>
                                             <input type="text" name="contactnumber" value="<?php echo htmlentities($row->ContactNumber); ?>" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="exampleInputName1">Alternate Contact Number</label>
-                                            <input type="text" name="alternatenumber" value="<?php echo htmlentities($row->AlternateNumber); ?>" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputName1">Address</label>

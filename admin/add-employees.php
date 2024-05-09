@@ -34,7 +34,6 @@ else
             $empid = filter_var($_POST['empid'], FILTER_SANITIZE_STRING);
             $fathername = filter_var($_POST['fathername'], FILTER_SANITIZE_STRING);
             $contactnumber = filter_var($_POST['contactnumber'], FILTER_SANITIZE_STRING);
-            $alternatenumber = filter_var($_POST['alternatenumber'], FILTER_SANITIZE_STRING);
             $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
             $username = filter_var($_POST['username'], FILTER_SANITIZE_STRING);
             $password = password_hash(filter_var($_POST['password'], FILTER_SANITIZE_STRING), PASSWORD_DEFAULT);
@@ -83,7 +82,7 @@ else
                         $selectedSubjects = '';
                     }
 
-                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSections, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, AlternateNumber, Address, UserName, Password) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSections, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :alternatenumber, :address, :username, :password)";
+                    $sql = "INSERT INTO tblemployees(Name, Email, Role, EmpType, AssignedClasses, AssignedSections, AssignedSubjects, Gender, DOB, EmpID, FatherName, ContactNumber, Address, UserName, Password) VALUES (:name, :email, :role, :empType, :assignedClasses, :assignedSections, :assignedSubjects, :gender, :dob, :empid, :fathername, :contactnumber, :address, :username, :password)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':name', $name, PDO::PARAM_STR);
                     $query->bindParam(':email', $email, PDO::PARAM_STR);
@@ -97,7 +96,7 @@ else
                     $query->bindParam(':empid', $empid, PDO::PARAM_STR);
                     $query->bindParam(':fathername', $fathername, PDO::PARAM_STR);
                     $query->bindParam(':contactnumber', $contactnumber, PDO::PARAM_STR);
-                    $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
+                    // $query->bindParam(':alternatenumber', $alternatenumber, PDO::PARAM_STR);
                     $query->bindParam(':address', $address, PDO::PARAM_STR);
                     $query->bindParam(':username', $username, PDO::PARAM_STR);
                     $query->bindParam(':password', $password, PDO::PARAM_STR);
@@ -350,10 +349,10 @@ else
                                         <label for="exampleInputName1">Contact Number</label>
                                         <input type="number" name="contactnumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
                                     </div>
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <label for="exampleInputName1">Alternate Contact Number</label>
                                         <input type="number" name="alternatenumber" class="form-control" required maxlength="10" pattern="[0-9]+" onKeyPress="if(this.value.length==10) return false;">
-                                    </div>
+                                    </div> -->
                                     <div class="form-group">
                                         <label for="exampleInputName1">Address</label>
                                         <textarea name="address" class="form-control" required></textarea>

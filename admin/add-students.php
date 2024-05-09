@@ -37,7 +37,7 @@ include('includes/dbconnection.php');
           $uname=$_POST['uname'];
           $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
           $image=$_FILES["image"]["name"];
-          $ret="select UserName from tblstudent where UserName=:uname || StuID=:stuid";
+          $ret="SELECT UserName FROM tblstudent WHERE UserName=:uname || StuID=:stuid AND IsDeleted = 0";
           $query= $dbh -> prepare($ret);
           $query->bindParam(':uname',$uname,PDO::PARAM_STR);
           $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
@@ -45,12 +45,15 @@ include('includes/dbconnection.php');
           $results = $query -> fetchAll(PDO::FETCH_OBJ);
           if($query -> rowCount() == 0)
           {
-            $extension = substr($image,strlen($image)-4,strlen($image));
-            $allowed_extensions = array(".jpg","jpeg",".png",".gif");
-            if(!in_array($extension,$allowed_extensions))
+            if (!empty($_FILES['image']['name']))
             {
-              $dangerAlert = true;
-              $msg = "Invalid file format. Only jpg / jpeg/ png /gif format are allowed!";
+              $extension = substr($image,strlen($image)-4,strlen($image));
+              $allowed_extensions = array(".jpg","jpeg",".png");
+              if(!in_array($extension,$allowed_extensions))
+              {
+                $dangerAlert = true;
+                $msg = "Invalid file format. Only jpg / jpeg/ png format are allowed!";
+              }
             }
             else if (strlen($_POST['password']) < 8) 
             {
@@ -71,7 +74,7 @@ include('includes/dbconnection.php');
             {
               $image=md5($image).time().$extension;
               move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-              $sql = "insert into tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image,SessionID) values(:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image,:sessionID)";
+              $sql = "INSERT INTO tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,`Address`,UserName,`Password`,`Image`,SessionID) VALUES (:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
               $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
@@ -257,11 +260,13 @@ include('includes/dbconnection.php');
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Student ID</label>
-                        <input type="text" name="stuid" value="" class="form-control" required='true'>
+                        <!-- <input type="text" name="stuid" value="" class="form-control" required='true'> -->
+                        <input type="text" id="stuid" name="stuid" class="form-control" required>
+                        <div id="stuidAvailability" class="text-danger"></div>
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Student Photo</label>
-                        <input type="file" name="image" value="" class="form-control" required='true'>
+                        <label for="exampleInputName1">Student Photo (optional)</label>
+                        <input type="file" name="image" value="" class="form-control">
                       </div>
                       <h3>Parents/Guardian's details</h3>
                       <div class="form-group">
@@ -285,9 +290,11 @@ include('includes/dbconnection.php');
                         <textarea name="address" class="form-control" required='true'></textarea>
                       </div>
                         <h3>Login details</h3>
-                        <div class="form-group">
-                        <label for="exampleInputName1">User Name</label>
-                        <input type="text" name="uname" value="" class="form-control" required='true'>
+                      <div class="form-group">
+                        <label for="uname">User Name</label>
+                        <!-- <input type="text" name="uname" value="" class="form-control" required='true'> -->
+                        <input type="text" id="uname" name="uname" class="form-control" required>
+                        <div id="usernameAvailability" class="text-danger"></div>
                       </div>
                       <div class="form-group">
                         <label for="password">Password</label>
@@ -339,5 +346,66 @@ include('includes/dbconnection.php');
     <script src="./js/manageAlert.js"></script>
     <script src="./js/validatePassword.js"></script>
     <!-- End custom js for this page -->
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() 
+      {
+            let usernameInput = document.getElementById('uname');
+            let stuidInput = document.getElementById('stuid');
+
+            usernameInput.addEventListener('keyup', function() {
+                var username = usernameInput.value;
+                checkAvailability('uname', username);
+            });
+
+            stuidInput.addEventListener('keyup', function() {
+                let stuid = stuidInput.value;
+                checkAvailability('stuid', stuid);
+            });
+
+            function checkAvailability(type, value) 
+            {
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() 
+                {
+                    if (xhr.readyState === XMLHttpRequest.DONE) 
+                    {
+                        if (xhr.status === 200) 
+                        {
+                            if (type === 'uname') 
+                            {
+                                let usernameAvailability = document.getElementById('usernameAvailability');
+                                usernameAvailability.innerHTML = xhr.responseText;
+                                if (xhr.responseText === "Username already exists") 
+                                {
+                                    usernameInput.style.borderColor = "red";
+                                } 
+                                else 
+                                {
+                                    usernameInput.style.borderColor = "";
+                                }
+                            } 
+                            else if (type === 'stuid') 
+                            {
+                                let stuidAvailability = document.getElementById('stuidAvailability');
+                                stuidAvailability.innerHTML = xhr.responseText;
+                                if (xhr.responseText === "Student ID already exists") 
+                                {
+                                    stuidInput.style.borderColor = "red";
+                                } 
+                                else 
+                                {
+                                    stuidInput.style.borderColor = "";
+                                }
+                            }
+                        }
+                    }
+                };
+                xhr.open('POST', 'student_availability.php');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(type + '=' + encodeURIComponent(value));
+            }
+        });
+    </script>
   </body>
 </html><?php }  ?>
