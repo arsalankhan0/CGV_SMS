@@ -61,7 +61,6 @@ else
             $fname = $_POST['fname'];
             $mname = $_POST['mname'];
             $connum = $_POST['connum'];
-            $altconnum = $_POST['altconnum'];
             $address = $_POST['address'];
             $eid = $_GET['editid'];
 
@@ -76,7 +75,6 @@ else
                         FatherName=:fname,
                         MotherName=:mname,
                         ContactNumber=:connum,
-                        AltenateNumber=:altconnum,
                         Address=:address 
                         WHERE ID=:eid";
 
@@ -91,7 +89,6 @@ else
             $query->bindParam(':fname', $fname, PDO::PARAM_STR);
             $query->bindParam(':mname', $mname, PDO::PARAM_STR);
             $query->bindParam(':connum', $connum, PDO::PARAM_STR);
-            $query->bindParam(':altconnum', $altconnum, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
             $query->execute();
@@ -105,7 +102,7 @@ else
     {
         $dangerAlert = true;
         $msg = "Ops! Something went wrong.";
-        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+        echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
 
 
@@ -183,11 +180,11 @@ else
                                     $eid = $_GET['editid'];
                                     if ($_GET['source'] == 'history') 
                                     {
-                                        $sql = "SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudenthistory.ClassID as StudentClass, tblstudenthistory.Section as StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblstudenthistory.SessionID,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudenthistory JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID join tblclass on tblclass.ID=tblstudenthistory.ClassID where tblstudenthistory.ID=:eid AND tblstudenthistory.IsDeleted = 0";
+                                        $sql = "SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudenthistory.ClassID as StudentClass, tblstudenthistory.Section as StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.DateofAdmission,tblstudenthistory.SessionID,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudenthistory JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID join tblclass on tblclass.ID=tblstudenthistory.ClassID where tblstudenthistory.ID=:eid AND tblstudenthistory.IsDeleted = 0";
                                     } 
                                     else 
                                     {
-                                        $sql = "SELECT tblstudent.ID as ID, tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.AltenateNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.Image,tblstudent.DateofAdmission,tblstudent.SessionID,tblclass.ClassName,tblclass.Section, tblclass.ID as ClassID, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
+                                        $sql = "SELECT tblstudent.ID as ID, tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.DateofAdmission,tblstudent.SessionID,tblclass.ClassName,tblclass.Section, tblclass.ID as ClassID, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
                                     }
 
                                     $query = $dbh->prepare($sql);
@@ -302,11 +299,6 @@ else
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
                                                 >
                                             </div>
-                                            <div class="form-group">
-                                                <label for="exampleInputName1">Student Photo</label>
-                                                <img src="images/<?php echo $row->Image; ?>" width="100" height="100"
-                                                        value="<?php echo $row->Image; ?>"><?php if ($row->SessionID === $activeSessionID) echo '<a href="changeimage.php?editid=' . $row->ID . '"> &nbsp; Edit Image</a>' ?>
-                                            </div>
                                             <h3>Parents/Guardian's details</h3>
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Father's Name</label>
@@ -334,15 +326,6 @@ else
                                                 >
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Alternate Contact Number</label>
-                                                <input type="text" name="altconnum"
-                                                        value="<?php echo htmlentities($row->AltenateNumber); ?>"
-                                                        class="form-control" required='true' maxlength="10"
-                                                        pattern="[0-9]+"
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
-                                                >
-                                            </div>
-                                            <div class="form-group">
                                                 <label for="exampleInputName1">Address</label>
                                                 <textarea name="address" class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>><?php echo htmlentities($row->Address); ?></textarea>
@@ -363,24 +346,24 @@ else
 
                                         <?php }
                                     } ?>
-                                <!-- Confirmation Modal (Update) -->
-                                <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to update this Student?
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary" name="submit">Update</button>
-                                        </div>
+                                    <!-- Confirmation Modal (Update) -->
+                                    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to update this Student?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary" name="submit">Update</button>
+                                            </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </form>
                             </div>
                         </div>

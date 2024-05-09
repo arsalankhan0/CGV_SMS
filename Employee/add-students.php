@@ -63,12 +63,10 @@ $requiredPermissions = array(
           $fname=$_POST['fname'];
           $mname=$_POST['mname'];
           $connum=$_POST['connum'];
-          $altconnum=$_POST['altconnum'];
           $address=$_POST['address'];
           $uname=$_POST['uname'];
-          $password=md5($_POST['password']);
-          $image=$_FILES["image"]["name"];
-          $ret="select UserName from tblstudent where UserName=:uname || StuID=:stuid";
+          $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+          $ret="SELECT UserName FROM tblstudent WHERE UserName=:uname || StuID=:stuid AND IsDeleted = 0";
           $query= $dbh -> prepare($ret);
           $query->bindParam(':uname',$uname,PDO::PARAM_STR);
           $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
@@ -76,18 +74,29 @@ $requiredPermissions = array(
           $results = $query -> fetchAll(PDO::FETCH_OBJ);
           if($query -> rowCount() == 0)
           {
-            $extension = substr($image,strlen($image)-4,strlen($image));
-            $allowed_extensions = array(".jpg","jpeg",".png",".gif");
-            if(!in_array($extension,$allowed_extensions))
+            if (strlen($connum) < 10)
             {
-              $dangerAlert = true;
-              $msg = "Invalid file format. Only jpg / jpeg/ png /gif format allowed!";
+                $msg = "Contact Number must be at least 10 digits";
+                $dangerAlert = true;
+            }
+            else if (strlen($_POST['password']) < 8) 
+            {
+                $msg = "Password must be at least 8 characters long!";
+                $dangerAlert = true;
+            } 
+            else if(!preg_match('/[a-zA-Z]/', $_POST['password']))
+            {
+                $msg = "Password must contain at least one alphabetic character!";
+                $dangerAlert = true;
+            }
+            else if(!preg_match('/[0-9]/', $_POST['password']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['password']))
+            {
+                $msg = "Password must contain at least one number and one special character!";
+                $dangerAlert = true;
             }
             else
             {
-              $image=md5($image).time().$extension;
-              move_uploaded_file($_FILES["image"]["tmp_name"],"images/".$image);
-              $sql = "insert into tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,AltenateNumber,Address,UserName,Password,Image,SessionID) values(:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:altconnum,:address,:uname,:password,:image,:sessionID)";
+              $sql = "INSERT INTO tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,`Address`,UserName,`Password`,SessionID) VALUES (:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:address,:uname,:password,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
               $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
@@ -100,15 +109,13 @@ $requiredPermissions = array(
               $query->bindParam(':fname',$fname,PDO::PARAM_STR);
               $query->bindParam(':mname',$mname,PDO::PARAM_STR);
               $query->bindParam(':connum',$connum,PDO::PARAM_STR);
-              $query->bindParam(':altconnum',$altconnum,PDO::PARAM_STR);
               $query->bindParam(':address',$address,PDO::PARAM_STR);
               $query->bindParam(':uname',$uname,PDO::PARAM_STR);
               $query->bindParam(':password',$password,PDO::PARAM_STR);
-              $query->bindParam(':image',$image,PDO::PARAM_STR);
               $query->bindParam(':sessionID',$activeSession,PDO::PARAM_STR);
               $query->execute();
               $LastInsertId=$dbh->lastInsertId();
-              if ($LastInsertId>0) 
+              if ($LastInsertId > 0) 
               {
                 $successAlert = true;
                 $msg = "Student has been added successfully.";
@@ -131,7 +138,7 @@ $requiredPermissions = array(
     {
       $dangerAlert = true;
       $msg = "Ops! An error occurred.";
-      echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+      echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
   ?>
 <!DOCTYPE html>
@@ -182,7 +189,6 @@ $requiredPermissions = array(
                   <div class="card-body">
                     <h4 class="card-title" style="text-align: center;">Add Students</h4>
                     <form class="forms-sample" method="post" enctype="multipart/form-data">
-
                       <!-- Dismissible Alert messages -->
                       <?php 
                       if ($successAlert) 
@@ -206,7 +212,6 @@ $requiredPermissions = array(
                       <?php
                       }
                       ?>
-
                       
                       <div class="form-group">
                         <label for="exampleInputName1">Student Name</label>
@@ -273,11 +278,8 @@ $requiredPermissions = array(
                       </div>
                       <div class="form-group">
                         <label for="exampleInputName1">Student ID</label>
-                        <input type="text" name="stuid" value="" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Student Photo</label>
-                        <input type="file" name="image" value="" class="form-control" required='true'>
+                        <input type="text" id="stuid" name="stuid" class="form-control" required>
+                        <div id="stuidAvailability" class="text-danger"></div>
                       </div>
                       <h3>Parents/Guardian's details</h3>
                       <div class="form-group">
@@ -293,24 +295,30 @@ $requiredPermissions = array(
                         <input type="text" name="connum" value="" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Alternate Contact Number</label>
-                        <input type="text" name="altconnum" value="" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
-                      </div>
-                      <div class="form-group">
                         <label for="exampleInputName1">Address</label>
                         <textarea name="address" class="form-control" required='true'></textarea>
                       </div>
                         <h3>Login details</h3>
-                        <div class="form-group">
-                        <label for="exampleInputName1">User Name</label>
-                        <input type="text" name="uname" value="" class="form-control" required='true'>
+                      <div class="form-group">
+                        <label for="uname">User Name</label>
+                        <input type="text" id="uname" name="uname" class="form-control" required>
+                        <div id="usernameAvailability" class="text-danger"></div>
                       </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Password</label>
-                        <input type="Password" name="password" value="" class="form-control" required='true'>
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" class="form-control" required onkeyup="validatePassword()">
+                        <p id="passwordValidationMessage" class="text-danger"></p>
+                        
+                        <p class="text-muted mb-0 mt-2">
+                            Password must:
+                            <ul class="text-muted">
+                                <li>Be at least 8 characters long</li>
+                                <li>Contain at least one alphabetic character</li>
+                                <li>Contain at least one number and one special character</li>
+                            </ul>
+                        </p>
                       </div>
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
-                    
                     </form>
                   </div>
                 </div>
@@ -342,6 +350,8 @@ $requiredPermissions = array(
     <script src="js/typeahead.js"></script>
     <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script src="../admin/js/validatePassword.js"></script>
+    <script src="../admin/js/studentAvailability.js"></script>
     <!-- End custom js for this page -->
   </body>
 </html><?php }  ?>

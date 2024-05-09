@@ -251,7 +251,6 @@ catch (PDOException $e)
                                         $activeSession = $session['session_id'];
                                     
                                         // Fetch reports that match the selected class and session
-                                        // $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
                                         $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.SubjectsJSON, r.ClassName, r.ExamSession, s.StudentSection
                                                                 FROM tblreports r
                                                                 JOIN tblstudent s ON r.StudentName = s.ID
@@ -268,7 +267,7 @@ catch (PDOException $e)
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                        // // Fetch ClassName from tblclass
+                                        //Fetch ClassName from tblclass
                                         $sqlSelectedClassName = "SELECT * FROM tblclass WHERE ID = :selectedClass AND IsDeleted = 0";
                                         $querySelectedClassName = $dbh->prepare($sqlSelectedClassName);
                                         $querySelectedClassName->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
@@ -426,7 +425,6 @@ catch (PDOException $e)
                                                 }
                                     
                                                 // Check if all subjects have IsPassed set to 1 (True)
-                                                // $overallResult = (count(array_unique($results)) == 1 && end($results) == 1) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
                                                 $overallResult = ($passed) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
                                     
                                                 echo "<tr>";

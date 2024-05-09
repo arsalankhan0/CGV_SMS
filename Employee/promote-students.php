@@ -48,109 +48,108 @@ else
     $sessionQuery->execute();
     $session = $sessionQuery->fetch(PDO::FETCH_ASSOC);
 
-try 
-{
-        
-    // Promote selected students
-    if (isset($_POST['promote'])) 
+    try 
     {
-        $selectedPromoteClass = $_POST['promoteClass'];
-        $selectedPromoteSection = $_POST['promoteSection'];
-        $selectedPromoteSession = $_POST['promoteSession'];
-
-        // Check if the selected promotion class and session match the current active class and session
-        $currentActiveClass = $filteredClassName['ClassName'];
-        $currentActiveSession = $session['session_id'];
-
-        if ($selectedPromoteClass == $currentActiveClass && $selectedPromoteSession == $currentActiveSession) 
+        // Promote selected students
+        if (isset($_POST['promote'])) 
         {
-            $dangerAlert = true;
-            $msg = "Cannot promote students to the same class and session!";
-        } 
-        else 
-        {
-            if (isset($_POST['selectedStudents'])) 
+            $selectedPromoteClass = $_POST['promoteClass'];
+            $selectedPromoteSection = $_POST['promoteSection'];
+            $selectedPromoteSession = $_POST['promoteSession'];
+    
+            // Check if the selected promotion class and session match the current active class and session
+            $currentActiveClass = $filteredClassName['ClassName'];
+            $currentActiveSession = $session['session_id'];
+    
+            if ($selectedPromoteClass == $currentActiveClass && $selectedPromoteSession == $currentActiveSession) 
             {
-                // Check for duplicate entries
-                $duplicateEntry = false;
-
-                foreach ($_POST['selectedStudents'] as $selectedStudentID) 
-                {
-                    $sqlCheckDuplicate = "SELECT COUNT(*) FROM tblstudenthistory 
-                                            WHERE StudentID = :studentID 
-                                            AND SessionID = :sessionID 
-                                            AND ClassID = :classID 
-                                            AND Section = :section";
-                    $queryCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
-                    $queryCheckDuplicate->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
-                    $queryCheckDuplicate->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
-                    $queryCheckDuplicate->execute();
-                    $duplicateCount = $queryCheckDuplicate->fetchColumn();
-
-                    if ($duplicateCount > 0) 
-                    {
-                        $duplicateEntry = true;
-                        break;
-                    }
-                }
-
-                if ($duplicateEntry) 
-                {
-                    $dangerAlert = true;
-                    $msg = "Selected students already promoted to the specified class and session!";
-                } 
-                else 
-                {
-                    // If no duplicate entries found, proceed with promotion
-                    foreach ($_POST['selectedStudents'] as $selectedStudentID) 
-                    {
-                        // Store previous information in tblstudenthistory
-                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                        $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
-                        $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryStudentDetails->execute();
-                        $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
-
-                        $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
-                                                VALUES (:studentID, :sessionID, :classID, :section)";
-                        $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
-                        $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
-                        $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
-                        $queryPromoteStudent->execute();
-
-                        // Update class, section, and session in tblstudent
-                        $sqlUpdateStudent = "UPDATE tblstudent SET StudentClass = :classID, StudentSection = :section, SessionID = :sessionID
-                                            WHERE ID = :studentID";
-                        $queryUpdateStudent = $dbh->prepare($sqlUpdateStudent);
-                        $queryUpdateStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
-                        $queryUpdateStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
-                        $queryUpdateStudent->execute();
-                    }
-
-                    $successAlert = true;
-                    $msg = "Selected students have been promoted successfully.";
-                }
+                $dangerAlert = true;
+                $msg = "Cannot promote students to the same class and session!";
             } 
             else 
             {
-                $dangerAlert = true;
-                $msg = "Please select at least one student to promote!";
+                if (isset($_POST['selectedStudents'])) 
+                {
+                    // Check for duplicate entries
+                    $duplicateEntry = false;
+    
+                    foreach ($_POST['selectedStudents'] as $selectedStudentID) 
+                    {
+                        $sqlCheckDuplicate = "SELECT COUNT(*) FROM tblstudenthistory 
+                                                WHERE StudentID = :studentID 
+                                                AND SessionID = :sessionID 
+                                                AND ClassID = :classID 
+                                                AND Section = :section";
+                        $queryCheckDuplicate = $dbh->prepare($sqlCheckDuplicate);
+                        $queryCheckDuplicate->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                        $queryCheckDuplicate->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
+                        $queryCheckDuplicate->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
+                        $queryCheckDuplicate->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                        $queryCheckDuplicate->execute();
+                        $duplicateCount = $queryCheckDuplicate->fetchColumn();
+    
+                        if ($duplicateCount > 0) 
+                        {
+                            $duplicateEntry = true;
+                            break;
+                        }
+                    }
+    
+                    if ($duplicateEntry) 
+                    {
+                        $dangerAlert = true;
+                        $msg = "Selected students already promoted to the specified class and session!";
+                    } 
+                    else 
+                    {
+                        // If no duplicate entries found, proceed with promotion
+                        foreach ($_POST['selectedStudents'] as $selectedStudentID) 
+                        {
+                            // Store previous information in tblstudenthistory
+                            $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                            $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
+                            $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                            $queryStudentDetails->execute();
+                            $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
+    
+                            $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
+                                                    VALUES (:studentID, :sessionID, :classID, :section)";
+                            $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
+                            $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                            $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
+                            $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
+                            $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
+                            $queryPromoteStudent->execute();
+    
+                            // Update class, section, and session in tblstudent
+                            $sqlUpdateStudent = "UPDATE tblstudent SET StudentClass = :classID, StudentSection = :section, SessionID = :sessionID
+                                                WHERE ID = :studentID";
+                            $queryUpdateStudent = $dbh->prepare($sqlUpdateStudent);
+                            $queryUpdateStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
+                            $queryUpdateStudent->bindParam(':classID', $selectedPromoteClass, PDO::PARAM_STR);
+                            $queryUpdateStudent->bindParam(':section', $selectedPromoteSection, PDO::PARAM_STR);
+                            $queryUpdateStudent->bindParam(':sessionID', $selectedPromoteSession, PDO::PARAM_STR);
+                            $queryUpdateStudent->execute();
+                        }
+    
+                        $successAlert = true;
+                        $msg = "Selected students have been promoted successfully.";
+                    }
+                } 
+                else 
+                {
+                    $dangerAlert = true;
+                    $msg = "Please select at least one student to promote!";
+                }
             }
         }
+    } 
+    catch (PDOException $e) 
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while promoting the students.";
+        echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
-} 
-catch (PDOException $e) 
-{
-    $dangerAlert = true;
-    $msg = "Ops! An error occurred while promoting the students.";
-    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
-}
 
 
 ?>
@@ -280,8 +279,8 @@ catch (PDOException $e)
                                         $selectedSection = $_POST['section'];
                                         $activeSession = $session['session_id'];
                                     
-                                        // Fetch reports that match the selected class and session
-                                        $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.ExamName, r.ClassName, r.ExamSession, s.StudentSection
+                                       // Fetch reports that match the selected class and session
+                                        $sqlFilteredReports = "SELECT DISTINCT r.StudentName, r.SubjectsJSON, r.ClassName, r.ExamSession, s.StudentSection
                                                                 FROM tblreports r
                                                                 JOIN tblstudent s ON r.StudentName = s.ID
                                                                 WHERE r.ClassName = :class 
@@ -297,32 +296,22 @@ catch (PDOException $e)
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                        // // Fetch ClassName from tblclass
+                                        //Fetch ClassName from tblclass
                                         $sqlSelectedClassName = "SELECT * FROM tblclass WHERE ID = :selectedClass AND IsDeleted = 0";
                                         $querySelectedClassName = $dbh->prepare($sqlSelectedClassName);
                                         $querySelectedClassName->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
                                         $querySelectedClassName->execute();
                                         $filteredClassName = $querySelectedClassName->fetch(PDO::FETCH_ASSOC);
 
-                                        // Check if Result is published
-                                        $checkResultPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE IsResultPublished = 1
+                                        // Check if all available exam results are published for the current session
+                                        $checkResultPublishedSql = "SELECT COUNT(*) as total FROM tblexamination 
+                                                                    WHERE IsResultPublished = 0
                                                                     AND session_id = :session_id
                                                                     AND IsDeleted = 0";
                                         $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-                                        $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
+                                        $checkResultPublishedQuery->bindParam(':session_id', $activeSession, PDO::PARAM_STR);
                                         $checkResultPublishedQuery->execute();
-                                        $publishedResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-                                        
-                                        // Check if all results are published
-                                        // $checkResultPublishedSql = "SELECT COUNT(*) as rowCount FROM tblexamination WHERE IsResultPublished = 1
-                                        //                             AND session_id = :session_id
-                                        //                             AND IsDeleted = 0";
-                                        // $checkResultPublishedQuery = $dbh->prepare($checkResultPublishedSql);
-                                        // $checkResultPublishedQuery->bindParam(':session_id', $session['session_id'], PDO::PARAM_STR);
-                                        // $checkResultPublishedQuery->execute();
-                                        // $rowCountResult = $checkResultPublishedQuery->fetch(PDO::FETCH_ASSOC);
-
-
+                                        $publishedResult = $checkResultPublishedQuery->fetchColumn();
                                         
                                         // Fetch sections from the database
                                         $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :selectedSection AND IsDeleted = 0";
@@ -439,7 +428,7 @@ catch (PDOException $e)
                                             $cnt = 1;
                                             foreach ($filteredReports as $report) 
                                             {
-                                                // Fetch Name and RollNo of student from tblstudent based on the StudentID
+                                                 // Fetch Name and RollNo of student from tblstudent based on the StudentID
                                                 $sqlStudentDetails = "SELECT StudentName, RollNo FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                                                 $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
                                                 $queryStudentDetails->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
@@ -447,16 +436,30 @@ catch (PDOException $e)
                                                 $studentDetails = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
                                     
                                                 // Check if the student passed or failed based on subjects
-                                                $sqlPassOrFail = "SELECT IsPassed FROM tblreports WHERE StudentName = :studentID AND ClassName = :class AND ExamSession = :sessionID AND IsDeleted = 0";
+                                                $sqlPassOrFail = "SELECT DISTINCT IsPassed FROM tblreports WHERE StudentName = :studentID AND ClassName = :class AND ExamSession = :sessionID AND IsDeleted = 0";
                                                 $queryPassOrFail = $dbh->prepare($sqlPassOrFail);
                                                 $queryPassOrFail->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
                                                 $queryPassOrFail->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                                 $queryPassOrFail->bindParam(':sessionID', $activeSession, PDO::PARAM_STR);
                                                 $queryPassOrFail->execute();
                                                 $results = $queryPassOrFail->fetchAll(PDO::FETCH_COLUMN);
+
+                                                $subJson = json_decode($report['SubjectsJSON'], true);
+                                                $passed = true;
+                                                foreach ($subJson as $subjectData) {
+                                                    // Check if the subject is not optional and not co-curricular
+                                                    if ($subjectData['IsOptional'] == 0 && $subjectData['IsCoCurricular'] == 0) 
+                                                    {
+                                                        if ($subjectData['IsPassed'] == 0) 
+                                                        {
+                                                            $passed = false;
+                                                            break; 
+                                                        }
+                                                    }
+                                                }
                                     
                                                 // Check if all subjects have IsPassed set to 1 (True)
-                                                $overallResult = (count(array_unique($results)) == 1 && end($results) == 1) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
+                                                $overallResult = ($passed) ? '<span class="text-success font-weight-bold">PASS</span>' : '<span class="text-danger font-weight-bold">FAIL</span>';
                                     
                                                 echo "<tr>";
                                                 // Check if the user has UpdatePermission
@@ -494,6 +497,7 @@ catch (PDOException $e)
                                 {
                                     $dangerAlert = true;
                                     $msg = "Ops! An error occurred while fetching students.";
+                                    echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
                                 }
                                 ?>
                             </div>
