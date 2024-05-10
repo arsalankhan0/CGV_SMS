@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsEMPid'])) 
@@ -417,6 +417,20 @@ else
         {
             header("Location:create-marks.php");
         }
+
+        // Function to check whether the current subject and class have grading system or not
+        function isGradingSystem1($dbh, $subjectID, $classID) 
+        {
+            $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND ClassID = :classID AND GradingSystem = 1";
+            $gradingSystemQuery = $dbh->prepare($gradingSystemSql);
+            $gradingSystemQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+            $gradingSystemQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+            $gradingSystemQuery->execute();
+            $gradingSystemResult = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
+            
+            // If the GradingSystem is 1, hide the Max Marks column and show the Marks Obtained column as input type text
+            return $gradingSystemResult !== false;
+        }
 ?>
 
 <!DOCTYPE html>
@@ -526,19 +540,12 @@ else
                                                     $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);
                                                     $subjectQuery->execute();
                                                     $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+                                                    
 
                                                     foreach ($subjects as $subject) 
                                                     { 
                                                         $subjectID = $subject['ID'];
-                                                        // Check if the GradingSystem is 1 for the current subject
-                                                        $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND GradingSystem = 1";
-                                                        $gradingSystemQuery = $dbh->prepare($gradingSystemSql);
-                                                        $gradingSystemQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
-                                                        $gradingSystemQuery->execute();
-                                                        $gradingSystemResult = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
-                                                        
-                                                        // If the GradingSystem is 1, hide the Max Marks column and show the Marks Obtained column as input type text
-                                                        $isGradingSystem1 = $gradingSystemResult !== false;
+                                                        $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);                                                        
                                                         ?>
                                                             <th colspan=<?php echo ($isGradingSystem1) ? '' : '2';?> class="text-center font-weight-bold" style="font-size: 20px; letter-spacing: 2px;"><?php echo htmlentities($subject['SubjectName']);?></th>
                                                         <?php 
@@ -548,6 +555,10 @@ else
                                                 <tr>
                                                     <?php foreach ($subjects as $subject) 
                                                     { 
+                                                        $subjectID = $subject['ID'];
+
+                                                        $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
+
                                                         if (!$isGradingSystem1)
                                                         {
                                                             ?>
@@ -603,11 +614,14 @@ else
                                                                 $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
                                                                 
                                                                 // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                                // $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
                                                                 $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
                                                                 
                                                                 // Disable the input fields if the condition matches. 
-                                                                $disabledSub = ($publishedResult) ? 'disabled' : '';                                                                  
+                                                                $disabledSub = ($publishedResult) ? 'disabled' : '';  
+                                                                
+                                                                $subjectID = $subject['ID'];
+
+                                                                $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
                                                                 
                                                                 if(!$isGradingSystem1)
                                                                 {
@@ -625,7 +639,8 @@ else
                                                                     <td>
                                                                         <input type=<?php echo ($isGradingSystem1) ? 'text' : 'number step="any"'?> class='border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                             <?php echo $disabledSub; ?>
-                                                                            value="<?php echo $SubMarksObtained; ?>">
+                                                                            value="<?php echo $SubMarksObtained; ?>"
+                                                                            <?php echo ($isGradingSystem1) ? 'oninput="this.value = this.value.toUpperCase()"' : '';?>>
                                                                             <div class="error-message text-wrap"></div>
                                                                     </td>
                                                                 <?php 

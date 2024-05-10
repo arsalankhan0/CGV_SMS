@@ -112,7 +112,7 @@ else
                                         $selectedSession = $_POST['session'];
                                         $selectedClass = $_POST['class'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT StudentName, ExamName, ClassName, ExamSession FROM tblreports WHERE ClassName = :class AND ExamSession = :SelectedSession AND IsDeleted = 0";
+                                        $sqlFilteredReports = "SELECT DISTINCT StudentName, ClassName, ExamSession FROM tblreports WHERE ClassName = :class AND ExamSession = :SelectedSession AND IsDeleted = 0";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':SelectedSession', $selectedSession, PDO::PARAM_STR);
