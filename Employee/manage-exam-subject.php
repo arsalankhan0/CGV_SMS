@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid']) == 0) 
@@ -169,7 +169,7 @@ else
     <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="../css/remove-spinner.css" />
+    <link rel="stylesheet" href="../Main/css/remove-spinner.css" />
 </head>
 <body>
 <div class="container-scroller">
@@ -246,10 +246,11 @@ else
                                             <tbody>
                                                 <?php
                                                 
+
                                                 // Query to show main subjects
                                                 $subjectSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 0";
                                                 $subjectQuery = $dbh->prepare($subjectSql);
-                                                $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
+                                                $subjectQuery->bindParam(':editid', $_GET['editid'], PDO::PARAM_STR);
                                                 $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                                                 $subjectQuery->execute();
                                                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
@@ -281,7 +282,7 @@ else
                                                                             AND SessionID = :sessionID 
                                                                             AND SubjectID = :subjectID";
                                                         $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
-                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':classID', $_GET['editid'], PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
@@ -323,7 +324,7 @@ else
                                     $examTypeQuery->execute();
                                     $examTypeRow = $examTypeQuery->fetch(PDO::FETCH_ASSOC);
 
-                                        // $examType = $examTypeRow['ExamType'];
+                                    // $examType = $examTypeRow['ExamType'];
                                     if($examTypeRow['ExamType'] !== 'Co-Curricular')
                                     {
                                     ?>
@@ -333,7 +334,7 @@ else
                                         // Query to show optional subjects
                                         $subjectSql = "SELECT ID, SubjectName, ClassName FROM tblsubjects WHERE FIND_IN_SET(:editid, ClassName) AND SubjectName IS NOT NULL AND IsDeleted = 0 AND SessionID = :sessionID AND IsCurricularSubject = 0 AND IsOptional = 1";
                                         $subjectQuery = $dbh->prepare($subjectSql);
-                                        $subjectQuery->bindParam(':editid', $eid, PDO::PARAM_STR);
+                                        $subjectQuery->bindParam(':editid', $_GET['editid'], PDO::PARAM_STR);
                                         $subjectQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                                         $subjectQuery->execute();
                                         $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
@@ -381,7 +382,6 @@ else
                                             <tbody>
                                                 <?php
 
-
                                                 foreach ($subjects as $subject) {
                                                     ?>
                                                     <tr>
@@ -408,7 +408,7 @@ else
                                                                             AND SessionID = :sessionID 
                                                                             AND SubjectID = :subjectID";
                                                         $getMaxMarksQuery = $dbh->prepare($getMaxMarksSql);
-                                                        $getMaxMarksQuery->bindParam(':classID', $eid, PDO::PARAM_STR);
+                                                        $getMaxMarksQuery->bindParam(':classID', $_GET['editid'], PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':examID', $examid, PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                                                         $getMaxMarksQuery->bindParam(':subjectID', $subjectId, PDO::PARAM_STR);
@@ -490,7 +490,7 @@ else
 <script src="js/typeahead.js"></script>
 <script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
-<script src="./js/toggleGradingSystem.js"></script>
+<script src="../admin/js/toggleGradingSystem.js"></script>
 <!-- End custom js for this page -->
 </body>
 </html>
