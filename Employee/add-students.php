@@ -224,37 +224,80 @@ $requiredPermissions = array(
                       <div class="form-group">
                           <label for="exampleInputEmail3">Student Class</label>
                           <select name="stuclass" id="stuclass" class="form-control" required='true'>
-                              <option value="">Select Class</option>
-                              <?php
-                              $sql2 = "SELECT * FROM tblclass";
-                              $query2 = $dbh->prepare($sql2);
-                              $query2->execute();
-                              $result2 = $query2->fetchAll(PDO::FETCH_OBJ);
+                            <option value="">--Select--</option>
+                            <?php
+                                // Ensure $empSessionId is properly sanitized
+                                $empSessionId = $_SESSION['sturecmsEMPid'];
 
-                              foreach ($result2 as $row1) 
-                              {
-                                  $classId = htmlentities($row1->ID);
-                                  $className = htmlentities($row1->ClassName);
-                              ?>
-                                  <option value="<?php echo $classId; ?>"><?php echo $className; ?></option>
-                              <?php
-                              }
-                              ?>
-                          </select>
+                                // Fetch assigned classes for the current employee session
+                                $sqlAssignedClasses = "SELECT AssignedClasses FROM tblemployees WHERE ID = ?";
+                                $queryAssignedClasses = $dbh->prepare($sqlAssignedClasses);
+                                $queryAssignedClasses->execute([$empSessionId]);
+                                $assignedClassesRow = $queryAssignedClasses->fetch(PDO::FETCH_ASSOC);
+
+                                if ($assignedClassesRow && isset($assignedClassesRow['AssignedClasses'])) 
+                                {
+                                    $assignedClasses = $assignedClassesRow['AssignedClasses'];
+                                    // If no assigned classes found, show error or default message
+                                    if (!$assignedClasses) 
+                                    {
+                                        echo "<option value=''>No classes assigned</option>";
+                                    } 
+                                    else 
+                                    {
+                                        // Fetch only those classes that are assigned to the teacher
+                                        $assignedClassIds = explode(',', $assignedClasses);
+                                        $placeholders = implode(',', array_fill(0, count($assignedClassIds), '?'));
+
+                                        $sql2 = "SELECT * FROM tblclass WHERE ID IN ($placeholders)";
+                                        $query2 = $dbh->prepare($sql2);
+                                        $query2->execute($assignedClassIds);
+                                        $result2 = $query2->fetchAll(PDO::FETCH_OBJ);
+
+                                        // Display the options
+                                        foreach ($result2 as $row1) 
+                                        {
+                                            $classId = htmlentities($row1->ID);
+                                            $className = htmlentities($row1->ClassName);
+                                            echo "<option value='$classId'>$className</option>";
+                                        }
+                                    }
+                                } 
+                                else 
+                                {
+                                    echo "<option value=''>No classes assigned</option>";
+                                }
+                            ?>
+                        </select>
                       </div>
 
                       <div class="form-group">
                           <label for="exampleInputEmail3">Student Section</label>
                           <select name="stusection" id="stusection" class="form-control" required='true'>
+                          <option value="">--Select--</option>
                           <?php
-                             // Fetch sections from the database
-                            $sectionSql = "SELECT ID, SectionName FROM tblsections";
-                            $sectionQuery = $dbh->prepare($sectionSql);
-                            $sectionQuery->execute();
+                            // Fetch assigned sections for the current employee session
+                            $sqlAssignedSections = "SELECT AssignedSections FROM tblemployees WHERE ID = ?";
+                            $queryAssignedSections = $dbh->prepare($sqlAssignedSections);
+                            $queryAssignedSections->execute([$empSessionId]);
+                            $assignedSectionsRow = $queryAssignedSections->fetch(PDO::FETCH_ASSOC);
+                            $assignedSections = $assignedSectionsRow['AssignedSections'];
 
-                            while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
-                            {
-                              echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
+                            // If no assigned sections found, show error or default message
+                            if (!$assignedSections) {
+                                echo "<option value=''>No sections assigned</option>";
+                            } else {
+                                // Fetch only those sections that are assigned to the teacher
+                                $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE ID IN ($assignedSections)";
+                                $sectionQuery = $dbh->prepare($sectionSql);
+                                $sectionQuery->execute();
+
+                                // Display the options
+                                while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) {
+                                    $sectionId = htmlentities($sectionRow['ID']);
+                                    $sectionName = htmlentities($sectionRow['SectionName']);
+                                    echo "<option value='$sectionId'>$sectionName</option>";
+                                }
                             }
                             ?>
                           </select>

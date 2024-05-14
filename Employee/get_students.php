@@ -12,7 +12,15 @@ $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
 // Get the selected session ID from the AJAX request
 $sessionId = $_GET['session_id'];
 
-// Fetch records from tblstudent
+// Fetch assigned classes and sections for the current employee session
+$sqlAssignedClassesSections = "SELECT AssignedClasses, AssignedSections FROM tblemployees WHERE ID = ?";
+$queryAssignedClassesSections = $dbh->prepare($sqlAssignedClassesSections);
+$queryAssignedClassesSections->execute([$_SESSION['sturecmsEMPid']]);
+$assignedClassesSectionsRow = $queryAssignedClassesSections->fetch(PDO::FETCH_ASSOC);
+$assignedClasses = $assignedClassesSectionsRow['AssignedClasses'];
+$assignedSections = $assignedClassesSectionsRow['AssignedSections'];
+
+// Fetch records from tblstudent based on assigned classes and sections
 $studentSql = "SELECT 
     tblstudent.ID,
     tblstudent.StuID, 
@@ -28,10 +36,19 @@ $studentSql = "SELECT
     NULL as HistoricalSection
 FROM tblstudent
 JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0
-";
+WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0";
 
-// Fetch records from tblstudenthistory
+// If assigned classes exist, filter students based on those classes
+if ($assignedClasses) {
+    $studentSql .= " AND tblstudent.StudentClass IN ($assignedClasses)";
+}
+
+// If assigned sections exist, filter students based on those sections
+if ($assignedSections) {
+    $studentSql .= " AND tblstudent.StudentSection IN ($assignedSections)";
+}
+
+// Fetch records from tblstudenthistory based on assigned classes and sections
 $studentSql .= " UNION 
 SELECT 
     tblstudenthistory.ID as ID,
@@ -49,8 +66,18 @@ SELECT
 FROM tblstudenthistory
 JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
 JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
-";
+WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0";
+
+// If assigned classes exist, filter students based on those classes
+if ($assignedClasses) {
+    $studentSql .= " AND tblstudenthistory.ClassID IN ($assignedClasses)";
+}
+
+// If assigned sections exist, filter students based on those sections
+if ($assignedSections) {
+    $studentSql .= " AND tblstudenthistory.Section IN ($assignedSections)";
+}
+
 $studentQuery = $dbh->prepare($studentSql);
 $studentQuery->bindParam(':sessionId', $sessionId, PDO::PARAM_STR);
 $studentQuery->execute();
@@ -91,8 +118,6 @@ function getClassName($classID)
     return $className ? $className : "N/A";
 }
 
-
-
 // For Role
 $eid = $_SESSION['sturecmsEMPid'];
 $sql = "SELECT * FROM tblemployees WHERE ID=:eid";
@@ -124,8 +149,10 @@ foreach ($permissions as $permission)
 
 <div class="table-responsive border rounded p-1">
     <table class="table">
+        <!-- Table headers -->
         <thead>
             <tr>
+                <!-- Table headings -->
                 <th class="font-weight-bold">S.No</th>
                 <th class="font-weight-bold">Student ID</th>
                 <th class="font-weight-bold">Student Class</th>
@@ -133,6 +160,7 @@ foreach ($permissions as $permission)
                 <th class="font-weight-bold">Student Name</th>
                 <th class="font-weight-bold">Student Email</th>
                 <th class="font-weight-bold">Admission Date</th>
+                <!-- Actions column -->
                 <?php 
                 // Check if the user has UpdatePermission or DeletePermission
                 if ($employeePermissions['Students']['UpdatePermission'] == 1 || $employeePermissions['Students']['DeletePermission'] == 1) 
@@ -144,6 +172,7 @@ foreach ($permissions as $permission)
             </tr>
         </thead>
         <tbody>
+            <!-- Loop through fetched students and display them in rows -->
             <?php
             if ($studentQuery->rowCount() > 0)
             {
@@ -152,21 +181,27 @@ foreach ($permissions as $permission)
                 {
                     ?>
                     <tr>
+                        <!-- Display student details -->
                         <td><?php echo htmlentities($cnt); ?></td>
                         <td><?php echo htmlentities($student->StuID); ?></td>
                         <td>
                             <?php
+                            // Get the class name
                             $displayClass = $student->HistoricalClass ? getClassName($student->HistoricalClass) : getClassName($student->StudentClass);
-                            $displaySection = $student->HistoricalSection ? getSectionName($student->HistoricalSection) : getSectionName($student->StudentSection);
                             echo htmlentities($displayClass);
                             ?>
                         </td>
                         <td>
-                            <?php echo htmlentities($displaySection); ?>
+                            <?php
+                            // Get the section name
+                            $displaySection = $student->HistoricalSection ? getSectionName($student->HistoricalSection) : getSectionName($student->StudentSection);
+                            echo htmlentities($displaySection);
+                            ?>
                         </td>
                         <td><?php echo htmlentities($student->StudentName); ?></td>
                         <td><?php echo htmlentities($student->StudentEmail); ?></td>
                         <td><?php echo htmlentities($student->DateofAdmission); ?></td>
+                        <!-- Action buttons -->
                         <?php 
                         // Check if the user has UpdatePermission or DeletePermission
                         if ($employeePermissions['Students']['UpdatePermission'] == 1 || $employeePermissions['Students']['DeletePermission'] == 1) 
@@ -180,23 +215,28 @@ foreach ($permissions as $permission)
                                     if ($student->SessionID != $activeSession) 
                                     { 
                                         ?>
+                                        <!-- View/Edit student detail link -->
                                         <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-eye"></i></a>
                                     <?php 
                                     } 
                                     else 
                                     { 
                                         ?>
+                                        <!-- Edit student detail link -->
                                         <a href="edit-student-detail.php?editid=<?php echo htmlentities($student->ID); ?>&source=<?php echo htmlentities($student->HistoricalClass ? 'history' : 'current'); ?>"><i class="icon-pencil"></i></a>
                                     <?php 
                                     } 
                                 } 
+                                // Check if the user has both UpdatePermission and DeletePermission
                                 if ($employeePermissions['Students']['UpdatePermission'] == 1 && $employeePermissions['Students']['DeletePermission'] == 1) 
                                 { ?>
+                                <!-- Separator -->
                                 ||
                                 <?php
                                 }
                                 // Check if the user has DeletePermission
                                 if ($employeePermissions['Students']['DeletePermission'] == 1) { ?>
+                                    <!-- Delete student link -->
                                     <a href="" onclick="setDeleteId(<?php echo ($student->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                         <i class="icon-trash"></i>
                                     </a>
@@ -204,7 +244,6 @@ foreach ($permissions as $permission)
                             </div>
                         </td> 
                         <?php }?>
-                        
                     </tr>
                     <?php
                     $cnt = $cnt + 1;
@@ -218,23 +257,29 @@ foreach ($permissions as $permission)
         </tbody>
     </table>
 </div>
+
+<!-- Pagination -->
 <div align="left">
     <ul class="pagination">
+        <!-- First page -->
         <li><a href="?pageno=1"><strong>First></strong></a></li>
+        <!-- Previous page -->
         <li class="<?php if ($pageno <= 1) { echo 'disabled'; } ?>">
             <a href="<?php if ($pageno <= 1) { echo '#'; } else { echo "?pageno=" . ($pageno - 1); } ?>"><strong style="padding-left: 10px">Prev></strong></a>
         </li>
+        <!-- Next page -->
         <li class="<?php if ($pageno >= $total_pages) { echo 'disabled'; } ?>">
             <a href="<?php if ($pageno >= $total_pages) { echo '#'; } else { echo "?pageno=" . ($pageno + 1); } ?>"><strong style="padding-left: 10px">Next></strong></a>
         </li>
+        <!-- Last page -->
         <li><a href="?pageno=<?php echo $total_pages; ?>"><strong style="padding-left: 10px">Last</strong></a></li>
     </ul>
 </div>
 
 <!-- Confirmation Modal (Delete) -->
 <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -249,22 +294,23 @@ foreach ($permissions as $permission)
                     <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
                 </form>
             </div>
-            </div>
         </div>
+    </div>
 </div>
 
 <?php
-    // Function to get section name by ID
-    function getSectionName($sectionID)
-    {
-        global $dbh;
+// Function to get section name by ID
+function getSectionName($sectionID)
+{
+    global $dbh;
 
-        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :sectionID AND IsDeleted = 0";
-        $sectionQuery = $dbh->prepare($sectionSql);
-        $sectionQuery->bindParam(':sectionID', $sectionID, PDO::PARAM_INT);
-        $sectionQuery->execute();
-        $sectionName = $sectionQuery->fetchColumn();
+    $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :sectionID AND IsDeleted = 0";
+    $sectionQuery = $dbh->prepare($sectionSql);
+    $sectionQuery->bindParam(':sectionID', $sectionID, PDO::PARAM_INT);
+    $sectionQuery->execute();
+    $sectionName = $sectionQuery->fetchColumn();
 
-        return $sectionName ? $sectionName : "N/A";
-    }
+    return $sectionName ? $sectionName : "N/A";
+}
 ?>
+    

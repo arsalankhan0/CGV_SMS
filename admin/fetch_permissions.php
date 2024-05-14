@@ -1,6 +1,6 @@
 <?php
 include('includes/dbconnection.php');
-error_reporting(0);
+// error_reporting(0);
 
 
 if (isset($_POST['roleID'])) 
@@ -55,6 +55,7 @@ if (isset($_POST['roleID']))
         $updateChecked = getPermissionValue($currentPermissions, $permission, 'UpdatePermission');
         $deleteChecked = getPermissionValue($currentPermissions, $permission, 'DeletePermission');
 
+
         // Disable Create, Update, and Delete for Promotion by default
         $createDisabled = ($permission === 'Promotion') ? 'disabled' : '';
         $deleteDisabled = ($permission === 'Promotion') ? 'disabled' : '';
@@ -103,7 +104,7 @@ function getPermissionValue($permissions, $permissionName, $columnName)
 {
     foreach ($permissions as $permission) 
     {
-        if ($permission['Name'] === $permissionName && $permission[$columnName] == 1) 
+        if ($permission[$columnName] == 1 && $permission['Name'] === $permissionName  ) 
         {
             return 'checked';
         }

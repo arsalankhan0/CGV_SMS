@@ -128,7 +128,6 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                // function getTeacherAssignedMaxMarks($classID, $examID, $sessionID, $subjectID, $type)
                 function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
@@ -136,11 +135,9 @@ else
                     $sql = "SELECT SubjectsJSON FROM tblreports 
                             WHERE ClassName = :classID 
                             AND ExamSession = :sessionID 
-                            -- AND ExamName = :examID 
                             AND IsDeleted = 0";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
-                    // $query->bindParam(':examID', $examID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                     $query->execute();
                     $result = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -531,6 +528,7 @@ else
                                     <div class="table-responsive">
                                         <table class="table text-center table-bordered">
                                                 <tr>
+                                                    <th rowspan="3">Roll No</th>
                                                     <th rowspan="3">Student Name</th>
                                                     <?php 
                                                     // Fetch Assigned Subjects for the selected class
@@ -577,6 +575,7 @@ else
                                                 { 
                                                     ?>
                                                     <tr>
+                                                        <td class="font-weight-bold"><?php echo htmlentities($student['RollNo']); ?></td>
                                                         <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
                                                         <?php 
                                                         foreach ($subjects as $subject) 

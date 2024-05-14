@@ -410,6 +410,7 @@ else
                                     <div class="table-responsive">
                                         <table class="table text-center table-bordered">
                                                 <tr>
+                                                    <th rowspan="3">Roll No</th>
                                                     <th rowspan="3">Student Name</th>
                                                     <?php foreach ($subjects as $subject) 
                                                     { 
@@ -446,6 +447,7 @@ else
                                             <?php foreach ($students as $student) 
                                             { ?>
                                                 <tr>
+                                                    <td class="font-weight-bold"><?php echo htmlentities($student['RollNo']); ?></td>
                                                     <td class="font-weight-bold"><?php echo htmlentities($student['StudentName']); ?></td>
                                                     <?php 
                                                     foreach ($subjects as $subject) 

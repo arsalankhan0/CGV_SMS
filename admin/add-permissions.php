@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsaid']==0)) 
@@ -20,21 +20,29 @@ else
             $roleID = $_POST['roleID'];
 
             if (isset($_POST['assignPermissions'])) 
-            {
-                $checkExistingQuery = "SELECT * FROM tblpermissions WHERE RoleID = :roleID AND Name = :permissionName";
+            { 
+                // $permissionsArray = $_POST['permissions'] ?? [];
+                
+                $checkExistingQuery = "SELECT * FROM tblpermissions WHERE RoleID = :roleID AND `Name` = :permissionName";
                 $checkExistingStmt = $dbh->prepare($checkExistingQuery);
                 $checkExistingStmt->bindParam(':roleID', $roleID, PDO::PARAM_INT);
 
                 // Loop through submitted permissions and insert into tblpermissions
                 foreach ($_POST['permissions'] as $permissionName => $permissionValues) 
                 {
-
                     $checkExistingStmt->bindParam(':permissionName', $permissionName, PDO::PARAM_STR);
                     $checkExistingStmt->execute();
 
+                    // Data already exists, perform an update
                     if ($checkExistingStmt->rowCount() > 0) 
-                    {
-                        // Data already exists, perform an update
+                    {   
+                        // echo "<script>";
+                        // foreach($permissionValues as $permissionKey => $permissionValue)
+                        // {
+                        //     echo "alert('" . $permissionName . ": " . $permissionKey . " => " . $permissionValue . "');";
+                        // }
+                        // echo "</script>";
+
                         $view = isset($permissionValues['view']) ? 1 : 0;
                         $create = isset($permissionValues['create']) ? 1 : 0;
                         $update = isset($permissionValues['update']) ? 1 : 0;
@@ -89,6 +97,7 @@ else
             echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
         }
     }
+    
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -162,22 +171,21 @@ else
                             }
                             ?>
                             <div class="form-group">
-                                        <label for="roleSelect">Select Role</label>
-                                        <select class="form-control" id="roleSelect" name="roleID">
-                                            <?php
-                                            // Fetch roles from tblroles
-                                            $roleQuery = "SELECT ID, RoleName FROM tblroles WHERE IsDeleted = 0";
-                                            $roleStmt = $dbh->prepare($roleQuery);
-                                            $roleStmt->execute();
-                                            while ($row = $roleStmt->fetch(PDO::FETCH_ASSOC)) {
-                                                echo "<option value='{$row['ID']}'>{$row['RoleName']}</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-
-                                    <!-- Button to fetch permissions -->
-                                    <button type="button" class="btn btn-primary mr-2" id="fetchPermissions">Assign Permissions</button>
+                                <label for="roleSelect">Select Role</label>
+                                <select class="form-control" id="roleSelect" name="roleID">
+                                    <?php
+                                    // Fetch roles from tblroles
+                                    $roleQuery = "SELECT ID, RoleName FROM tblroles WHERE IsDeleted = 0";
+                                    $roleStmt = $dbh->prepare($roleQuery);
+                                    $roleStmt->execute();
+                                    while ($row = $roleStmt->fetch(PDO::FETCH_ASSOC)) {
+                                        echo "<option value='{$row['ID']}'>{$row['RoleName']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <!-- Button to fetch permissions -->
+                            <button type="button" class="btn btn-primary mr-2" id="fetchPermissions">Assign Permissions</button>
                         </form>
                         <!-- Table to display permissions -->
                         <div id="permissionsTable" class="mt-3"></div>
@@ -213,29 +221,26 @@ else
     <script src="./js/manageAlert.js"></script>
     <script>
 
- document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
-    // Fetch permissions on clicking the button
-    document.getElementById('fetchPermissions').addEventListener('click', function () {
-        var roleID = document.getElementById('roleSelect').value;
+            // Fetch permissions on clicking the button
+            document.getElementById('fetchPermissions').addEventListener('click', function () {
+                let roleID = document.getElementById('roleSelect').value;
 
-        //Fetch API to send an AJAX request to fetch permissions based on the selected role
-        fetch('fetch_permissions.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'roleID=' + encodeURIComponent(roleID),
-        })
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('permissionsTable').innerHTML = data;
-        })
-        .catch(error => console.error('Error fetching permissions:', error));
-    });
-});
-
-
+                fetch('fetch_permissions.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'roleID=' + encodeURIComponent(roleID),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('permissionsTable').innerHTML = data;
+                })
+                .catch(error => console.error('Error fetching permissions:', error));
+            });
+        });
 
     </script>
     <!-- End custom js for this page -->
