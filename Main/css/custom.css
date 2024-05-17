@@ -121,4 +121,16 @@
   color: #000;
 }
 
+.carousel-control-prev,
+.carousel-control-next,
+.carousel-indicators 
+{
+    z-index: 99;
+}
+
+.bg-maroon
+{
+  background-image: -webkit-linear-gradient(90deg, #630606,#911F27) !important;
+}
+
 

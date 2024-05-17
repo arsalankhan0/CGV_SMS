@@ -23,6 +23,7 @@ else
 
     try
     {
+        $dbh->beginTransaction();
         // Code for deletion
         if(isset($_POST['confirmDelete']))
         {
@@ -43,9 +44,9 @@ else
             else 
             {
                 // Check if there are records in tblreports for this exam
-                $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE ExamName = :examName";
+                $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE JSON_CONTAINS(SubjectsJSON, :examId, '$.ExamName')";
                 $checkReportsQuery = $dbh->prepare($checkReportsSql);
-                $checkReportsQuery->bindParam(':examName', $rid, PDO::PARAM_STR);
+                $checkReportsQuery->bindParam(':examId', $rid, PDO::PARAM_STR);
                 $checkReportsQuery->execute();
                 $reportCount = $checkReportsQuery->fetchColumn();
 
@@ -66,11 +67,14 @@ else
                 }
             }
         }
+        $dbh->commit();
     }
     catch(PDOException $e)
     {
+        $dbh->rollBack();
         $dangerAlert = true;
         $msg = "Ops! An error occurred while deleting the exam.";
+        echo "<script>console.error('Error:---> ".$e->getMessage()."');</script>";
     }
 
     try

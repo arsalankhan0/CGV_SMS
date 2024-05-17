@@ -77,7 +77,7 @@
                         ),
                         'Promotion' => array(
                             'Promotion' => array(
-                                'UpdatePermission' => 'Promote Students'
+                                'ReadPermission' => 'Promote Students'
                             )
                         ),
                     );

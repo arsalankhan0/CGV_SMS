@@ -235,18 +235,38 @@ else
                                             <label for="class">Select Class:</label>
                                             <select name="class" id="class" class="form-control">
                                                 <?php
+                                                // Fetch class names based on class IDs assigned to the teacher
+                                                $empSessionId = $_SESSION['sturecmsEMPid'];
 
-                                                // Fetch class names based on class IDs
-                                                $sqlClassNames = "SELECT DISTINCT ID, ClassName, Section FROM tblclass WHERE IsDeleted = 0";
-                                                $queryClassNames = $dbh->prepare($sqlClassNames);
-                                                $queryClassNames->execute();
-                                                $classes = $queryClassNames->fetchAll(PDO::FETCH_ASSOC);
+                                                $sqlAssignedClasses = "SELECT AssignedClasses FROM tblemployees WHERE ID = ?";
+                                                $queryAssignedClasses = $dbh->prepare($sqlAssignedClasses);
+                                                $queryAssignedClasses->execute([$empSessionId]);
+                                                $assignedClassesRow = $queryAssignedClasses->fetch(PDO::FETCH_ASSOC);
+                                                $assignedClasses = $assignedClassesRow['AssignedClasses'];
 
-                                                foreach ($classes as $class) {
-                                                    echo "<option value='" . $class['ID'] . "'>" . $class['ClassName'] . "</option>";
+                                                if ($assignedClasses) 
+                                                {
+                                                    // Fetch only those classes that are assigned to the teacher
+                                                    $assignedClassIds = explode(',', $assignedClasses);
+                                                    $placeholders = implode(',', array_fill(0, count($assignedClassIds), '?'));
+
+                                                    $sqlClassNames = "SELECT ID, ClassName FROM tblclass WHERE ID IN ($placeholders) AND IsDeleted = 0";
+                                                    $queryClassNames = $dbh->prepare($sqlClassNames);
+                                                    $queryClassNames->execute($assignedClassIds);
+                                                    $classes = $queryClassNames->fetchAll(PDO::FETCH_ASSOC);
+
+                                                    foreach ($classes as $class) 
+                                                    {
+                                                        echo "<option value='" . $class['ID'] . "'>" . $class['ClassName'] . "</option>";
+                                                    }
+                                                } 
+                                                else 
+                                                {
+                                                    echo "<option value=''>No classes assigned</option>";
                                                 }
                                                 ?>
                                             </select>
+
                                         </div>
 
                                         <!-- Select Section -->
@@ -254,17 +274,34 @@ else
                                             <label for="section">Select Section:</label>
                                             <select name="section" id="section" class="form-control">
                                                 <?php
-                                                     // Fetch sections from the database
-                                                    $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE IsDeleted = 0";
+                                                $sqlAssignedSections = "SELECT AssignedSections FROM tblemployees WHERE ID = ?";
+                                                $queryAssignedSections = $dbh->prepare($sqlAssignedSections);
+                                                $queryAssignedSections->execute([$empSessionId]);
+                                                $assignedSectionsRow = $queryAssignedSections->fetch(PDO::FETCH_ASSOC);
+                                                $assignedSections = $assignedSectionsRow['AssignedSections'];
+
+                                                if ($assignedSections) 
+                                                {
+                                                    // Fetch only those sections that are assigned to the teacher
+                                                    $assignedSectionIds = explode(',', $assignedSections);
+                                                    $placeholders = implode(',', array_fill(0, count($assignedSectionIds), '?'));
+
+                                                    $sectionSql = "SELECT ID, SectionName FROM tblsections WHERE ID IN ($placeholders) AND IsDeleted = 0";
                                                     $sectionQuery = $dbh->prepare($sectionSql);
-                                                    $sectionQuery->execute();
+                                                    $sectionQuery->execute($assignedSectionIds);
 
                                                     while ($sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC)) 
                                                     {
                                                         echo "<option value='" . htmlentities($sectionRow['ID']) . "'>" . htmlentities($sectionRow['SectionName']) . "</option>";
                                                     }
+                                                } 
+                                                else 
+                                                {
+                                                    echo "<option value=''>No sections assigned</option>";
+                                                }
                                                 ?>
                                             </select>
+
                                         </div>
                                     </div>
                                     <button type="submit" name="filter" class="btn btn-primary">Search</button>
@@ -320,7 +357,7 @@ else
                                         $sectionQuery->execute();
                                         $selectedSec = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                                         
-                                        if (!empty($filteredReports) && $publishedResult) 
+                                        if (!empty($filteredReports) && !$publishedResult) 
                                         {
                                             echo "<h4 class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . ", Section: " . htmlspecialchars($selectedSec['SectionName']) . "</span></strong>";
                                             echo "<form method='POST' id='promoteForm' class='mt-3'>";

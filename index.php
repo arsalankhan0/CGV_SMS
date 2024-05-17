@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 ?>
 <!DOCTYPE html>
@@ -31,8 +31,8 @@ include('includes/dbconnection.php');
 	<link rel="stylesheet" href="./Main/css/bootstrap.css">
 	<link rel="stylesheet" href="./Main/css/magnific-popup.css">
 	<link rel="stylesheet" href="./Main/css/nice-select.css">
-	<link rel="stylesheet" href="./Main/css/animate.min.css">
-	<link rel="stylesheet" href="./Main/css/owl.carousel.css">
+	<!-- <link rel="stylesheet" href="./Main/css/animate.min.css"> -->
+	<!-- <link rel="stylesheet" href="./Main/css/owl.carousel.css"> -->
 	<link rel="stylesheet" href="./Main/css/jquery-ui.css">
 	<link rel="stylesheet" href="./Main/css/main.css">
 	<link rel="stylesheet" href="./Main/css/custom.css">
@@ -40,35 +40,81 @@ include('includes/dbconnection.php');
 </head>
 
 <body>
-	<?php include_once('includes/header.php'); ?>
+	<?php 
+		include_once('includes/header.php'); 
+		
+		$isDisplayed = 0;
+		$imagePath = "";
+
+		// Check if the ad data already exists in the database
+		$sqlCheck = "SELECT IsDisplayed, ImagePath FROM tblads";
+		$queryCheck = $dbh->prepare($sqlCheck);
+		$queryCheck->execute();
+		$existingData = $queryCheck->fetch(PDO::FETCH_ASSOC);
+		if($existingData)
+		{
+			$imagePath = $existingData['ImagePath'];
+			$isDisplayed = $existingData['IsDisplayed'];
+		}
+	?>
+	
+	<!-- Automatically trigger button to show modal when the page loads -->
+	<button type="button" class="d-none" id="modalTrigger" data-toggle="modal" data-target="#adsModal" <?php echo (isset($isDisplayed) && $isDisplayed == 0) ? "disabled" : ""; ?> ></button>
+	<!-- Ads Modal -->
+	<div class="modal fade" id="adsModal" tabindex="-1" aria-labelledby="adsModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content bg-maroon">
+				<div class="modal-header">
+					<h5 class="modal-title text-light text-uppercase" id="adsModalLabel">Advertisement</h5>
+					<button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<img src="<?php echo './Main/img/Advertisement/'.$imagePath.''; ?>" class="img-fluid" alt="Modal Image">
+			</div>
+		</div>
+	</div>
 
 	<!-- start banner Area -->
 	<div id="carouselExampleIndicators" class="banner-area relative carousel slide" data-ride="carousel">
 		<div class="overlay overlay-bg"></div>
+		<!-- Indicators -->
+		<ol class="carousel-indicators">
+			<li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+			<li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+			<li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+		</ol>
+
+		<!-- Wrapper for slides -->
 		<div class="carousel-inner">
 			<div class="carousel-item active">
-				<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px"
-					style="object-fit: cover;" alt="img">
+				<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
 			</div>
 			<div class="carousel-item">
-				<img src="./Main/img/School/DSC_0241.JPG" class="d-block w-100" height="700px"
-					style="object-fit: cover;" alt="img">
+				<img src="./Main/img/School/DSC_0241.JPG" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
 			</div>
 			<div class="carousel-item">
-				<img src="./Main/img/School/DSC_0247.JPG" height="700px" style="object-fit: cover;"
-					class="d-block w-100" alt="img">
+				<img src="./Main/img/School/DSC_0247.JPG" height="700px" style="object-fit: cover;" class="d-block w-100" alt="img">
 			</div>
-			<div class="carousel-caption banner-content d-md-block">
-				<div class="row fullscreen d-flex align-items-center pt-5 justify-content-start">
-					<div class="banner-content col-lg-9 col-md-12">
-						<h1 class="text-uppercase welcome">
-							Welcome to Tibetan Public School
-						</h1>
-						<p class="pt-10 pb-10 text-light">
-							Registered students can login here
-						</p>
-						<a href="./user/login.php" class="primary-btn text-uppercase">Student Login</a>
-					</div>
+		</div>
+
+		<!-- Left and right controls -->
+		<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			<span class="sr-only">Previous</span>
+		</a>
+		<a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+			<span class="carousel-control-next-icon" aria-hidden="true"></span>
+			<span class="sr-only">Next</span>
+		</a>
+
+		<!-- Common caption for all slides -->
+		<div class="carousel-caption banner-content d-md-block">
+			<div class="row fullscreen d-flex align-items-center pt-5 justify-content-start">
+				<div class="banner-content col-lg-9 col-md-12">
+					<h1 class="text-uppercase welcome">Welcome to Tibetan Public School</h1>
+					<p class="pt-10 pb-10 text-light">Registered students can login here</p>
+					<a href="./user/login.php" class="primary-btn text-uppercase">Student Login</a>
 				</div>
 			</div>
 		</div>
@@ -165,66 +211,6 @@ include('includes/dbconnection.php');
 		</div>
 	</section>
 	<!-- End feature Area -->
-
-	<!-- Start principal's message Area old one-->
-	<!-- <section class="principal-msg my-5 container">
-		<div class="principal-msg-container">
-			<div class="title text-center">
-				<h2 class="mb-10">Principal's Message</h2>
-			</div>
-			<div class="message-box">
-				<div class="message-content">
-					<img src="./Main/img/School/IMG_20231101_095624.jpg" alt="Principal Image" class="principal-image">
-					<div class="msg-text text-dark">
-						<p>Dear Students, Parents, and Guardians,</p>
-						<p>Welcome to Tibetan Public School, where we are dedicated to providing an exceptional
-							educational experience that transcends traditional boundaries.</p>
-						<p>As we gather here, both physically and virtually, I am filled with a profound sense of pride
-							and excitement. It is a privilege to serve as your principal and to witness the incredible
-							growth and achievements of our students year after year. At TPS, we are not just a school;
-							we are a community - a family united by a common purpose: to inspire, to educate, and to
-							empower. Our commitment to excellence is unwavering, and our dedication to the holistic
-							development of every student is at the core of everything we do.</p>
-						<p>This academic year, we embark on a journey of exploration and discovery, embracing new
-							challenges and opportunities with open minds and compassionate hearts. Our classrooms are
-							not just spaces for learning; they are incubators of innovation and creativity, where
-							students are encouraged to question, to experiment, and to dream.</p>
-						<p>As we navigate the complexities of the modern world, it is imperative that we equip our
-							students with more than just academic knowledge. We must instill in them a sense of
-							resilience, adaptability, and empathy - qualities that will serve them well beyond the
-							confines of the classroom.</p>
-						<p>To our parents, I extend my heartfelt gratitude for your unwavering support and partnership.
-							Your involvement in your child's education is invaluable, and together, we can ensure that
-							every student reaches their full potential.</p>
-						<p>Together, let us embrace the challenges and opportunities that lie ahead, knowing that with
-							determination, perseverance, and a spirit of collaboration, there is no limit to what we can
-							achieve. Thank you for entrusting us with your child's education. Let's make this academic
-							year the best one yet!</p>
-						<p>At TPS, we are committed to fostering a culture of inclusivity and respect, where diversity
-							is celebrated and every voice is heard. We believe that by embracing our differences, we can
-							create a richer and more vibrant learning environment for all.</p>
-						<p>Our dedicated team of educators is passionate about inspiring a love for learning in every
-							student. Through innovative teaching methods, personalized attention, and a focus on
-							individual strengths, we strive to ignite curiosity and unlock the potential within each
-							child.</p>
-						<p>Beyond academics, we place great emphasis on character development and the cultivation of
-							essential life skills. Through extracurricular activities, community service initiatives,
-							and leadership opportunities, we empower our students to become compassionate, responsible,
-							and globally-minded citizens.</p>
-						<p>Together, let's make this academic year a memorable one filled with growth, discovery, and
-							achievement. With your continued support and dedication, I am confident that we will reach
-							new heights of excellence at Tibetan Public School.</p>
-						<div class="signature">
-							<p>Warm regards,</p>
-							<p class="font-weight-bold">Abida Ali</p>
-							<p>Principal, TPS</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section> -->
-	<!-- End principal's message Area old one-->
 
 	<!-- Start principal's message Area -->
 	<section class="container principal-msg my-5">
@@ -385,8 +371,14 @@ include('includes/dbconnection.php');
 	<script src="./Main/js/jquery.tabs.min.js"></script>
 	<script src="./Main/js/jquery.nice-select.min.js"></script>
 	<script src="./Main/js/owl.carousel.min.js"></script>
-	<script src="./Main/js/mail-script.js"></script>
+	<!-- <script src="./Main/js/mail-script.js"></script> -->
 	<script src="./Main/js/main.js"></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			let modalTrigger = document.getElementById('modalTrigger');	
+			modalTrigger.click();
+		});
+	</script>
 </body>
 
 </html>
