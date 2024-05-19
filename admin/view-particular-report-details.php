@@ -98,10 +98,6 @@ else
                 <head>
                     <title>TPS || Student Report</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-                    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-                    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-                    <link rel="stylesheet" href="vendors/select2/select2.min.css">
                     <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
                     <link rel="stylesheet" href="css/style.css" />
                     <style>
@@ -124,6 +120,10 @@ else
                             text-overflow: ellipsis; 
                             word-wrap: break-word;
                             text-wrap: wrap !important;
+                        }
+                        table,th, td, tr
+                        {
+                            border: 1px solid #000 !important;
                         }
                     </style>
                 </head>
@@ -165,7 +165,7 @@ else
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <!-- <strong>Result of Formative Assessment<span class="border-bottom border-secondary ml-2 px-5"></span></strong> -->
+                                    <!-- <strong>Result of Formative Assessment<span class="border-bottom border-dark ml-2 px-5"></span></strong> -->
                                     <strong>Result of <?php echo htmlspecialchars($examNameRow); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
@@ -173,31 +173,31 @@ else
                                     <!-- Row 1 -->
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Duration:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label>Duration:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">To:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label class="text-nowrap">To:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
                                     <div class="d-flex flex-row align-items-start my-2">
                                         <div class=" mr-5">
-                                            <label>Code No.:</label><span class="border-bottom border-secondary ml-2 px-5"></span>
+                                            <label>Code No.:</label><span class="border-bottom border-dark ml-2 px-5"></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
+                                            <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 3 -->
                                     <div class="d-flex flex-row justify-content-between" style="gap: 30px">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Class:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentClass); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Section:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Roll No:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            <label class="text-nowrap">Roll No:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -474,26 +474,16 @@ else
 
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="mt-5">
-                                        <label>Date:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                        <label>Date:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
                                     </div>
                                     <div class="mt-5">
-                                        <label>Class Teacher's Signature:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                        <label>Class Teacher's Signature:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
                                     </div>
                                 </footer>
                             </div>
                         </div>
                 </div>
             </div>
-
-                    <script src="vendors/js/vendor.bundle.base.js"></script>
-                    <script src="vendors/select2/select2.min.js"></script>
-                    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
-                    <script src="js/off-canvas.js"></script>
-                    <script src="js/misc.js"></script>
-                    <script src="js/typeahead.js"></script>
-                    <script src="js/select2.js"></script>
-                    <!-- <script src="./js/resultGeneration.js"></script>
-                    <script src="./js/printReportCard.js"></script> -->
                 </body>
                 </html>
 <?php

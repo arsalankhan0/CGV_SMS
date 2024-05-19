@@ -104,11 +104,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                 <head>
                     <title>TPS || Student Report</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-                    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-                    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-                    <link rel="stylesheet" href="vendors/select2/select2.min.css">
-                    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
                     <link rel="stylesheet" href="css/style.css" />
                     <style>
                         .card 
@@ -123,6 +118,10 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                         { 
                             table-layout:fixed;
                             width: 100%;                
+                        }
+                        table,th, td, tr
+                        {
+                            border: 1px solid #000 !important;
                         }
                     </style>
                 </head>
@@ -161,27 +160,27 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                 <div class="mt-4">
                                     <div class="d-flex flex-row justify-content-between">
                                         <div>
-                                            <label>Student's Code No:</label><span class="border-bottom border-secondary ml-2 px-5"></span>
+                                            <label>Student's Code No:</label><span class="border-bottom border-dark ml-2 px-5"></span>
                                         </div>
                                         <div>
-                                            <label>Class:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
                                         </div>
                                         <div>
-                                            <label>Section:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Roll No:</label><span class="border-bottom border-secondary ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            <label>Roll No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Student's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Student's Name: </label>
-                                        <p class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
                                     </div>
                                     <!-- Parent's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Parents'/Guardian's Name: </label>
-                                        <p class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
                                     </div>
                                 </div>
                                 <!-- Main Subjects -->
@@ -577,10 +576,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                     echo "<td colspan='2'>$totalGrade</td>";
                                                 ?>
                                             </tr>
-                                            <!-- Rank -->
-                                            <!-- <tr>
-                                                <td class="text-right" colspan="2">Rank</td>
-                                            </tr> -->
                                             <!-- Rank -->
                                             <tr>
                                                 <td class="text-right" colspan="2">Rank</td>
@@ -1003,23 +998,13 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                 </div>
                                 <footer class="d-flex justify-content-end mt-3">
                                     <div class="mt-5">
-                                        <label>Signature of Tr. Incharge:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                        <label>Signature of Tr. Incharge:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
                                     </div>
                                 </footer>
                             </div>
                         </div>
                 </div>
             </div>
-
-                    <script src="vendors/js/vendor.bundle.base.js"></script>
-                    <script src="vendors/select2/select2.min.js"></script>
-                    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
-                    <script src="js/off-canvas.js"></script>
-                    <script src="js/misc.js"></script>
-                    <script src="js/typeahead.js"></script>
-                    <script src="js/select2.js"></script>
-                    <!-- <script src="./js/resultGeneration.js"></script>
-                    <script src="./js/printReportCard.js"></script> -->
                 </body>
                 </html>
 <?php

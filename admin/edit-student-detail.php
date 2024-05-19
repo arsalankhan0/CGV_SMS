@@ -23,42 +23,36 @@ else
         if (isset($_POST['submit'])) 
         {
             $stuname = $_POST['stuname'];
-            $stuemail = $_POST['stuemail'];
             $stuclass = $_POST['stuclass'];
             $stusection = $_POST['stusection'];
+            $stuRollNo = $_POST['stuRollNo'];
             $gender = $_POST['gender'];
-            $dob = $_POST['dob'];
             $stuid = $_POST['stuid'];
             $fname = $_POST['fname'];
-            $mname = $_POST['mname'];
             $connum = $_POST['connum'];
             $address = $_POST['address'];
             $eid = $_GET['editid'];
 
                 $sql = "UPDATE tblstudent SET 
                         StudentName=:stuname,
-                        StudentEmail=:stuemail,
                         StudentClass=:stuclass,
                         StudentSection=:stusection,
+                        RollNo=:stuRollNo,
                         Gender=:gender,
-                        DOB=:dob,
                         StuID=:stuid,
                         FatherName=:fname,
-                        MotherName=:mname,
                         ContactNumber=:connum,
                         Address=:address 
                         WHERE ID=:eid";
 
             $query = $dbh->prepare($sql);
             $query->bindParam(':stuname', $stuname, PDO::PARAM_STR);
-            $query->bindParam(':stuemail', $stuemail, PDO::PARAM_STR);
             $query->bindParam(':stuclass', $stuclass, PDO::PARAM_STR);
             $query->bindParam(':stusection', $stusection, PDO::PARAM_STR);
+            $query->bindParam(':stuRollNo', $stuRollNo, PDO::PARAM_INT);
             $query->bindParam(':gender', $gender, PDO::PARAM_STR);
-            $query->bindParam(':dob', $dob, PDO::PARAM_STR);
             $query->bindParam(':stuid', $stuid, PDO::PARAM_STR);
             $query->bindParam(':fname', $fname, PDO::PARAM_STR);
-            $query->bindParam(':mname', $mname, PDO::PARAM_STR);
             $query->bindParam(':connum', $connum, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
@@ -148,21 +142,63 @@ else
 
                                 <form class="forms-sample" method="post" enctype="multipart/form-data">
                                     <?php
-                                    $eid = $_GET['editid'];
+                                     $eid = $_GET['editid'];
                                     if ($_GET['source'] == 'history') 
                                     {
-                                        $sql = "SELECT tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudenthistory.ClassID as StudentClass, tblstudenthistory.Section as StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.DateofAdmission,tblstudenthistory.SessionID,tblclass.ClassName,tblclass.Section, tblclass.IsDeleted from tblstudenthistory JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID join tblclass on tblclass.ID=tblstudenthistory.ClassID where tblstudenthistory.ID=:eid AND tblstudenthistory.IsDeleted = 0";
+                                        $sql = "SELECT 
+                                                    tblstudent.StudentName,
+                                                    RollNo,
+                                                    tblstudenthistory.ClassID 
+                                                    AS StudentClass, 
+                                                    tblstudenthistory.Section AS StudentSection,
+                                                    tblstudent.Gender,
+                                                    tblstudent.StuID,
+                                                    tblstudent.FatherName,
+                                                    tblstudent.ContactNumber,
+                                                    tblstudent.Address,
+                                                    tblstudent.Password,
+                                                    tblstudent.DateofAdmission,
+                                                    tblstudenthistory.SessionID,
+                                                    tblclass.ClassName,
+                                                    tblclass.Section,
+                                                    tblclass.IsDeleted FROM 
+                                                    tblstudenthistory JOIN 
+                                                    tblstudent ON 
+                                                    tblstudenthistory.StudentID = tblstudent.ID JOIN 
+                                                    tblclass ON 
+                                                    tblclass.ID=tblstudenthistory.ClassID WHERE 
+                                                    tblstudenthistory.ID=:eid AND 
+                                                    tblstudenthistory.IsDeleted = 0";
                                     } 
                                     else 
                                     {
-                                        $sql = "SELECT tblstudent.ID as ID, tblstudent.StudentName,tblstudent.StudentEmail,RollNo,tblstudent.StudentClass, tblstudent.StudentSection ,tblstudent.Gender,tblstudent.DOB,tblstudent.StuID,tblstudent.FatherName,tblstudent.MotherName,tblstudent.ContactNumber,tblstudent.Address,tblstudent.UserName,tblstudent.Password,tblstudent.DateofAdmission,tblstudent.SessionID,tblclass.ClassName,tblclass.Section, tblclass.ID as ClassID, tblclass.IsDeleted from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.ID=:eid AND tblstudent.IsDeleted = 0";
+                                        $sql = "SELECT tblstudent.ID AS ID, 
+                                                    tblstudent.StudentName,
+                                                    RollNo,
+                                                    tblstudent.StudentClass, 
+                                                    tblstudent.StudentSection,
+                                                    tblstudent.Gender,
+                                                    tblstudent.StuID,
+                                                    tblstudent.FatherName,
+                                                    tblstudent.ContactNumber,
+                                                    tblstudent.Address,
+                                                    tblstudent.Password,
+                                                    tblstudent.DateofAdmission,
+                                                    tblstudent.SessionID,
+                                                    tblclass.ClassName,
+                                                    tblclass.Section,
+                                                    tblclass.ID AS ClassID, 
+                                                    tblclass.IsDeleted 
+                                                    FROM tblstudent JOIN 
+                                                    tblclass ON tblclass.ID=tblstudent.StudentClass
+                                                    WHERE tblstudent.ID=:eid 
+                                                    AND tblstudent.IsDeleted = 0";
                                     }
 
                                     $query = $dbh->prepare($sql);
                                     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
                                     $query->execute();
                                     $results = $query->fetchAll(PDO::FETCH_OBJ);
-                                    $cnt = 1;
                                     if ($query->rowCount() > 0) {
                                         foreach ($results as $row) {
                                             ?>
@@ -175,12 +211,15 @@ else
                                                 >
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Student Email</label>
-                                                <input type="text" name="stuemail"
-                                                        value="<?php echo htmlentities($row->StudentEmail); ?>"
-                                                        class="form-control" required='true'
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
+                                                <label for="exampleInputName1">Gender</label>
+                                                <select name="gender" value="" class="form-control" required='true'
+                                                    <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
                                                 >
+                                                    <option
+                                                            value="<?php echo htmlentities($row->Gender); ?>"><?php echo htmlentities($row->Gender); ?></option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                </select>
                                             </div>
                                             <div class="form-group">
                                                 <label for="exampleInputEmail3">Student Class</label>
@@ -242,47 +281,11 @@ else
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
                                                 >
                                             </div>
-                                            <div class="form-group">
-                                                <label for="exampleInputName1">Gender</label>
-                                                <select name="gender" value="" class="form-control" required='true'
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
-                                                >
-                                                    <option
-                                                            value="<?php echo htmlentities($row->Gender); ?>"><?php echo htmlentities($row->Gender); ?></option>
-                                                    <option value="Male">Male</option>
-                                                    <option value="Female">Female</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="exampleInputName1">Date of Birth</label>
-                                                <input type="date" name="dob"
-                                                        value="<?php echo htmlentities($row->DOB); ?>"
-                                                        class="form-control" required='true'
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
-                                                >
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="exampleInputName1">Student ID</label>
-                                                <input type="text" name="stuid"
-                                                        value="<?php echo htmlentities($row->StuID); ?>"
-                                                        class="form-control" readonly='true'
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
-                                                >
-                                            </div>
-                                            <h3>Parents/Guardian's details</h3>
+                                            
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Father's Name</label>
                                                 <input type="text" name="fname"
                                                         value="<?php echo htmlentities($row->FatherName); ?>"
-                                                        class="form-control" required='true'
-                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
-                                                >
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="exampleInputName1">Mother's Name</label>
-                                                <input type="text" name="mname"
-                                                        value="<?php echo htmlentities($row->MotherName); ?>"
                                                         class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
                                                 >
@@ -301,12 +304,13 @@ else
                                                 <textarea name="address" class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>><?php echo htmlentities($row->Address); ?></textarea>
                                             </div>
-                                            <h3>Login details</h3>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">User Name</label>
-                                                <input type="text" name="uname"
-                                                        value="<?php echo htmlentities($row->UserName); ?>"
-                                                        class="form-control" readonly='true'>
+                                                <label for="exampleInputName1">Student ID</label>
+                                                <input type="text" name="stuid"
+                                                        value="<?php echo htmlentities($row->StuID); ?>"
+                                                        class="form-control" readonly='true'
+                                                    <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
+                                                >
                                             </div>
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Password</label>
@@ -364,8 +368,6 @@ else
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
-<script src="js/select2.js"></script>
-<script src="./js/SectionsForStudent.js"></script>
 <script src="./js/manageAlert.js"></script>
 <!-- End custom js for this page -->
 </body>

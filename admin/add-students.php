@@ -22,22 +22,17 @@ include('includes/dbconnection.php');
       if(isset($_POST['submit']))
         {
           $stuname=$_POST['stuname'];
-          $stuemail=$_POST['stuemail'];
           $stuclass = $_POST['stuclass'];
           $stusection = $_POST['stusection'];
           $stuRollNo=$_POST['stuRollNo'];
           $gender=$_POST['gender'];
-          $dob=$_POST['dob'];
           $stuid=$_POST['stuid'];
           $fname=$_POST['fname'];
-          $mname=$_POST['mname'];
           $connum=$_POST['connum'];
           $address=$_POST['address'];
-          $uname=$_POST['uname'];
           $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-          $ret="SELECT UserName FROM tblstudent WHERE UserName=:uname || StuID=:stuid AND IsDeleted = 0";
+          $ret="SELECT ID FROM tblstudent WHERE StuID=:stuid AND IsDeleted = 0";
           $query= $dbh -> prepare($ret);
-          $query->bindParam(':uname',$uname,PDO::PARAM_STR);
           $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
           $query-> execute();
           $results = $query -> fetchAll(PDO::FETCH_OBJ);
@@ -65,21 +60,17 @@ include('includes/dbconnection.php');
             }
             else
             {
-              $sql = "INSERT INTO tblstudent(StudentName,StudentEmail,StudentClass,StudentSection,RollNo,Gender,DOB,StuID,FatherName,MotherName,ContactNumber,`Address`,UserName,`Password`,SessionID) VALUES (:stuname,:stuemail,:stuclass,:stusection,:stuRollNo,:gender,:dob,:stuid,:fname,:mname,:connum,:address,:uname,:password,:sessionID)";
+              $sql = "INSERT INTO tblstudent(StudentName,StudentClass,StudentSection,RollNo,Gender,StuID,FatherName,ContactNumber,`Address`,`Password`,SessionID) VALUES (:stuname,:stuclass,:stusection,:stuRollNo,:gender,:stuid,:fname,:connum,:address,:password,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
-              $query->bindParam(':stuemail',$stuemail,PDO::PARAM_STR);
               $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
               $query->bindParam(':stusection',$stusection,PDO::PARAM_STR);
               $query->bindParam(':stuRollNo',$stuRollNo,PDO::PARAM_STR);
               $query->bindParam(':gender',$gender,PDO::PARAM_STR);
-              $query->bindParam(':dob',$dob,PDO::PARAM_STR);
               $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
               $query->bindParam(':fname',$fname,PDO::PARAM_STR);
-              $query->bindParam(':mname',$mname,PDO::PARAM_STR);
               $query->bindParam(':connum',$connum,PDO::PARAM_STR);
               $query->bindParam(':address',$address,PDO::PARAM_STR);
-              $query->bindParam(':uname',$uname,PDO::PARAM_STR);
               $query->bindParam(':password',$password,PDO::PARAM_STR);
               $query->bindParam(':sessionID',$activeSession,PDO::PARAM_STR);
               $query->execute();
@@ -99,7 +90,7 @@ include('includes/dbconnection.php');
           else
           {
             $dangerAlert = true;
-            $msg = "Username or Student ID already exists! Please try again with different Username or Student ID.";
+            $msg = "Student ID already exists! Please try again with different Student ID.";
           }
       }
     }
@@ -184,15 +175,22 @@ include('includes/dbconnection.php');
                       ?>
                       
                       <div class="form-group">
-                        <label for="exampleInputName1">Student Name</label>
-                        <input type="text" name="stuname" value="" class="form-control" required='true'>
-                      </div>
+                            <label for="stuname">Student Name</label>
+                            <input type="text" id="stuname" name="stuname" value="" class="form-control" required='true'>
+                            <div class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" value="" class="form-control" required='true'>
+                                <option value="">Choose Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                            <div class="text-danger"></div>
+                        </div>
                       <div class="form-group">
-                        <label for="exampleInputName1">Student Email</label>
-                        <input type="text" name="stuemail" value="" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                          <label for="exampleInputEmail3">Student Class</label>
+                          <label for="stuclass">Student Class</label>
                           <select name="stuclass" id="stuclass" class="form-control" required='true'>
                               <option value="">Select Class</option>
                               <?php
@@ -211,10 +209,11 @@ include('includes/dbconnection.php');
                               }
                               ?>
                           </select>
+                          <div class="text-danger"></div>
                       </div>
 
                       <div class="form-group">
-                          <label for="exampleInputEmail3">Student Section</label>
+                          <label for="stusection">Student Section</label>
                           <select name="stusection" id="stusection" class="form-control" required='true'>
                           <?php
                              // Fetch sections from the database
@@ -228,66 +227,52 @@ include('includes/dbconnection.php');
                             }
                             ?>
                           </select>
+                          <div class="text-danger"></div>
                       </div>
 
                       <div class="form-group">
-                        <label for="exampleInputName1">Student Roll No</label>
-                        <input type="number" name="stuRollNo" value="" class="form-control" min="0" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Gender</label>
-                        <select name="gender" value="" class="form-control" required='true'>
-                          <option value="">Choose Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Date of Birth</label>
-                        <input type="date" name="dob" value="" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Student ID</label>
-                        <input type="text" id="stuid" name="stuid" class="form-control" required>
-                        <div id="stuidAvailability" class="text-danger"></div>
-                      </div>
-                      <h3>Parents/Guardian's details</h3>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Father's Name</label>
-                        <input type="text" name="fname" value="" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Mother's Name</label>
-                        <input type="text" name="mname" value="" class="form-control" required='true'>
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Contact Number</label>
-                        <input type="text" name="connum" value="" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
-                      </div>
-                      <div class="form-group">
-                        <label for="exampleInputName1">Address</label>
-                        <textarea name="address" class="form-control" required='true'></textarea>
-                      </div>
-                        <h3>Login details</h3>
-                      <div class="form-group">
-                        <label for="uname">User Name</label>
-                        <input type="text" id="uname" name="uname" class="form-control" required>
-                        <div id="usernameAvailability" class="text-danger"></div>
-                      </div>
-                      <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" name="password" id="password" class="form-control" required onkeyup="validatePassword()">
-                        <p id="passwordValidationMessage" class="text-danger"></p>
-                        
-                        <p class="text-muted mb-0 mt-2">
-                            Password must:
-                            <ul class="text-muted">
-                                <li>Be at least 8 characters long</li>
-                                <li>Contain at least one alphabetic character</li>
-                                <li>Contain at least one number and one special character</li>
-                            </ul>
-                        </p>
-                      </div>
+                            <label for="stuRollNo">Student Roll No</label>
+                            <input type="number" id="stuRollNo" name="stuRollNo" value="" class="form-control" min="0" required='true'>
+                            <div class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fname">Father's/Guardian's Name</label>
+                            <input type="text" id="fname" name="fname" value="" class="form-control" required='true'>
+                            <div class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="connum">Contact Number</label>
+                            <input type="tel" id="connum" name="connum" value="" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
+                            <div class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea id="address" name="address" class="form-control" required='true'></textarea>
+                            <div class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stuid">Student ID</label>
+                            <input type="text" id="stuid" name="stuid" class="form-control" required>
+                            <div id="stuidAvailability" class="text-danger"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" class="form-control" required>
+                            <div id="passwordValidationMessage" class="text-danger"></div>
+                            <p class="text-muted mb-0 mt-2">
+                                Password must:
+                                <ul class="text-muted">
+                                    <li>Be at least 8 characters long</li>
+                                    <li>Contain at least one alphabetic character</li>
+                                    <li>Contain at least one number and one special character</li>
+                                </ul>
+                            </p>
+                        </div>
                       <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                     
                     </form>
@@ -319,10 +304,8 @@ include('includes/dbconnection.php');
     <!-- endinject -->
     <!-- Custom js for this page -->
     <script src="js/typeahead.js"></script>
-    <script src="js/select2.js"></script>
     <script src="./js/manageAlert.js"></script>
-    <script src="./js/validatePassword.js"></script>
-    <script src="./js/studentAvailability.js"></script>
+    <script src="../Employee/js/studentValidation.js"></script>
     <!-- End custom js for this page -->
 
   </body>

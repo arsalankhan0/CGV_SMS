@@ -149,13 +149,12 @@ else
                                             foreach ($sessions as $session) 
                                             {
                                                 $selected = ($currentActiveSessionID == $session['session_id']) ? 'selected' : '';
-                                                echo "<option value='" . $session['session_id'] . "' $selected>" . htmlentities($session['session_name']) . "</option>";
+                                                echo "<option value='" . $session['session_id'] . "' $selected disabled>" . htmlentities($session['session_name']) . "</option>";
                                             }
                                             ?>
                                         </select>
                                         
                                     </div>
-                                    <a href="#" class="text-dark ml-auto mb-3 mb-sm-0"> View all Students</a>
                                 </div>
                                 <!-- Dismissible Alert messages -->
                                 <?php 
@@ -217,37 +216,7 @@ else
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
 <script src="./js/manageAlert.js"></script>
-<script>
-    // Function to get and display the student list for the selected session
-    function getSelectedSessionStudents() 
-    {
-        var selectedSession = document.getElementById("session").value;
-
-        // AJAX request
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                // Update the content of student-list-container
-                document.getElementById("student-list-container").innerHTML = xhr.responseText;
-            }
-        };
-        
-        // Use get_students.php with the selected session ID
-        xhr.open("GET", "get_students.php?session_id=" + selectedSession, true);
-        xhr.send();
-    }
-
-    // Call the function on page load to display the student list for the default selected session
-    window.onload = getSelectedSessionStudents;
-
-
-    function setDeleteId(id) 
-    {
-        document.getElementById('studentID').value = id;
-    }
-
-
-</script>
+<script src="./js/manageStudents.js"></script>
 
 <!-- End custom js for this page -->
 </body>

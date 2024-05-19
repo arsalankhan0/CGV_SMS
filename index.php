@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 ?>
 <!DOCTYPE html>
@@ -31,8 +31,6 @@ include('includes/dbconnection.php');
 	<link rel="stylesheet" href="./Main/css/bootstrap.css">
 	<link rel="stylesheet" href="./Main/css/magnific-popup.css">
 	<link rel="stylesheet" href="./Main/css/nice-select.css">
-	<!-- <link rel="stylesheet" href="./Main/css/animate.min.css"> -->
-	<!-- <link rel="stylesheet" href="./Main/css/owl.carousel.css"> -->
 	<link rel="stylesheet" href="./Main/css/jquery-ui.css">
 	<link rel="stylesheet" href="./Main/css/main.css">
 	<link rel="stylesheet" href="./Main/css/custom.css">
@@ -371,7 +369,6 @@ include('includes/dbconnection.php');
 	<script src="./Main/js/jquery.tabs.min.js"></script>
 	<script src="./Main/js/jquery.nice-select.min.js"></script>
 	<script src="./Main/js/owl.carousel.min.js"></script>
-	<!-- <script src="./Main/js/mail-script.js"></script> -->
 	<script src="./Main/js/main.js"></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", function() {
