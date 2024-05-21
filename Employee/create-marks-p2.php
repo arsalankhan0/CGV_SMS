@@ -182,7 +182,6 @@ else
                         $totalPass = true;
                         $studentID = $_POST['studentID'];
                         $classID = unserialize($_SESSION['classIDs']);
-                        // studentSubjectsData array
                         $studentSubjectsData = array();
 
                         foreach ($subjects as $subject) 
@@ -506,7 +505,6 @@ else
                                         <?php 
                                             if ($publishedResult) 
                                             {
-                                                // echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
                                                 echo '<div id="dangerAlert" class="alert alert-danger" role="alert">
                                                     Score cannot be assigned or updated as the result is published!
                                                 </div>';
