@@ -55,32 +55,7 @@ else
             <title>TPS || Student Reports</title>
             <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
             <link rel="stylesheet" href="css/style.css" />
-            <style>
-                .card 
-                {
-                    page-break-after: always;
-                }
-                .signature-line
-                {
-                    padding: 0 100px;
-                }
-                table 
-                { 
-                    table-layout:fixed;
-                    width: 100%;                
-                }
-                td, th
-                { 
-                    overflow: hidden; 
-                    text-overflow: ellipsis; 
-                    word-wrap: break-word;
-                    text-wrap: wrap !important;
-                }
-                table,th, td, tr
-                {
-                    border: 1px solid #000 !important;
-                }
-                </style>
+            <link rel="stylesheet" href="./css/reportCard.css" />
         </head>
         <body>
             
@@ -190,7 +165,7 @@ else
                                             $maxMarks = 'N/A'; 
                                         }
                                     ?>
-                                    <table class="table table-bordered">
+                                    <table class="table">
                                         <thead>
                                             <tr class="text-center">
                                                 <th>S.No.</th>
@@ -315,7 +290,7 @@ else
                                 <!-- Co-Curricular Component of Academic Session -->
                                 <div class="d-flex flex-column mt-4">
                                     <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
-                                    <table class="table table-bordered w-100">
+                                    <table class="table  w-100">
                                         <thead>
                                             <tr class="text-center">
                                                 <?php
@@ -391,7 +366,7 @@ else
                                 <!-- Optional Subjects in Grades-->
                                 <div class="d-flex flex-column mt-4">
                                     <strong>Grade in Optional Subjects:</strong>
-                                    <table class="table table-bordered">
+                                    <table class="table ">
                                         <?php
                                         // Fetch only those subjects of the class whose IsOptional is 0
                                         $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";

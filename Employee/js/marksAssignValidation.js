@@ -85,15 +85,27 @@ form.addEventListener('submit', function(event) {
 
 
 
-
+// -----------For searching functionality----------------
 let resultContainer = document.getElementById('search-result-container');
 let result = document.getElementById('search-result');
 let closeResult = document.getElementById('close-search-result');
+
+closeResult.addEventListener('click', () => {
+    resultContainer.style.display = "none";
+    result.innerText = "";
+});
 
 document.getElementById('search-btn').addEventListener('click', function() {
 
         const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
         const studentForms = document.querySelectorAll('form.forms-sample');
+
+        if(searchInput.length === 0)
+        {
+            resultContainer.style.display = "block";
+            result.innerText = "Please type name or Roll No to search!";
+            return;
+        }
 
         let found = false;
 
@@ -108,21 +120,16 @@ document.getElementById('search-btn').addEventListener('click', function() {
                 found = true;
             }
         });
-
-
-    if (!found) {
-        resultContainer.style.display = "block";
-        result.innerText = "No Student Found";
-    }
-    else
-    {
-        resultContainer.style.display = "none";
-        result.innerText = "";    
-    }
-    closeResult.addEventListener('click', () => {
-        resultContainer.style.display = "none";
-        result.innerText = "";
-    });
+        if (!found) {
+            resultContainer.style.display = "block";
+            result.innerText = "No such Student Found";
+        }
+        else
+        {
+            resultContainer.style.display = "none";
+            result.innerText = "";    
+        }
+    
 });
 
 

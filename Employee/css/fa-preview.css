@@ -1,0 +1,40 @@
+
+.signature-line
+{
+    padding: 0 6vw;
+}
+.underline 
+{
+    border-bottom: 1px solid var(--secondary-color, #ccc); 
+    display: inline-block; 
+    width: 100%;
+    margin: 0 10px; 
+    padding-left: 3px;
+}
+table 
+{ 
+    table-layout:fixed;
+    width: 100%;                
+}
+td, th
+{ 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    word-wrap: break-word;
+    text-wrap: wrap !important;
+}
+@media screen and (max-width: 600px) {
+    table {
+        width: 100% !important;
+    }
+    th, td {
+        width: 100%!important;
+        text-align: center;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+    .card 
+    {
+        font-size: 0.8rem;
+    }
+}

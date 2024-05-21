@@ -104,28 +104,7 @@ else
                     <link rel="stylesheet" href="vendors/select2/select2.min.css">
                     <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
                     <link rel="stylesheet" href="css/style.css" />
-                    <style>
-                        .card 
-                        {
-                            page-break-after: always;
-                        }
-                        .signature-line
-                        {
-                            padding: 0 100px;
-                        }
-                        table 
-                        { 
-                            table-layout:fixed;
-                            width: 100%;                
-                        }
-                        td, th
-                        { 
-                            overflow: hidden; 
-                            text-overflow: ellipsis; 
-                            word-wrap: break-word;
-                            text-wrap: wrap !important;
-                        }
-                    </style>
+                    <link rel="stylesheet" href="./css/fa-preview.css">
                 </head>
 
                 <body>
@@ -165,7 +144,6 @@ else
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <!-- <strong>Result of Formative Assessment<span class="border-bottom border-secondary ml-2 px-5"></span></strong> -->
                                     <strong>Preview of <?php echo htmlspecialchars($examNameRow); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
@@ -173,31 +151,38 @@ else
                                     <!-- Row 1 -->
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Duration:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label>Duration:</label>
+                                            <span class="underline"></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">To:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label class="text-nowrap">To:</label>
+                                            <span class="underline"></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
                                     <div class="d-flex flex-row align-items-start my-2">
-                                        <div class=" mr-5">
-                                            <label>Code No.:</label><span class="border-bottom border-secondary ml-2 px-5"></span>
+                                        <div class="d-flex align-items-center w-100">
+                                            <label>Code No.:</label>
+                                            <span class="underline"></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
+                                            <label class="text-nowrap">Student's Name:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 3 -->
                                     <div class="d-flex flex-row justify-content-between" style="gap: 30px">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Class:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label>
+                                            <span class="underline"><?php echo htmlentities($studentClass); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Section:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label>
+                                            <span class="underline"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Roll No:</label><span class="border-bottom border-secondary ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            <label class="text-nowrap">Roll No:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -219,7 +204,7 @@ else
                                             $maxMarks = 'N/A'; 
                                         }
                                     ?>
-                                    <table class="table table-bordered">
+                                    <table class="table table-bordered table-responsive-sm">
                                         <thead>
                                             <tr class="text-center">
                                                 <th>S.No.</th>
@@ -343,7 +328,7 @@ else
 
                                 <!-- Co-Curricular Component of Academic Session -->
                                 <div class="d-flex flex-column mt-4">
-                                    <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
+                                    <strong class="text-wrap">Marks Obtained in Co-curricular Component During the Assessment period</strong>
                                     <table class="table table-bordered w-100">
                                         <thead>
                                             <tr class="text-center">
@@ -420,7 +405,7 @@ else
 
                                 <!-- Optional Subjects in Grades-->
                                 <div class="d-flex flex-column mt-4">
-                                    <strong>Grade in Optional Subjects:</strong>
+                                    <strong class="text-wrap">Grade in Optional Subjects:</strong>
                                     <table class="table table-bordered">
                                         <?php
                                         // Fetch only those subjects of the class whose IsOptional is 0
@@ -446,13 +431,12 @@ else
                                             <tr>
                                                 <td>Grade Obtained</td>
                                                 <?php
-                                                    // Loop through each optional subject
                                                     foreach ($optionalSubjects as $subject) {
-                                                        $marksObtained = ""; // Initialize marks obtained for the current subject
+                                                        $marksObtained = "";
 
                                                         // Loop through allSubjectsJson to find the matching subject and extract marks obtained
                                                         foreach ($allSubjectsJsonArray as $row) {
-                                                            $subjectData = json_decode($row['SubjectsJSON'], true); // Decode the JSON data into an associative array
+                                                            $subjectData = json_decode($row['SubjectsJSON'], true);
 
                                                             // Loop through subject data to find the matching subject ID and check if it's optional
                                                             foreach ($subjectData as $data) {
@@ -475,10 +459,12 @@ else
 
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="mt-5">
-                                        <label>Date:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                        <label>Date:</label>
+                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>
                                     <div class="mt-5">
-                                        <label>Class Teacher's Signature:</label><span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                        <label>Class Teacher's Signature:</label>
+                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>
                                 </footer>
                             </div>

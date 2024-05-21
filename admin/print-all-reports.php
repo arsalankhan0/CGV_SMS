@@ -60,26 +60,7 @@ else
         <head>
             <title>TPS || Student Reports</title>
             <link rel="stylesheet" href="css/style.css" />
-            <style>
-                .card 
-                {
-                    page-break-after: always;
-                }
-                .signature-line
-                {
-                    padding: 0 100px;
-                }
-                table 
-                { 
-                    table-layout:fixed;
-                    width: 100%;                
-                }
-                table,th, td, tr
-                {
-                    border: 1px solid #000 !important;
-                }
-
-            </style>
+            <link rel="stylesheet" href="./css/finalReportCard.css"/>
         </head>
         <body>
             
@@ -157,7 +138,7 @@ else
                                 </div>
                                 <!-- Main Subjects -->
                                 <div class="d-flex flex-column">
-                                    <table class="table table-bordered">
+                                    <table class="table ">
                                         <thead>
                                             <tr class="text-center">
                                                 <th rowspan="2" colspan="2" style="vertical-align: middle;">Subjects</th>
@@ -665,7 +646,7 @@ else
 
                                 <!-- Grading System -->
                                 <div class="d-flex flex-column mt-3">
-                                    <table class="table table-bordered">
+                                    <table class="table ">
                                         <thead>
                                             <tr>
                                                 <th class="text-center text-wrap" style="vertical-align: middle;" rowspan="2" colspan="2">GRADING SYSTEM</th>
@@ -692,7 +673,7 @@ else
                                 ?>
                                     <!-- Optional Subjects in Grades-->
                                     <div class="d-flex flex-column mt-3">
-                                        <table class="table table-bordered">
+                                        <table class="table ">
                                             <thead>
                                                 <tr class="text-center">
                                                     <th rowspan="3" colspan="2" class="text-wrap" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
@@ -792,7 +773,7 @@ else
                                 ?>
                                     <!-- Optional Subjects in Marks-->
                                     <div class="d-flex flex-column mt-3">
-                                            <table class="table table-bordered">
+                                            <table class="table ">
                                                 <thead>
                                                     <tr class="text-center">
                                                         <th rowspan="3" colspan="2" class="text-wrap" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
@@ -911,7 +892,7 @@ else
                                 ?>
                                 <!-- Co-Curricular Component of Academic Session -->
                                 <div class="d-flex flex-column mt-3">
-                                    <table class="table table-bordered">
+                                    <table class="table ">
                                         <thead>
                                             <tr class="text-center">
                                                 <th colspan="14">Marks Obtained in Co-curricular Component During the Academic Session</th>

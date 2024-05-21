@@ -1,0 +1,17 @@
+.card 
+{
+    page-break-after: always;
+}
+.signature-line
+{
+    padding: 0 100px;
+}
+table 
+{ 
+    table-layout:fixed;
+    width: 100%;                
+}
+table,th, td, tr
+{
+    border: 1px solid #000 !important;
+}
