@@ -432,80 +432,10 @@ else
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-    <!-- endinject -->
-    <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="vendors/select2/select2.min.css">
-    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="css/style.css"/>
     <link rel="stylesheet" href="../css/remove-spinner.css"/>
-    <style>
-        .table-container {
-            max-width: 100%;
-            overflow-x: auto;
-        }
-        .table {
-            /* width: auto; */
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        .table th {
-            background-color: #f4f4f4;
-            font-weight: bold !important;
-        }
-
-        .marks-input {
-            padding: 5px;
-            box-sizing: border-box;
-        }
-
-        @media (max-width: 576px) {
-            .table th, .table td {
-                padding: 4px;
-            }
-            .table th {
-                font-size: 0.9rem;
-            }
-            .table td {
-                font-size: 0.85rem;
-            }
-            .marks-input {
-                width: 60px;
-                padding: 3px;
-            }
-        }
-        .student-info {
-            background-color: #f9f9f9;
-            padding: 10px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .student-info .roll-no,
-        .student-info .student-name {
-            font-size: 1.2rem; 
-            font-weight: bold; 
-            margin-bottom: 5px;
-        }
-
-        .student-info .roll-no label,
-        .student-info .student-name label {
-            color: #007bff;
-            margin-right: 5px;
-        }
-
-
-    </style>
+    <link rel="stylesheet" href="./css/assignMarks.css">
 
     
 </head>
@@ -573,20 +503,34 @@ else
                                     <?php
                                     }
                                     ?>
-
-                                
-                                    
                                         <?php 
                                             if ($publishedResult) 
                                             {
-                                                echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
+                                                // echo '<p class="text-center text-danger">Score cannot be assigned or updated as the result is published.</p>';
+                                                echo '<div id="dangerAlert" class="alert alert-danger" role="alert">
+                                                    Score cannot be assigned or updated as the result is published!
+                                                </div>';
                                             }
                                         ?>
+                                            <div class="input-group mb-2">
+                                                <input type="search" class="form-control" placeholder="Search Name or Roll no" aria-label="Search Student" aria-describedby="search-btn" id="search-input">
+                                                <div class="input-group-append w-25">
+                                                    <button class="btn btn-sm w-100 btn-outline-secondary" type="button" id="search-btn"><i class="icon-magnifier"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="w-100 p-2" id="search-result-container">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span id="search-result" class="font-weight-bold text-center w-100"></span>
+                                                    <button type="button" class="close" aria-label="Close" id="close-search-result">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <?php
                                             foreach ($students as $student) 
                                             { 
                                                 ?>
-                                            <form class="forms-sample" method="post">
+                                            <form class="forms-sample" method="post" id="student-<?php echo htmlentities($student['ID']); ?>">
                                                 <div class="student-info">
                                                     <div class="roll-no">
                                                         <label>Roll No:</label>
@@ -770,7 +714,6 @@ else
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
 <!-- Plugin js for this page -->
-<script src="vendors/select2/select2.min.js"></script>
 <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
 <!-- End plugin js for this page -->
 <!-- inject:js -->
@@ -779,10 +722,12 @@ else
 <!-- endinject -->
 <!-- Custom js for this page -->
 <script src="js/typeahead.js"></script>
-<script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
 <!-- Include this script in your HTML -->
 <script src="./js/marksAssignValidation.js"></script>
+<script>
+
+</script>
 
 <!-- End custom js for this page -->
 </body>

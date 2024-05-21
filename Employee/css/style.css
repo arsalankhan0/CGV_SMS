@@ -7607,7 +7607,8 @@ button.bg-dark:focus {
 .d-flex, .page-header, .loader-demo-box, .navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown .dropdown-menu.navbar-dropdown .dropdown-item {
   display: -webkit-box !important;
   display: -ms-flexbox !important;
-  display: flex !important; }
+  display: flex !important; 
+}
 
 .d-inline-flex {
   display: -webkit-inline-box !important;
@@ -10596,7 +10597,13 @@ code {
   border-radius: 4px; }
 
 .page-header {
-  margin: 0 0 1.5rem 0; }
+  margin: 0 0 1.5rem 0; 
+}
+@media (max-width: 520px) {
+  .page-header {
+   flex-direction: column; 
+  }
+}
   .page-header .breadcrumb {
     border: 0;
     margin-bottom: 0; }
