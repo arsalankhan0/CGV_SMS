@@ -176,11 +176,12 @@ else
                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
                 try 
                 {
-                    $dbh->beginTransaction();
-                    $examID = $_SESSION['examName'];
+                        $dbh->beginTransaction();
 
+                        $examID = $_SESSION['examName'];
                         $totalPass = true;
                         $studentID = $_POST['studentID'];
+                        $classID = unserialize($_SESSION['classIDs']);
                         $classID = unserialize($_SESSION['classIDs']);
                         $studentSubjectsData = array();
 
@@ -312,15 +313,13 @@ else
                         }
                         if (!$existingReportDetails) 
                         {
-                            $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed)
-                                            VALUES (:sessionID, :classID, :studentID, :subjectsJSON, :isPassed)";
+                            $insertSql = "INSERT INTO tblreports (ExamSession, ClassName, SectionName, StudentName, SubjectsJSON, IsPassed)
+                                            VALUES (:sessionID, :classID, :sectionID, :studentID, :subjectsJSON, :isPassed)";
                             $insertQuery = $dbh->prepare($insertSql);
-                            
-                            
                             $subjectsJSON = json_encode($studentSubjectsData);
-                            
                             $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+                            $insertQuery->bindParam(':sectionID', $sectionIDs, PDO::PARAM_INT);
                             $insertQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
                             $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
@@ -380,14 +379,15 @@ else
                                                 IsPassed = :isPassed
                                                 WHERE ExamSession = :sessionID 
                                                 AND ClassName = :classID 
+                                                AND SectionName = :sectionID 
                                                 AND StudentName = :studentID 
                                                 AND IsDeleted = 0";
-                        
                             $updateReportQuery = $dbh->prepare($updateReportSql);
                             $updateReportQuery->bindParam(':subjectsJSON', $updatedSubjectsJSON, PDO::PARAM_STR);
                             $updateReportQuery->bindParam(':isPassed', $isStudentPassed, PDO::PARAM_INT);
-                            $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':sessionID', $sessionIDs, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':sectionID', $sectionIDs, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
                             $updateReportQuery->execute();
                         }

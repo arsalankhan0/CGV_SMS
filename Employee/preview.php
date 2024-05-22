@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (strlen($_SESSION['sturecmsEMPid'] == 0)) 
@@ -181,23 +181,31 @@ else
                                         $selectedClass = $_POST['classes'];
                                         $selectedSection = $_POST['sections'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT StudentName, ClassName, ExamSession, SubjectsJSON FROM tblreports WHERE ClassName = :class AND ExamSession = :activeSession AND IsDeleted = 0";
+                                        $sqlFilteredReports = "SELECT StudentName, ClassName, ExamSession, SubjectsJSON FROM tblreports 
+                                                                WHERE ClassName = :class 
+                                                                AND SectionName = :section
+                                                                AND ExamSession = :activeSession 
+                                                                AND IsDeleted = 0";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
+                                        $queryFilteredReports->bindParam(':section', $selectedSection, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':activeSession', $activeSession, PDO::PARAM_STR);
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
 
                                         // Filter the reports based on selectedExam
-                                        $filteredReports = array_filter($filteredReports, function($report) use ($selectedExam) {
+                                        $filteredReports = array_filter($filteredReports, function($report) use ($selectedExam) 
+                                        {
                                             // Extract ExamName from SubjectsJSON and compare with selectedExam
                                             $subjectsJSON = json_decode($report['SubjectsJSON'], true);
-                                            foreach ($subjectsJSON as $subject) {
-                                                if ($subject['ExamName'] === $selectedExam) {
-                                                    return true; // Keep the report if the selectedExam matches
+                                            foreach ($subjectsJSON as $subject) 
+                                            {
+                                                if ($subject['ExamName'] === $selectedExam) 
+                                                {
+                                                    return true;
                                                 }
                                             }
-                                            return false; // Exclude the report if no match is found
+                                            return false;
                                         });
 
 
@@ -232,7 +240,7 @@ else
                                         foreach ($filteredReports as $student) 
                                         {
                                             // Fetch ID of student from tblstudent based on filtered StudentID available in the tblreports
-                                            $sqlStudent = "SELECT ID, StudentSection FROM tblstudent WHERE ID = :studentID AND StudentSection IN (:sectionID) AND IsDeleted = 0";
+                                            $sqlStudent = "SELECT ID, StudentSection FROM tblstudent WHERE ID = :studentID AND StudentSection = :sectionID AND IsDeleted = 0";
                                             $queryStudent = $dbh->prepare($sqlStudent);
                                             $queryStudent->bindParam(':studentID', $student['StudentName'], PDO::PARAM_STR);
                                             $queryStudent->bindParam(':sectionID', $selectedSection, PDO::PARAM_STR);
