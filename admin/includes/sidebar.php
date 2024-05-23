@@ -99,6 +99,18 @@
               </div>
             </li>
             <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#ui-basic-report" aria-expanded="false" aria-controls="ui-basic-report">
+                <span class="menu-title">Report Card</span>
+                <i class="icon-book-open menu-icon"></i>
+              </a>
+              <div class="collapse" id="ui-basic-report">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="update-marks.php">Update Score</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="">Update CoCurricular Score</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" data-toggle="collapse" href="#promotion" aria-expanded="false" aria-controls="promotion">
                     <span class="menu-title">Promotion</span>
                     <i class="icon-badge menu-icon"></i>

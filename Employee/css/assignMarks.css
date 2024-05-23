@@ -61,3 +61,14 @@
     display: none;
     border-radius: 5px;
 }
+
+/* ERROR MESSAGE STYLING WHILE ASSIGNING MARKS */
+.marks-obtained-input.error {
+    border-color: red !important;
+  }
+  
+  .error-message {
+    display: none;
+    color: red;
+    font-size: 12px;
+  }
