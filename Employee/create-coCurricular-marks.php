@@ -53,6 +53,21 @@ else
         exit;
     }
 
+    function checkExistingMaxMarks($dbh, $sessionID, $classID, $subjectID) 
+    {
+        $checkExistingMaxSql = "SELECT ID, SessionID, ClassID, SubjectID, PassingPercentage FROM tblmaxcocurricular 
+                                WHERE SessionID = :sessionID 
+                                AND ClassID = :classID 
+                                AND SubjectID = :subjectID";
+
+        $checkExistingMaxQuery = $dbh->prepare($checkExistingMaxSql);
+        $checkExistingMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+        $checkExistingMaxQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+        $checkExistingMaxQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
+        $checkExistingMaxQuery->execute();
+        
+        return $checkExistingMaxQuery->fetch(PDO::FETCH_ASSOC);
+    }
     $msg = "";
     $successAlert = false;
     $dangerAlert = false;
@@ -117,17 +132,17 @@ else
                 $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
 
                 // Function to check if the max marks are assigned by the admin
-                function getMaxMarks($classID, $sessionID, $subjectID, $type) 
+                function getMaxMarks($classIDs, $sessionID, $subjectID, $type) 
                 {
                     global $dbh;
                     
-                    $sql = "SELECT * FROM tblmaxmarks 
+                    $sql = "SELECT * FROM tblmaxcocurricular 
                             WHERE ClassID = :classID 
                             AND SessionID = :sessionID 
                             AND SubjectID = :subjectID";
                     
                     $query = $dbh->prepare($sql);
-                    $query->bindParam(':classID', $classID, PDO::PARAM_INT);
+                    $query->bindParam(':classID', $classIDs, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                     $query->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
                     
@@ -142,15 +157,14 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
+                function getTeacherAssignedMaxMarks($classIDs, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
 
                     $sql = "SELECT SubjectsJSON FROM tblcocurricularreports 
                             WHERE ClassName = :classID 
-                            AND ExamSession = :sessionID 
-                            AND IsDeleted = 0";
-
+                            AND ExamSession = :sessionID
+                            AND IsDeleted = 0"; 
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':classID', $classID, PDO::PARAM_INT);
                     $query->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
@@ -187,15 +201,13 @@ else
                 {
                     $dbh->beginTransaction();
             
-                    // foreach ($students as $student) 
-                    // {
                         $totalPass = true;
                         $studentID = $_POST['studentID'];
                         $studentSubjectsData = array();
                         
                         foreach ($subjects as $subject) 
                         {   
-                            $coCurricularMaxMarks = isset($_POST['SubMaxMarks'][$studentID][$subject['ID']]) ? (int)$_POST['SubMaxMarks'][$studentID][$subject['ID']] : 0;
+                            $coCurricularMaxMarks = isset($_POST['SubMaxMarks'][$studentID][$subject['ID']]) ? (float)$_POST['SubMaxMarks'][$studentID][$subject['ID']] : 0;
                             $coCurricularMarksObtained = isset($_POST['SubMarksObtained'][$studentID][$subject['ID']]) ? $_POST['SubMarksObtained'][$studentID][$subject['ID']] : 0;
 
                             // An array for subject data
@@ -209,7 +221,7 @@ else
                             $subjectsJSON = json_encode($studentSubjectsData);
                             
                             // Check for existing entry in tblcocurricularreports
-                            $checkExistingSql = "SELECT ExamSession, ClassName, StudentName, SubjectsJSON FROM tblcocurricularreports 
+                            $checkExistingSql = "SELECT ID,SubjectsJSON FROM tblcocurricularreports 
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
                                                     AND StudentName = :studentID 
@@ -240,12 +252,45 @@ else
                                 $totalPass = false;
                             }
 
+                             // Check for existing entry in tblmaxmarks
+                            $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $classIDs, $subject['ID']);
+
+                            // Insert Max Marks in tblmaxcocurricular
+                            if(!$existingMaxReportDetails)
+                            {
+                                    $insertAdminSql = "INSERT INTO tblmaxcocurricular (SessionID, ClassID, SubjectID, SubMaxMarks, PassingPercentage)
+                                                        VALUES (:sessionID, :classID, :subjectID, :SubMaxMarks, :passingPercentage)";
+                                    $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
+                                    $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                    $insertAdminMaxQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                    $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                    $insertAdminMaxQuery->bindParam(':SubMaxMarks', $coCurricularMaxMarks, PDO::PARAM_STR);           
+                                    $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
+                                    $insertAdminMaxQuery->execute();
+                            }
+                            // Update Max Marks in tblmaxcocurricular
+                            else
+                            {
+                                // If an existing entry is found in tblmaxmarks, update the data
+                                $updateAdminSql = "UPDATE tblmaxcocurricular SET 
+                                                SubMaxMarks = :SubMaxMarks
+                                                WHERE SessionID = :sessionID 
+                                                AND ClassID = :classID 
+                                                AND SubjectID = :subjectID";
+                            
+                                $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
+                                $updateAdminMaxQuery->bindParam(':SubMaxMarks', $coCurricularMaxMarks, PDO::PARAM_STR);
+                                $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                $updateAdminMaxQuery->execute();
+                            }
                         }
                         // If the student is not in tblcocurricularreports, insert the student
                         if (!$existingReportDetails) 
                         {
-                            $insertSql = "INSERT INTO tblcocurricularreports (ExamSession, ClassName, StudentName, SubjectsJSON, IsPassed)
-                                            VALUES (:sessionID, :classID, :studentID, :subjectsJSON, :isPassed)";
+                            $insertSql = "INSERT INTO tblcocurricularreports (ExamSession, ClassName, SectionName, StudentName, SubjectsJSON, IsPassed)
+                                            VALUES (:sessionID, :classID, :sectionID, :studentID, :subjectsJSON, :isPassed)";
                             $insertQuery = $dbh->prepare($insertSql);
                             
                             
@@ -253,6 +298,7 @@ else
                             
                             $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                            $insertQuery->bindParam(':sectionID', $sectionIDs, PDO::PARAM_INT);
                             $insertQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
                             $insertQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
                             $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
@@ -291,6 +337,7 @@ else
                                                 IsPassed = :isPassed
                                                 WHERE ExamSession = :sessionID 
                                                 AND ClassName = :classID 
+                                                AND SectionName = :sectionID 
                                                 AND StudentName = :studentID 
                                                 AND IsDeleted = 0";
                         
@@ -299,10 +346,10 @@ else
                             $updateReportQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                            $updateReportQuery->bindParam(':sectionID', $sectionIDs, PDO::PARAM_INT);
                             $updateReportQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
                             $updateReportQuery->execute();
                         }
-                    // }
                     $dbh->commit();
                     $msg = "Marks assigned successfully.";
                     $successAlert = true;
@@ -469,9 +516,10 @@ else
                                                                                 break;
                                                                             }
                                                                         }
-                                                                        
+                                                                        // Storing max marks that admin gives, in variables.
+                                                                        $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub');
                                                                         // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                                        $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'CoCurricular') : $adminSubMaxMarks;
+                                                                        $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
                                                                         
                                                                         // Disable the input fields if the condition matches. 
                                                                         $disabledSub = ($publishedResult == 0 ) ? 'disabled' : '';  

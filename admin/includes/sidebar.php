@@ -106,7 +106,7 @@
               <div class="collapse" id="ui-basic-report">
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"> <a class="nav-link" href="update-marks.php">Update Score</a></li>
-                  <li class="nav-item"> <a class="nav-link" href="">Update CoCurricular Score</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="update-coCurricular.php">Update CoCurricular Score</a></li>
                 </ul>
               </div>
             </li>

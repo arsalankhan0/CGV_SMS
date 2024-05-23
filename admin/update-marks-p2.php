@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsaid'])) 
@@ -157,8 +157,6 @@ else
                             $gradingSystemQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
                             $gradingSystemQuery->execute();
                             $gradingSystem = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
-
-                            $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $classID, $examID, $subjectID);
 
                             // Fetching the pass percentage
                             $passPercentID = 1;
@@ -479,143 +477,143 @@ else
                                             <?php
                                             foreach ($students as $student) 
                                             { 
-                                                ?>
-                                            <form class="forms-sample" method="post" id="student-<?php echo htmlentities($student['ID']); ?>">
-                                                <div class="student-info">
-                                                    <div class="roll-no">
-                                                        <label>Roll No:</label>
-                                                        <span><?php echo htmlentities($student['RollNo']); ?></span>
+                                            ?>
+                                                <form class="forms-sample" method="post" id="student-<?php echo htmlentities($student['ID']); ?>">
+                                                    <div class="student-info">
+                                                        <div class="roll-no">
+                                                            <label>Roll No:</label>
+                                                            <span><?php echo htmlentities($student['RollNo']); ?></span>
+                                                        </div>
+                                                        <div class="student-name">
+                                                            <label>Name:</label>
+                                                            <span><?php echo htmlentities($student['StudentName']); ?></span>
+                                                        </div>
                                                     </div>
-                                                    <div class="student-name">
-                                                        <label>Name:</label>
-                                                        <span><?php echo htmlentities($student['StudentName']); ?></span>
-                                                    </div>
-                                                </div>
-                                                <div class="table-container">
-                                                    <table class="table text-center table-bordered">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Subjects</th>
-                                                                <th>Max Marks</th>
-                                                                <th>Marks Obtained</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <?php 
-                                                                // Fetch Subjects for the selected class
-                                                                $subjectSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :classID AND IsDeleted = 0";
-                                                                $subjectQuery = $dbh->prepare($subjectSql);
-                                                                $classID = '%' . unserialize($_SESSION['classIDs']) . '%';
-                                                                $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);
-                                                                $subjectQuery->execute();
-                                                                $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
-                                                                foreach ($subjects as $subject) 
-                                                                { 
-                                                                    $subjectID = $subject['ID'];
-                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);         
-                                                                    
-                                                                    // Check if marks exist in tblreports for the student, exam, and subject type
-                                                                    $checkMarksSql = "SELECT SubjectsJSON FROM tblreports 
-                                                                                        WHERE ExamSession = :sessionID 
-                                                                                        AND ClassName = :classID 
-                                                                                        AND StudentName = :studentID 
-                                                                                        AND IsDeleted = 0";
-                                                                    $checkMarksQuery = $dbh->prepare($checkMarksSql);
-                                                                    $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
-                                                                    $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
-                                                                    $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
-                                                                    $checkMarksQuery->execute();
-                                                                    $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
+                                                    <div class="table-container">
+                                                        <table class="table text-center table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Subjects</th>
+                                                                    <th>Max Marks</th>
+                                                                    <th>Marks Obtained</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <?php 
+                                                                    // Fetch Subjects for the selected class
+                                                                    $subjectSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :classID AND IsDeleted = 0";
+                                                                    $subjectQuery = $dbh->prepare($subjectSql);
+                                                                    $classID = '%' . unserialize($_SESSION['classIDs']) . '%';
+                                                                    $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);
+                                                                    $subjectQuery->execute();
+                                                                    $subjects = $subjectQuery->fetchAll(PDO::FETCH_ASSOC);
+                                                                    foreach ($subjects as $subject) 
+                                                                    { 
+                                                                        $subjectID = $subject['ID'];
+                                                                        $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);         
+                                                                        
+                                                                        // Check if marks exist in tblreports for the student, exam, and subject type
+                                                                        $checkMarksSql = "SELECT SubjectsJSON FROM tblreports 
+                                                                                            WHERE ExamSession = :sessionID 
+                                                                                            AND ClassName = :classID 
+                                                                                            AND StudentName = :studentID 
+                                                                                            AND IsDeleted = 0";
+                                                                        $checkMarksQuery = $dbh->prepare($checkMarksSql);
+                                                                        $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                                                        $checkMarksQuery->bindParam(':classID', $student['StudentClass'], PDO::PARAM_INT);
+                                                                        $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                                                                        $checkMarksQuery->execute();
+                                                                        $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
 
-                                                                    $subjectsJSON = [];
-                                                                    if ($marksData && isset($marksData['SubjectsJSON'])) {
-                                                                        $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
-                                                                    }
-                                                                    
-                                                                    $SubMarksObtained = '';
-                                                                    if (is_array($subjectsJSON)) 
-                                                                    {
-                                                                        // Find the subject in the SubjectsJSON array and extract the marks
-                                                                        foreach ($subjectsJSON as $subjectData) 
+                                                                        $subjectsJSON = [];
+                                                                        if ($marksData && isset($marksData['SubjectsJSON'])) {
+                                                                            $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
+                                                                        }
+                                                                        
+                                                                        $SubMarksObtained = '';
+                                                                        if (is_array($subjectsJSON)) 
                                                                         {
-                                                                            if (isset($subjectData['SubjectID'], $subjectData['ExamName']) && $subjectData['SubjectID'] == $subjectID && $subjectData['ExamName'] == $_SESSION['examName']) 
+                                                                            // Find the subject in the SubjectsJSON array and extract the marks
+                                                                            foreach ($subjectsJSON as $subjectData) 
                                                                             {
-                                                                                $SubMarksObtained = $subjectData['SubMarksObtained'] ?? '';
-                                                                                break;
+                                                                                if (isset($subjectData['SubjectID'], $subjectData['ExamName']) && $subjectData['SubjectID'] == $subjectID && $subjectData['ExamName'] == $_SESSION['examName']) 
+                                                                                {
+                                                                                    $SubMarksObtained = $subjectData['SubMarksObtained'] ?? '';
+                                                                                    break;
+                                                                                }
                                                                             }
                                                                         }
+                                                                        
+                                                                        // Storing max marks that admin gives, in variables.
+                                                                        $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
+                                                                        
+                                                                        // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
+                                                                        $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
+                                                                        $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
+                                                                        ?>
+                                                                        <tr>
+                                                                            <td class="text-left"><?php echo htmlentities($subject['SubjectName']);?></td>
+                                                                                <?php
+                                                                                if(!$isGradingSystem1)
+                                                                                {
+                                                                                ?>
+                                                                                    <td>
+                                                                                        <input type='number' min="0" step="any" class='marks-input border border-secondary max-marks-input' name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                                            value="<?php echo ($SubMaxMarksToShow !== null) ? $SubMaxMarksToShow : ''; ?>"
+                                                                                            data-subject-id="<?php echo $subject['ID']; ?>"
+                                                                                            >
+                                                                                    </td>
+                                                                                <?php
+                                                                                }
+                                                                                ?>
+                                                                                    <td colspan=<?php echo ($isGradingSystem1) ? '2' : '1'; ?>>
+                                                                                        <input type=<?php echo ($isGradingSystem1) ? 'text' : 'number step="any"'?> class='marks-input border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                                            value="<?php echo $SubMarksObtained; ?>"
+                                                                                            <?php echo ($isGradingSystem1) ? "oninput='this.value = this.value.toUpperCase()' placeholder='Grade'" : "";
+                                                                                            ?>>
+                                                                                            <div class="error-message text-wrap"></div>
+                                                                                    </td>
+                                                                                <?php 
+                                                                                ?>
+                                                                        
+                                                                        </tr>
+                                                                        <?php 
                                                                     }
-                                                                    
-                                                                    // Storing max marks that admin gives, in variables.
-                                                                    $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
-                                                                    
-                                                                    // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                                    $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
-                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
                                                                     ?>
-                                                                    <tr>
-                                                                        <td class="text-left"><?php echo htmlentities($subject['SubjectName']);?></td>
-                                                                            <?php
-                                                                            if(!$isGradingSystem1)
-                                                                            {
-                                                                            ?>
-                                                                                <td>
-                                                                                    <input type='number' min="0" step="any" class='marks-input border border-secondary max-marks-input' name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                                        value="<?php echo ($SubMaxMarksToShow !== null) ? $SubMaxMarksToShow : ''; ?>"
-                                                                                        data-subject-id="<?php echo $subject['ID']; ?>"
-                                                                                        >
-                                                                                </td>
-                                                                            <?php
-                                                                            }
-                                                                            ?>
-                                                                                <td colspan=<?php echo ($isGradingSystem1) ? '2' : '1'; ?>>
-                                                                                    <input type=<?php echo ($isGradingSystem1) ? 'text' : 'number step="any"'?> class='marks-input border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
-                                                                                        value="<?php echo $SubMarksObtained; ?>"
-                                                                                        <?php echo ($isGradingSystem1) ? "oninput='this.value = this.value.toUpperCase()' placeholder='Grade'" : "";
-                                                                                        ?>>
-                                                                                        <div class="error-message text-wrap"></div>
-                                                                                </td>
-                                                                            <?php 
-                                                                            ?>
-                                                                    
-                                                                    </tr>
-                                                                    <?php 
-                                                                }
-                                                                ?>
-                                                            <tr>
-                                                                <td colspan="3" class="text-right py-2">
-                                                                    <button class="btn btn-primary assign-marks-btn"
-                                                                        <?php echo 'type="button" data-toggle="modal" data-target="#confirmationModal_'.$student['ID'].'" '; ?>
-                                                                    >
-                                                                        Assign Marks
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                <tr>
+                                                                    <td colspan="3" class="text-right py-2">
+                                                                        <button class="btn btn-primary assign-marks-btn"
+                                                                            <?php echo 'type="button" data-toggle="modal" data-target="#confirmationModal_'.$student['ID'].'" '; ?>
+                                                                        >
+                                                                            Assign Marks
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
 
-                                                <!-- Confirmation Modal (Update) -->
-                                                <div class="modal fade" id="confirmationModal_<?php echo $student['ID']; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            Are you sure you want to assign given marks to <span class="font-weight-bold"><?php echo htmlentities($student['StudentName']);?></span>?
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <input type="hidden" name="studentID" value="<?php echo $student['ID']; ?>">
-                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                            <button type="submit" class="btn btn-primary" name="submit">Assign</button>
-                                                        </div>
+                                                    <!-- Confirmation Modal (Update) -->
+                                                    <div class="modal fade" id="confirmationModal_<?php echo $student['ID']; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                Are you sure you want to assign given marks to <span class="font-weight-bold"><?php echo htmlentities($student['StudentName']);?></span>?
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <input type="hidden" name="studentID" value="<?php echo $student['ID']; ?>">
+                                                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary" name="submit">Assign</button>
+                                                            </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </form>
+                                                </form>
                                             <?php
                                             }
                                         }
