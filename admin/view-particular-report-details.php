@@ -248,8 +248,8 @@ else
                                                 
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
-                                                        <td>{$subject['SubjectName']}</td>";
-                                                        echo "<td>{$marksObtained}</td>";
+                                                        <td>{$subject['SubjectName']}</td>
+                                                        <td>{$marksObtained}</td>";
                                                 echo "</tr>";
                                                 $counter++;
                                             }

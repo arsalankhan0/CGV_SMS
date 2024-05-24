@@ -131,7 +131,6 @@ $sdata=$_POST['searchdata'];
                             <th class="font-weight-bold">Student Class</th>
                             <th class="font-weight-bold">Student Section</th>
                             <th class="font-weight-bold">Student Name</th>
-                            <th class="font-weight-bold">Student Email</th>
                             <th class="font-weight-bold">Admissin Date</th>
                             <th class="font-weight-bold">Action</th>
                             
@@ -153,7 +152,7 @@ $query1->execute();
 $results1=$query1->fetchAll(PDO::FETCH_OBJ);
 $total_rows=$query1->rowCount();
 $total_pages = ceil($total_rows / $no_of_records_per_page);
-$sql="SELECT tblstudent.StuID,tblstudent.ID as sid,tblstudent.StudentName,tblstudent.StudentEmail,tblstudent.StudentSection,tblstudent.DateofAdmission,tblclass.ClassName from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.StuID like '$sdata%' AND tblstudent.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
+$sql="SELECT tblstudent.StuID,tblstudent.ID as sid,tblstudent.StudentName,tblstudent.StudentSection,tblstudent.DateofAdmission,tblclass.ClassName from tblstudent join tblclass on tblclass.ID=tblstudent.StudentClass where tblstudent.StuID like '$sdata%' AND tblstudent.IsDeleted = 0 LIMIT $offset, $no_of_records_per_page";
 $query = $dbh -> prepare($sql);
 $query->execute();
 $results=$query->fetchAll(PDO::FETCH_OBJ);
@@ -170,7 +169,6 @@ foreach($results as $row)
                             <td><?php  echo htmlentities($row->ClassName);?> </td>
                             <td><?php  echo getSectionName($row->StudentSection);?></td>
                             <td><?php  echo htmlentities($row->StudentName);?></td>
-                            <td><?php  echo htmlentities($row->StudentEmail);?></td>
                             <td><?php  echo htmlentities($row->DateofAdmission);?></td>
                             <td>
                               <div><a href="edit-student-detail.php?editid=<?php echo htmlentities ($row->sid);?>&source=current"><i class="icon-pencil"></i></a>

@@ -229,6 +229,7 @@
                   <li class="nav-item"> <a class="nav-link" href="contact-us.php"> Contact Us </a></li>
                   <li class="nav-item"> <a class="nav-link" href="gallery.php"> Gallery </a></li>
                   <li class="nav-item"> <a class="nav-link" href="ads.php">Advertisement</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="banners.php">Banners</a></li>
                 </ul>
               </div>
             </li>

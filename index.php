@@ -78,34 +78,63 @@ include('includes/dbconnection.php');
 		<div class="overlay overlay-bg"></div>
 		<!-- Indicators -->
 		<ol class="carousel-indicators">
-			<li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-			<li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-			<li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-		</ol>
+			<?php
+			$sql = "SELECT ImagePath FROM tblbanners ORDER BY ID DESC";
+			$stmt = $dbh->prepare($sql);
+			$stmt->execute();
+			$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+			$numImages = count($images);
+			for ($i = 0; $i < $numImages; $i++) {
+				echo '<li data-target="#carouselExampleIndicators" data-slide-to="' . $i . '"';
+				if ($i === 0) {
+					echo ' class="active"';
+				}
+				echo '></li>';
+			}
+			?>
+		</ol>
 		<!-- Wrapper for slides -->
 		<div class="carousel-inner">
-			<div class="carousel-item active">
-				<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
-			</div>
-			<div class="carousel-item">
-				<img src="./Main/img/School/DSC_0241.JPG" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
-			</div>
-			<div class="carousel-item">
-				<img src="./Main/img/School/DSC_0247.JPG" height="700px" style="object-fit: cover;" class="d-block w-100" alt="img">
-			</div>
+			<?php
+				if (count($images) > 0) 
+				{
+					$firstImage = true;
+					foreach ($images as $imagePath) 
+					{
+						?>
+						<div class="carousel-item <?php echo $firstImage ? 'active' : ''; ?>">
+							<img src="<?php echo './admin/images/MainBanners/' . $imagePath['ImagePath']; ?>" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
+						</div>
+						<?php
+						$firstImage = false;
+					}
+				} 
+				else 
+				{
+					echo '<div class="carousel-item active">
+							<img src="./Main/img/School/1000146556_x4.png" class="d-block w-100" height="700px" style="object-fit: cover;" alt="img">
+						</div>';
+				}
+			?>
 		</div>
-
-		<!-- Left and right controls -->
-		<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-			<span class="sr-only">Previous</span>
-		</a>
-		<a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-			<span class="carousel-control-next-icon" aria-hidden="true"></span>
-			<span class="sr-only">Next</span>
-		</a>
-
+		
+		<?php
+		if(count($images) > 1)
+		{
+		?>
+			<!-- Left and right controls -->
+			<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+				<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+				<span class="sr-only">Previous</span>
+			</a>
+			<a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+				<span class="carousel-control-next-icon" aria-hidden="true"></span>
+				<span class="sr-only">Next</span>
+			</a>
+		<?php
+		}
+		?>
 		<!-- Common caption for all slides -->
 		<div class="carousel-caption banner-content d-md-block">
 			<div class="row fullscreen d-flex align-items-center pt-5 justify-content-start">
