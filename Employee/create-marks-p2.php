@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsEMPid'])) 
@@ -590,7 +590,7 @@ else
                                                                             break;
                                                                         }
                                                                     }
-                                                                    
+                                                                    // echo "StudentClass:" . $student['studentClass'];
                                                                     // Storing max marks that admin gives, in variables.
                                                                     $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
                                                                     
@@ -603,8 +603,6 @@ else
                                                                     $subjectID = $subject['ID'];
 
                                                                     $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
-                                                                            
-                                                                            
                                                                     ?>
                                                                     <tr>
                                                                         <td class="text-left"><?php echo htmlentities($subject['SubjectName']);?></td>
