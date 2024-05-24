@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsEMPid'])) 
@@ -128,7 +128,7 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
+                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type, $exam)
                 {
                     global $dbh;
 
@@ -151,7 +151,7 @@ else
                             // Check if the subject is present in the JSON data
                             foreach ($subjectsJSON as $subject) 
                             {
-                                if ($subject['SubjectID'] == $subjectID && isset($subject[$type . 'MaxMarks']) && $subject[$type . 'MaxMarks'] > 0) 
+                                if ($subject['ExamName'] == $exam && $subject['SubjectID'] == $subjectID && isset($subject[$type . 'MaxMarks']) && $subject[$type . 'MaxMarks'] > 0) 
                                 {
                                     return $subject[$type . 'MaxMarks'];
                                 }
@@ -590,12 +590,11 @@ else
                                                                             break;
                                                                         }
                                                                     }
-                                                                    // echo "StudentClass:" . $student['studentClass'];
                                                                     // Storing max marks that admin gives, in variables.
                                                                     $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $_SESSION['examName'], $sessionID, $subject['ID'], 'Sub');
                                                                     
                                                                     // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
-                                                                    $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub') : $adminSubMaxMarks;
+                                                                    $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub', $_SESSION['examName']) : $adminSubMaxMarks;
                                                                     
                                                                     // Disable the input fields if the condition matches. 
                                                                     $disabledSub = ($publishedResult) ? 'disabled' : '';  
