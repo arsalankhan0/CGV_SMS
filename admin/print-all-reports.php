@@ -108,7 +108,7 @@ else
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
-                                
+                                <img src="../Main/img/logo1.png" alt="img" class="watermark">
                                 <!-- Student's Details -->
                                 <div class="mt-4">
                                     <div class="d-flex flex-row justify-content-between">
@@ -174,7 +174,7 @@ else
                                                 {
                                                     echo "<th scope='col'>" . $exam['ExamName'] . "</th>";
                                                 }?>
-                                                <th>Total(30)</th>
+                                                <th>Total</br>(30)</th>
                                                 <th colspan="2">Max Marks: 20</th>
                                                 <th colspan="2">Max Marks: 50</th>
                                                 <th colspan="2">Max Marks: 100</th>
@@ -746,7 +746,7 @@ else
                                                             }
                                                         }
                                                         echo "<tr>
-                                                                <td>{$subject['SubjectName']}</td>";
+                                                                <td colspan='2'>{$subject['SubjectName']}</td>";
                                                                 // Formative Grade
                                                                 foreach ($examGradeMarksArray as $examMarks) {
                                                                     echo "<td>$examMarks</td>";

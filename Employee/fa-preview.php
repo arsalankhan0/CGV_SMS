@@ -51,7 +51,8 @@ else
                 $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
                 // Filter the reports based on examName
-                $reports = array_filter($reports, function($report) use ($examName) {
+                $reports = array_filter($reports, function($report) use ($examName) 
+                {
                     // Extract ExamName from SubjectsJSON and compare with examName
                     $subjectsJSON = json_decode($report['SubjectsJSON'], true);
                     foreach ($subjectsJSON as $subject) {
@@ -207,7 +208,7 @@ else
                                     <table class="table table-bordered table-responsive-sm">
                                         <thead>
                                             <tr class="text-center">
-                                                <th>S.No.</th>
+                                                <th style="width:10%;">S.No.</th>
                                                 <th>Subject</th>
                                                 <th>Marks Obtained (MM: <?php echo $maxMarks; ?>)</th>
                                             </tr>
@@ -374,7 +375,7 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <tr class="text-center">
                                                 <?php
                                                 $studentTotalMarks = 0;
                                                 
@@ -416,7 +417,7 @@ else
                                         $optionalSubjectsQuery->execute();
                                         $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
-                                        <thead>
+                                        <thead class="text-center">
                                             <tr>
                                                 <th>Subjects</th>
                                                 <?php
@@ -428,7 +429,7 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <tr class="text-center">
                                                 <td>Grade Obtained</td>
                                                 <?php
                                                     foreach ($optionalSubjects as $subject) {

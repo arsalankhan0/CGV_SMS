@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (empty($_SESSION['sturecmsEMPid'])) 
@@ -410,12 +410,13 @@ else
         }
 
         // Function to check whether the current subject and class have grading system or not
-        function isGradingSystem1($dbh, $subjectID, $classID) 
+        function isGradingSystem1($dbh, $subjectID, $classID, $examID) 
         {
-            $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND ClassID = :classID AND GradingSystem = 1";
+            $gradingSystemSql = "SELECT GradingSystem FROM tblmaxmarks WHERE SubjectID = :subjectID AND ClassID = :classID AND ExamID = :examID AND GradingSystem = 1";
             $gradingSystemQuery = $dbh->prepare($gradingSystemSql);
             $gradingSystemQuery->bindParam(':subjectID', $subjectID, PDO::PARAM_INT);
             $gradingSystemQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
+            $gradingSystemQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
             $gradingSystemQuery->execute();
             $gradingSystemResult = $gradingSystemQuery->fetch(PDO::FETCH_ASSOC);
             
@@ -562,7 +563,7 @@ else
                                                                 foreach ($subjects as $subject) 
                                                                 { 
                                                                     $subjectID = $subject['ID'];
-                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);         
+                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs, $_SESSION['examName']);         
                                                                     
                                                                     // Check if marks exist in tblreports for the student, exam, and subject type
                                                                     $checkMarksSql = "SELECT SubjectsJSON FROM tblreports 
@@ -601,7 +602,7 @@ else
                                                                     
                                                                     $subjectID = $subject['ID'];
 
-                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs);
+                                                                    $isGradingSystem1 = isGradingSystem1($dbh, $subjectID, $classIDs, $_SESSION['examName']);
                                                                     ?>
                                                                     <tr>
                                                                         <td class="text-left"><?php echo htmlentities($subject['SubjectName']);?></td>

@@ -31,7 +31,8 @@ else
                     $image = $originalImageName;
 
                     // Check if the file is empty
-                    if ($_FILES["images"]["size"][$key] == 0) {
+                    if ($_FILES["images"]["size"][$key] == 0) 
+                    {
                         $dangerAlert = true;
                         $msg = "Please upload a valid image file!";
                         break;
@@ -41,7 +42,8 @@ else
                     $fileSize = $_FILES["images"]["size"][$key]; // Size in bytes
                     $maxFileSize = 1024 * 1024;
 
-                    if ($fileSize > $maxFileSize) {
+                    if ($fileSize > $maxFileSize) 
+                    {
                         $dangerAlert = true;
                         $msg = "The file '" . $originalImageName . "' is larger than 1 MB. Please upload images smaller than 1 MB.";
                         break;
@@ -118,142 +120,14 @@ else
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
-    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
     <!-- endinject -->
     <!-- Plugin css for this page -->
     <link rel="stylesheet" href="vendors/select2/select2.min.css">
     <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
     <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <!-- endinject -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="css/style.css" />
-    <style>
-        #uploadedImage 
-        {
-            max-width: 100%;
-            width: 20vh;
-        }
-
-        /* For Upload Image */
-        .multiple-uploader 
-        {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            border-radius: 15px;
-            border: 2px dashed #858585;
-            min-height: 150px;
-            margin: 20px auto;
-            cursor: pointer;
-            width: 80%;
-        }
-
-        .mup-msg 
-        {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .mup-msg span 
-        {
-            margin-bottom: 10px;
-        }
-
-        .mup-msg .mup-main-msg 
-        {
-            color: #606060;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .mup-msg .mup-msg 
-        {
-            color: #737373;
-        }
-
-        .image-container
-        {
-            margin: 1rem;
-            width: 120px;
-            height: 120px;
-            position: relative;
-            cursor: auto;
-            pointer-events: unset;
-        }
-
-        .image-container:before 
-        {
-            z-index: 3;
-            content: "\2716";
-            align-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            text-align: center;
-            line-height: 22px;
-            color: white;
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #e50000;
-            pointer-events: all;
-            cursor: pointer;
-        }
-
-        .image-preview 
-        {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 12px;
-        }
-
-        .image-size 
-        {
-            position: absolute;
-            z-index: 1;
-            height: 120px;
-            width: 120px;
-            backdrop-filter: blur(4px);
-            font-weight: bolder;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            opacity: 0;
-            pointer-events: unset;
-        }
-
-        .image-size:hover 
-        {
-            opacity: 1;
-        }
-
-        .exceeded-size
-        {
-            position: absolute;
-            z-index: 2;
-            height: 120px;
-            width: 120px;
-            display: flex;
-            font-weight: bold;
-            font-size: 12px;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            color: white;
-            background: rgba(255, 0, 0, 0.6);
-            pointer-events: unset;
-        }
-
-    </style>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/customImgSelector.css" />
     </head>
     <body>
         <div class="container-scroller">
@@ -313,9 +187,9 @@ else
                                 <span class="mup-msg" id="max-upload-number"></span>
                             </div>
                         </div>  
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-primary mr-2" id="uploadBtn" data-toggle="modal" data-target="#confirmationModal">Upload</button>
-                            <a href="manage-gallery.php" class="btn btn-info mx-2">Manage Gallery</a>
+                        <div class="d-flex justify-content-end ">
+                            <button type="button" class="btn btn-primary mr-1" id="uploadBtn" data-toggle="modal" data-target="#confirmationModal">Upload</button>
+                            <a href="manage-gallery.php" class="btn btn-info">Manage Gallery</a>
                         </div>
                         <!-- Confirmation Modal (Update) -->
                         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">

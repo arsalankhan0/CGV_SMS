@@ -138,6 +138,7 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
+                                <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
                                     <!-- <strong>Result of Formative Assessment<span class="border-bottom border-dark ml-2 px-5"></span></strong> -->
@@ -197,7 +198,7 @@ else
                                     <table class="table">
                                         <thead>
                                             <tr class="text-center">
-                                                <th>S.No.</th>
+                                                <th style="width: 10%;">S.No.</th>
                                                 <th>Subject</th>
                                                 <th>Marks Obtained (MM: <?php echo $maxMarks; ?>)</th>
                                             </tr>
@@ -249,7 +250,7 @@ else
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
                                                         <td>{$subject['SubjectName']}</td>
-                                                        <td>{$marksObtained}</td>";
+                                                        <td >{$marksObtained}</td>";
                                                 echo "</tr>";
                                                 $counter++;
                                             }
@@ -380,12 +381,12 @@ else
                                                             break;
                                                         }
                                                     }
-                                                    echo "<td>" . $subMarksObtained . "</td>";
+                                                    echo "<td class='text-center'>" . $subMarksObtained . "</td>";
 
                                                     $studentTotalMarks += (float)$subMarksObtained;
                                                 }
 
-                                                echo "<td>{$studentTotalMarks}</td>";
+                                                echo "<td class='text-center'>{$studentTotalMarks}</td>";
                                                 ?>
                                             </tr>
                                         </tbody>
@@ -406,7 +407,7 @@ else
                                         $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
                                         <thead>
-                                            <tr>
+                                            <tr class='text-center'>
                                                 <th>Subjects</th>
                                                 <?php
                                                 foreach ($optionalSubjects as $subject) 
@@ -417,7 +418,7 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <tr class='text-center'>
                                                 <td>Grade Obtained</td>
                                                 <?php
                                                     // Loop through each optional subject
