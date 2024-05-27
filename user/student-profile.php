@@ -61,17 +61,13 @@ else
                                         $sid = $_SESSION['sturecmsstuid'];
                                         $sql = "SELECT 
                                                     tblstudent.StudentName,
-                                                    tblstudent.StudentEmail,
                                                     tblstudent.StudentClass,
                                                     tblstudent.StudentSection,
                                                     tblstudent.Gender,
-                                                    tblstudent.DOB,
                                                     tblstudent.StuID,
                                                     tblstudent.FatherName,
-                                                    tblstudent.MotherName,
                                                     tblstudent.ContactNumber,
                                                     tblstudent.Address,
-                                                    tblstudent.UserName,
                                                     tblstudent.Password,
                                                     tblstudent.DateofAdmission,
                                                     tblclass.ClassName,
@@ -95,36 +91,32 @@ else
                                                 <tr>
                                                     <th>Student Name</th>
                                                     <td><?php echo $row->StudentName; ?></td>
-                                                    <th>Student Email</th>
-                                                    <td><?php echo $row->StudentEmail; ?></td>
                                                 </tr>
                                                 <tr>
                                                     <th>Student Class</th>
                                                     <td><?php echo $row->ClassName; ?> <?php echo $row->SectionName; ?></td>
+                                                </tr>
+                                                <tr>
                                                     <th>Gender</th>
                                                     <td><?php echo $row->Gender; ?></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Date of Birth</th>
-                                                    <td><?php echo $row->DOB; ?></td>
                                                     <th>Student ID</th>
                                                     <td><?php echo $row->StuID; ?></td>
                                                 </tr>
                                                 <tr>
                                                     <th>Father Name</th>
                                                     <td><?php echo $row->FatherName; ?></td>
-                                                    <th>Mother Name</th>
-                                                    <td><?php echo $row->MotherName; ?></td>
                                                 </tr>
                                                 <tr>
                                                     <th>Contact Number</th>
                                                     <td><?php echo $row->ContactNumber; ?></td>
+                                                </tr>
+                                                <tr>
                                                     <th>Address</th>
                                                     <td><?php echo $row->Address; ?></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>User Name</th>
-                                                    <td><?php echo $row->UserName; ?></td>
                                                     <th>Date of Admission</th>
                                                     <td colspan="3"><?php echo $row->DateofAdmission; ?></td>
                                                 </tr>

@@ -22,7 +22,7 @@ else
         $newpassword = $_POST['newpassword'];
         $confirmpassword = $_POST['confirmpassword'];
 
-        $sql = "SELECT Password FROM tblstudent WHERE StuID=:stdid";
+        $sql = "SELECT Password FROM tblstudent WHERE StuID=:stdid AND IsDeleted = 0";
         $query = $dbh->prepare($sql);
         $query->bindParam(':stdid', $sid, PDO::PARAM_STR);
         $query->execute();

@@ -3,9 +3,25 @@
     error_reporting(0);
     include('includes/dbconnection.php');
 
-    if (strlen($_SESSION['sturecmsaid']) == 0) {
+    if (strlen($_SESSION['sturecmsEMPid']) == 0) 
+    {
         header('location:logout.php');
-    } else {
+    } 
+    else 
+    {
+        $empID = $_SESSION['sturecmsEMPid'];
+        $sql = "SELECT * FROM tblemployees WHERE ID=:empID";
+        $query = $dbh->prepare($sql);
+        $query->bindParam(':empID', $empID, PDO::PARAM_STR);
+        $query->execute();
+        $IsAccessible = $query->fetch(PDO::FETCH_ASSOC);
+    
+        // Check if the role is "Teaching"
+        if ($IsAccessible['EmpType'] != "Teaching") 
+        {
+            echo "<h1>You have no permission to access this page!</h1>";
+            exit;
+        }
         $successAlert = false;
         $dangerAlert = false;
         $msg = "";
@@ -30,7 +46,7 @@
                     $maxFileSize = 10485760; // 10MB
 
                     $newFileName = "notes_" . time() . '.' . $fileExtension;
-                    $uploadFileDir = 'notes/';
+                    $uploadFileDir = '../admin/notes/';
                     $destPath = $uploadFileDir . $newFileName;
                     $fileName = basename($destPath);
                     
@@ -178,40 +194,54 @@
                                         <?php } ?>
 
                                         <?php
+                                            $eid = $_GET['editid'];
                                             $sql="SELECT * from tblnotes where ID=:eid";
                                             $query = $dbh -> prepare($sql);
                                             $query->bindParam(':eid',$eid,PDO::PARAM_STR);
                                             $query->execute();
                                             $results=$query->fetchAll(PDO::FETCH_OBJ);
-
+                                            
                                             // Fetching current active session.
                                             $sqlActiveSession = "SELECT session_id FROM tblsessions WHERE is_active = 1";
                                             $queryActiveSession = $dbh->prepare($sqlActiveSession);
                                             $queryActiveSession->execute();
                                             $activeSession = $queryActiveSession->fetch(PDO::FETCH_COLUMN);
-
+                                            
                                             // Fetching Classes
-                                            $sqlClasses = "SELECT * FROM tblclass WHERE IsDeleted = 0";
+                                            $sqlClasses = "SELECT c.ID, c.ClassName 
+                                            FROM tblemployees e 
+                                            JOIN tblclass c ON FIND_IN_SET(c.ID, e.AssignedClasses) 
+                                            WHERE e.ID = :empID 
+                                            AND e.IsDeleted = 0 
+                                            AND c.IsDeleted = 0";
                                             $queryClasses = $dbh->prepare($sqlClasses);
+                                            $queryClasses->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
                                             $queryClasses->execute();
                                             $classResults = $queryClasses->fetchAll(PDO::FETCH_ASSOC);
-
+                                            
                                             // Fetching main Subjects
-                                            $sqlMainSubjects = "SELECT ID, SubjectName 
-                                                                FROM tblsubjects
-                                                                WHERE IsDeleted = 0 AND SessionID = :activeSession AND IsOptional = 0 AND IsCurricularSubject = 0";
+                                            $sqlMainSubjects = "SELECT sub.ID, sub.SubjectName 
+                                                                FROM tblemployees emp 
+                                                                JOIN tblsubjects sub ON FIND_IN_SET(sub.ID, emp.AssignedSubjects) 
+                                                                WHERE emp.ID = :empID
+                                                                AND sub.SessionID = :activeSession
+                                                                AND sub.IsOptional = 0
+                                                                AND IsCurricularSubject = 0
+                                                                AND emp.IsDeleted = 0 
+                                                                AND sub.IsDeleted = 0";
                                             $queryMainSubjects = $dbh->prepare($sqlMainSubjects);
                                             $queryMainSubjects->bindParam(':activeSession', $activeSession, PDO::PARAM_INT);
+                                            $queryMainSubjects->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
                                             $queryMainSubjects->execute();
                                             $mainSubjects = $queryMainSubjects->fetchAll(PDO::FETCH_ASSOC);
-
+                                            
                                             $classDefault = "";
                                             $subjectDefault = "";
-
+                                            
                                             foreach($results as $row) {
                                                 $classDefault = $row->Class;
                                                 $subjectDefault = $row->Subject;
-                                            ?>
+                                                ?>
 
                                             <form class="forms-sample" id="form" method="post" enctype="multipart/form-data">
                                                 <div class="form-group">

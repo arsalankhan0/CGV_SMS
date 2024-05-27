@@ -6,7 +6,7 @@
         </div>
         <?php
           $uid= $_SESSION['sturecmsuid'];
-          $sql="SELECT * from tblstudent where ID=:uid";
+          $sql="SELECT ID, StudentName, StuID from tblstudent where ID=:uid";
 
           $query = $dbh -> prepare($sql);
           $query->bindParam(':uid',$uid,PDO::PARAM_STR);
@@ -33,7 +33,7 @@
                   <img class="img-md rounded-circle" src="../admin/images/faces/face8.jpg" alt="Profile image">
 
                   <p class="mb-1 mt-3"><?php  echo htmlentities($row->StudentName);?></p>
-                  <p class="font-weight-light text-muted mb-0"><?php  echo htmlentities($row->StudentEmail);?></p><?php $cnt=$cnt+1;}} ?>
+                  <p class="font-weight-light text-muted mb-0"><?php  echo "Student ID: " . htmlentities($row->StuID);?></p><?php $cnt=$cnt+1;}} ?>
                 </div>
                 <a class="dropdown-item" href="student-profile.php"><i class="dropdown-item-icon icon-user text-primary mx-2"></i> My Profile</a>
                 <a class="dropdown-item" href="change-password.php"><i class="dropdown-item-icon icon-energy text-primary mx-2"></i> Setting</a>

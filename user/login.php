@@ -13,7 +13,7 @@ try
       $stuid = $_POST['stuid'];
       $password = $_POST['password'];
 
-      $sql = "SELECT StuID, ID, StudentClass, StudentSection, Password FROM tblstudent WHERE (UserName=:stuid OR StuID=:stuid) AND IsDeleted = 0";
+      $sql = "SELECT StuID, ID, StudentClass, StudentSection, Password FROM tblstudent WHERE (StuID=:stuid) AND IsDeleted = 0";
       $query = $dbh->prepare($sql);
       $query->bindParam(':stuid', $stuid, PDO::PARAM_STR);
       $query->execute();

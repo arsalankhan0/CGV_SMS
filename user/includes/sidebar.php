@@ -9,7 +9,7 @@
                 <div class="text-wrapper">
                   <?php
          $uid= $_SESSION['sturecmsuid'];
-$sql="SELECT * from tblstudent where ID=:uid";
+$sql="SELECT ID, StudentName, StuID from tblstudent where ID=:uid";
 
 $query = $dbh -> prepare($sql);
 $query->bindParam(':uid',$uid,PDO::PARAM_STR);
@@ -22,7 +22,7 @@ if($query->rowCount() > 0)
 foreach($results as $row)
 {               ?>
                   <p class="profile-name"><?php  echo htmlentities($row->StudentName);?></p>
-                  <p class="designation"><?php  echo htmlentities($row->StudentEmail);?></p><?php $cnt=$cnt+1;}} ?>
+                  <p class="designation"><?php  echo htmlentities($row->StuID);?></p><?php $cnt=$cnt+1;}} ?>
                 </div>
              
               </a>

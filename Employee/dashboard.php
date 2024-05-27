@@ -58,8 +58,15 @@ else
                       <div class=" col-md-6 col-xl report-inner-card">
                         <div class="inner-card-text">
                           <?php 
-                          $sql1 ="SELECT * from  tblclass";
+                          // $sql1 ="SELECT ID from  tblclass";
+                          $sql1 ="SELECT c.ID
+                                  FROM tblemployees e 
+                                  JOIN tblclass c ON FIND_IN_SET(c.ID, e.AssignedClasses) 
+                                  WHERE e.ID = :empID 
+                                  AND e.IsDeleted = 0 
+                                  AND c.IsDeleted = 0";
                           $query1 = $dbh -> prepare($sql1);
+                          $query1->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
                           $query1->execute();
                           $results1=$query1->fetchAll(PDO::FETCH_OBJ);
                           $totclass=$query1->rowCount();
@@ -74,8 +81,16 @@ else
                       <div class="col-md-6 col-xl report-inner-card">
                         <div class="inner-card-text">
                           <?php 
-                          $sql2 ="SELECT * from  tblstudent";
+                          // $sql2 ="SELECT ID from  tblstudent";
+                          $sql2 ="SELECT std.ID
+                                  FROM tblemployees e 
+                                  JOIN tblstudent std ON FIND_IN_SET(std.StudentClass, e.AssignedClasses) 
+                                  AND FIND_IN_SET(std.StudentSection, e.AssignedSections)
+                                  WHERE e.ID = :empID 
+                                  AND e.IsDeleted = 0 
+                                  AND std.IsDeleted = 0";
                           $query2 = $dbh -> prepare($sql2);
+                          $query2->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
                           $query2->execute();
                           $results2=$query2->fetchAll(PDO::FETCH_OBJ);
                           $totstu=$query2->rowCount();

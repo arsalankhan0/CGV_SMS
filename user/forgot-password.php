@@ -10,14 +10,14 @@ try
 {
   if(isset($_POST['submit']))
   {
-      $email = $_POST['email'];
+      $stdID = $_POST['stdID'];
       $mobile = $_POST['mobile'];
       $newpassword = $_POST['newpassword'];
       $confirmpassword = $_POST['confirmpassword'];
 
-      $sql = "SELECT StudentEmail FROM tblstudent WHERE StudentEmail=:email and ContactNumber=:mobile";
+      $sql = "SELECT ID FROM tblstudent WHERE StuID=:stdID and ContactNumber=:mobile AND IsDeleted = 0";
       $query = $dbh->prepare($sql);
-      $query->bindParam(':email', $email, PDO::PARAM_STR);
+      $query->bindParam(':stdID', $stdID, PDO::PARAM_STR);
       $query->bindParam(':mobile', $mobile, PDO::PARAM_STR);
       $query->execute();
       $results = $query->fetchAll(PDO::FETCH_OBJ);
@@ -33,9 +33,9 @@ try
         } 
         else 
         {
-          $con = "UPDATE tblstudent SET Password=:newpassword WHERE StudentEmail=:email AND ContactNumber=:mobile";
+          $con = "UPDATE tblstudent SET Password=:newpassword WHERE StuID=:stuID AND ContactNumber=:mobile";
           $chngpwd1 = $dbh->prepare($con);
-          $chngpwd1->bindParam(':email', $email, PDO::PARAM_STR);
+          $chngpwd1->bindParam(':stuID', $stdID, PDO::PARAM_STR);
           $chngpwd1->bindParam(':mobile', $mobile, PDO::PARAM_STR);
           $chngpwd1->bindParam(':newpassword', $hashedPassword, PDO::PARAM_STR);
           $resultStudent = $chngpwd1->execute();
@@ -54,7 +54,7 @@ try
       }
       else
       {
-        $msg = "Invalid Email or Mobile number!";
+        $msg = "Invalid Student ID or Mobile number!";
         $dangerAlert = true;
       }
   }
@@ -96,7 +96,7 @@ catch (PDOException $e)
                 <img src="../Main/img/logo1.png">
                 </div>
                 <h4>RECOVER PASSWORD</h4>
-                <h6 class="font-weight-light">Enter your email address and mobile number to reset password!</h6>
+                <h6 class="font-weight-light">Enter your Student ID and mobile number to reset password!</h6>
                   <!-- Dismissible Alert messages -->
                   <?php 
                       if ($successAlert) 
@@ -122,7 +122,7 @@ catch (PDOException $e)
                       ?>
                 <form class="pt-3" id="login" method="post" name="login">
                   <div class="form-group">
-                    <input type="email" class="form-control form-control-lg" placeholder="Email Address" required="true" name="email">
+                    <input type="text" class="form-control form-control-lg" placeholder="Student ID" required="true" name="stdID">
                   </div>
                   <div class="form-group">
                     
