@@ -114,7 +114,7 @@ else
                     <?php
 
                         // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        $studentDetailsSql = "SELECT ID, StudentName, StudentSection, StudentClass, RollNo, FatherName, CodeNumber FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                         $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
                         $studentDetailsQuery->bindParam(':studentID', $_GET['studentName'], PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
@@ -163,8 +163,8 @@ else
                                     <!-- Row 2 -->
                                     <div class="d-flex flex-row align-items-start my-2">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Code No.:</label>
-                                            <span class="underline"></span>
+                                            <label class="text-nowrap">Code No.:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
                                             <label class="text-nowrap">Student's Name:</label>

@@ -60,6 +60,7 @@ else
             $fname = $_POST['fname'];
             $connum = $_POST['connum'];
             $address = $_POST['address'];
+            $code = $_POST['code'];
             $eid = $_GET['editid'];
 
                 $sql = "UPDATE tblstudent SET 
@@ -71,7 +72,8 @@ else
                         StuID=:stuid,
                         FatherName=:fname,
                         ContactNumber=:connum,
-                        Address=:address 
+                        Address=:address, 
+                        CodeNumber=:code 
                         WHERE ID=:eid";
 
             $query = $dbh->prepare($sql);
@@ -84,6 +86,7 @@ else
             $query->bindParam(':fname', $fname, PDO::PARAM_STR);
             $query->bindParam(':connum', $connum, PDO::PARAM_STR);
             $query->bindParam(':address', $address, PDO::PARAM_STR);
+            $query->bindParam(':code', $code, PDO::PARAM_STR);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
             $query->execute();
             $successAlert = true;
@@ -185,6 +188,7 @@ else
                                                     tblstudent.FatherName,
                                                     tblstudent.ContactNumber,
                                                     tblstudent.Address,
+                                                    tblstudent.CodeNumber,
                                                     tblstudent.Password,
                                                     tblstudent.DateofAdmission,
                                                     tblstudenthistory.SessionID,
@@ -211,6 +215,7 @@ else
                                                     tblstudent.FatherName,
                                                     tblstudent.ContactNumber,
                                                     tblstudent.Address,
+                                                    tblstudent.CodeNumber,
                                                     tblstudent.Password,
                                                     tblstudent.DateofAdmission,
                                                     tblstudent.SessionID,
@@ -370,6 +375,12 @@ else
                                                 <label for="exampleInputName1">Address</label>
                                                 <textarea name="address" class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>><?php echo htmlentities($row->Address); ?></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="code">Code Number</label>
+                                                <input type="text" name="code" class="form-control" required='true'
+                                                <?php echo "value=" . htmlentities($row->CodeNumber);
+                                                    if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>>
                                             </div>
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Student ID</label>

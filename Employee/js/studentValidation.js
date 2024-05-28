@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function()
     const fnameInput = document.getElementsByName('fname')[0];
     const connumInput = document.getElementsByName('connum')[0];
     const addressInput = document.getElementsByName('address')[0];
+    const codeInput = document.getElementById('code');
     const stuidInput = document.getElementById('stuid');
     const passwordInput = document.getElementById('password');
 
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function()
     fnameInput.addEventListener('keyup', validateFname);
     connumInput.addEventListener('keyup', validateContactNumber);
     addressInput.addEventListener('keyup', validateAddress);
+    codeInput.addEventListener('keyup', validateCode);
     stuidInput.addEventListener('keyup', function() {
         checkAvailability('stuid', stuidInput.value);
     });
@@ -45,6 +47,16 @@ document.addEventListener('DOMContentLoaded', function()
             setError(stunameInput, 'Student Name should not contain numbers or special characters!');
         } else {
             clearError(stunameInput);
+        }
+    }
+    // Validate Code No.
+    function validateCode() 
+    {
+        const code = codeInput.value.trim();
+        if (code === '') {
+            setError(codeInput, 'Code No. is required!');
+        } else {
+            clearError(codeInput);
         }
     }
 
@@ -166,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function()
         validateFname();
         validateContactNumber();
         validateAddress();
+        validateCode();
         validatePassword();
 
         const errors = document.querySelectorAll('.form-control.is-invalid');

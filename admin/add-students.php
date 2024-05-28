@@ -30,6 +30,7 @@ include('includes/dbconnection.php');
           $fname=$_POST['fname'];
           $connum=$_POST['connum'];
           $address=$_POST['address'];
+          $code=$_POST['code'];
           $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
           $ret="SELECT ID FROM tblstudent WHERE StuID=:stuid AND IsDeleted = 0";
           $query= $dbh -> prepare($ret);
@@ -60,7 +61,7 @@ include('includes/dbconnection.php');
             }
             else
             {
-              $sql = "INSERT INTO tblstudent(StudentName,StudentClass,StudentSection,RollNo,Gender,StuID,FatherName,ContactNumber,`Address`,`Password`,SessionID) VALUES (:stuname,:stuclass,:stusection,:stuRollNo,:gender,:stuid,:fname,:connum,:address,:password,:sessionID)";
+              $sql = "INSERT INTO tblstudent(StudentName,StudentClass,StudentSection,RollNo,Gender,StuID,FatherName,ContactNumber,`Address`,CodeNumber,`Password`,SessionID) VALUES (:stuname,:stuclass,:stusection,:stuRollNo,:gender,:stuid,:fname,:connum,:address,:code,:password,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
               $query->bindParam(':stuclass',$stuclass,PDO::PARAM_STR);
@@ -71,6 +72,7 @@ include('includes/dbconnection.php');
               $query->bindParam(':fname',$fname,PDO::PARAM_STR);
               $query->bindParam(':connum',$connum,PDO::PARAM_STR);
               $query->bindParam(':address',$address,PDO::PARAM_STR);
+              $query->bindParam(':code',$code,PDO::PARAM_STR);
               $query->bindParam(':password',$password,PDO::PARAM_STR);
               $query->bindParam(':sessionID',$activeSession,PDO::PARAM_STR);
               $query->execute();
@@ -251,6 +253,11 @@ include('includes/dbconnection.php');
                         <div class="form-group">
                             <label for="address">Address</label>
                             <textarea id="address" name="address" class="form-control" required='true'></textarea>
+                            <div class="text-danger"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="code">Code Number</label>
+                            <input type="text" id="code" name="code" class="form-control" required='true'></input>
                             <div class="text-danger"></div>
                         </div>
 
