@@ -254,6 +254,7 @@ else
                                             // Display message indicating the filtered results
                                             echo "<div class='d-flex justify-content-between align-items-center'>";
                                             echo "<strong class=''>Showing results of <span class='text-dark'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span>, <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-dark'>Section: " . htmlspecialchars($sectionName) . "</span></strong>";
+                                            echo "<button class='btn btn-info' onclick='previewAll()'>Preview All</button>";
                                             echo "</div>";
                                             echo "<div class='table-responsive border rounded p-1 mt-4'>";
                                             echo "<table class='table'>";
@@ -348,9 +349,16 @@ else
 <!-- Custom js for this page -->
 <script src="./js/dashboard.js"></script>
 <script>
-    function printReportDetails(url) {
-        var newWindow = window.open(url, '_blank');
-        newWindow.print();
+    function printReportDetails(url) 
+    {
+        let newWindow = window.open(url, '_blank');
+    }
+    function previewAll() {
+        <?php
+        foreach ($filteredReports as $report) {
+            echo "printReportDetails(\"fa-preview-all.php?className=" . urlencode($report['ClassName']) .  "&examName=" . urlencode($examName) . "&examSession=" . urlencode($report['ExamSession']) . "\");";
+        }
+        ?>
     }
 </script>
 <!-- End custom js for this page -->

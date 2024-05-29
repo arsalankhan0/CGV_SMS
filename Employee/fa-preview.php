@@ -469,6 +469,7 @@ else
                                     </div>
                                 </footer>
                             </div>
+                            <a href="preview.php" class="btn btn-info mb-4">Back</a>
                         </div>
                 </div>
             </div>

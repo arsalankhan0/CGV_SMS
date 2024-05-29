@@ -58,7 +58,7 @@
                 <div class="row">
                     <div class="col-lg-3">
                         <ul class="resource-menu">
-                            <li><a href="#syllabus">Syllabus</a></li>
+                            <li><a href="#syllabus">Planners</a></li>
                             <li><a href="#notes">Notes</a></li>
                         </ul>
                     </div>
@@ -76,7 +76,7 @@
                             {
                                 ?>
                                 <div id="syllabus" class="resource-content">
-                                    <h3>Syllabus List</h3>
+                                    <h3>Planner List</h3>
                                     <div class="syllabus-list mt-4">
                                         <div class="">
                                             <table class="table w-100">
@@ -112,7 +112,7 @@
                             } 
                             else 
                             {
-                                echo "<div id='syllabus' class='resource-content'><h3>Syllabus List</h3>No records found</div>";
+                                echo "<div id='syllabus' class='resource-content'><h3>Planner List</h3>No records found</div>";
                             }
                         ?>
                         <!-- Notes -->

@@ -73,9 +73,9 @@ else
             else 
             {
                 // Check if there are records in tblreports for this exam
-                $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE ExamName = :examName";
+                $checkReportsSql = "SELECT COUNT(*) FROM tblreports WHERE JSON_CONTAINS(SubjectsJSON, :examId, '$.ExamName')";
                 $checkReportsQuery = $dbh->prepare($checkReportsSql);
-                $checkReportsQuery->bindParam(':examName', $rid, PDO::PARAM_STR);
+                $checkReportsQuery->bindParam(':examId', $rid, PDO::PARAM_STR);
                 $checkReportsQuery->execute();
                 $reportCount = $checkReportsQuery->fetchColumn();
 

@@ -381,6 +381,16 @@ else
             // If the GradingSystem is 1, hide the Max Marks column and show the Marks Obtained column as input type text
             return $gradingSystemResult !== false;
         }
+        // Function to check the exam type
+        function checkExamType($dbh, $examID, $examType) 
+        {
+            $examTypeSql = "SELECT ID FROM tblexamination WHERE ID = :examID AND ExamType = :examType AND IsDeleted = 0";
+            $examTypeQuery = $dbh->prepare($examTypeSql);
+            $examTypeQuery->bindParam(':examID', $examID, PDO::PARAM_INT);
+            $examTypeQuery->bindParam(':examType', $examType, PDO::PARAM_STR);
+            $examTypeQuery->execute();
+            return $examTypeQuery->rowCount() > 0;
+        }
 ?>
 
 <!DOCTYPE html>
@@ -503,7 +513,22 @@ else
                                                                 <tr>
                                                                     <?php 
                                                                     // Fetch Subjects for the selected class
-                                                                    $subjectSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :classID AND IsDeleted = 0";
+                                                                    $examID = $_SESSION['examName'];
+                                                                    $coCurricularType = "Co-Curricular";
+                                                                    $summativeType = "Summative";
+    
+                                                                    // Check exam types
+                                                                    $isCoCurricular = checkExamType($dbh, $examID, $coCurricularType);
+                                                                    $isSummative = checkExamType($dbh, $examID, $summativeType);
+    
+                                                                    if ($isSummative) 
+                                                                    {
+                                                                        $subjectSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :classID AND IsCurricularSubject = 0 AND IsDeleted = 0";
+                                                                    } 
+                                                                    else 
+                                                                    {
+                                                                        $subjectSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :classID AND IsDeleted = 0";
+                                                                    }
                                                                     $subjectQuery = $dbh->prepare($subjectSql);
                                                                     $classID = '%' . unserialize($_SESSION['classIDs']) . '%';
                                                                     $subjectQuery->bindParam(':classID', $classID, PDO::PARAM_STR);

@@ -44,7 +44,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                 $maxFileSize = 10485760; // 10MB
                 // File upload validation
                 if (in_array($fileExtension, $allowedExtensions) && $syllabusSize <= $maxFileSize) {
-                    $newFileName = "syllabus_" . time() . '.' . $fileExtension;
+                    $newFileName = "planner_" . time() . '.' . $fileExtension;
                     $uploadFileDir = '../admin/syllabus/';
                     $destPath = $uploadFileDir . $newFileName;
 
@@ -58,7 +58,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                         $query->bindParam(':eid', $eid, PDO::PARAM_INT);
                         $query->execute();
                         $successAlert = true;
-                        $msg = "Syllabus of the selected class has been updated successfully.";
+                        $msg = "Planner of the selected class has been updated successfully.";
                     } else {
                         $msg = "Failed to move uploaded file.";
                         $dangerAlert = true;
@@ -68,7 +68,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                     $dangerAlert = true;
                 }
             } else {
-                $msg = "Failed to upload syllabus file.";
+                $msg = "Failed to upload Planner file.";
                 $dangerAlert = true;
             }
         }
@@ -76,7 +76,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
     catch (PDOException $e) 
     {
         $dangerAlert = true;
-        $msg = "Ops! An error occurred while updating syllabus.";
+        $msg = "Ops! An error occurred while updating Planner.";
         echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
     // Fetch the class name based on the class ID stored in tblsyllabus
@@ -94,7 +94,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>TPS || Update Syllabus</title>
+    <title>TPS || Update Planner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -122,11 +122,11 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Update Syllabus </h3>
+                        <h3 class="page-title"> Update Planner </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> Update Syllabus</li>
+                                <li class="breadcrumb-item active" aria-current="page"> Update Planner</li>
                             </ol>
                         </nav>
                     </div>
@@ -134,7 +134,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title" style="text-align: center;">Update Syllabus of Class <?php echo htmlspecialchars($className); ?></h4>
+                                    <h4 class="card-title" style="text-align: center;">Update Planner of Class <?php echo htmlspecialchars($className); ?></h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php if ($successAlert) { ?>
                                         <!-- Success -->
@@ -164,7 +164,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                                             foreach($results as $row)
                                             {   ?>
                                                 <div class="form-group">
-                                                    <label for="syllabusInput">Upload Syllabus (PDF only)</label>
+                                                    <label for="syllabusInput">Upload Planner (PDF only)</label>
                                                     <div class="file-input-wrapper">
                                                         <input type="file" name="syllabus" class="form-control-file border-border-dark" id="syllabusInput" onchange="updateFileName(this)">
                                                         <span id="fileNameLabel"><?php
@@ -191,7 +191,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        Are you sure you want to update Syllabus of Class <?php echo htmlspecialchars($className); ?>?
+                                                        Are you sure you want to update Planner of Class <?php echo htmlspecialchars($className); ?>?
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

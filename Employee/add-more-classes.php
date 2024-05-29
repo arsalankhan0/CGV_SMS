@@ -24,12 +24,12 @@ else
             if (!empty($selectedClasses)) 
             {
                     $selectedClassesImploded = implode(",", $selectedClasses);
-                    $examTypes = isset($_POST['examTypes']) ? implode(",", $_POST['examTypes']) : '';
+                    $examType = isset($_POST['examType']) ? $_POST['examType'] : '';
 
-                    $sql = "UPDATE tblexamination SET ClassName=:cName, ExamType=:examTypes WHERE ID=:eid";
+                    $sql = "UPDATE tblexamination SET ClassName=:cName, ExamType=:examType WHERE ID=:eid";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':cName', $selectedClassesImploded, PDO::PARAM_STR);
-                    $query->bindParam(':examTypes', $examTypes, PDO::PARAM_STR);
+                    $query->bindParam(':examType', $examType, PDO::PARAM_STR);
                     $query->bindParam(':eid', $eid, PDO::PARAM_STR);
                     $query->execute();
 
@@ -168,23 +168,21 @@ else
 
                                     <div class="form-group">
                                         <label>Exam Types</label>
-                                        <div class="checkbox-group d-flex flex-wrap justify-content-start">
+                                        <div class="radio-group d-flex flex-wrap justify-content-start">
                                             <?php
-                                            $examTypes = isset($examClassesRow->ExamType) ? explode(",", $examClassesRow->ExamType) : [];
+                                            $selectedExamType = isset($examClassesRow->ExamType) ? $examClassesRow->ExamType : "";
 
                                             $examTypeLabels = [
                                                 "Formative" => "formative",
-                                                "Co-Curricular" => "coCurricular",
                                                 "Summative" => "summative"
                                             ];
 
-                                            foreach ($examTypeLabels as $examTypeLabel => $examTypeId) 
-                                            {
-                                                $checked = in_array($examTypeLabel, $examTypes) ? 'checked' : '';
+                                            foreach ($examTypeLabels as $examTypeLabel => $examTypeId) {
+                                                $checked = ($selectedExamType === $examTypeLabel) ? 'checked' : '';
                                                 echo "<div class='form-check mr-4'>
                                                         <label class='form-check-label' for='$examTypeId'>
                                                             $examTypeLabel
-                                                            <input class='form-check-input' type='checkbox' name='examTypes[]' value='$examTypeLabel' id='$examTypeId' $checked>
+                                                            <input class='form-check-input' type='radio' name='examType' value='$examTypeLabel' id='$examTypeId' $checked>
                                                         </label>
                                                     </div>";
                                             }

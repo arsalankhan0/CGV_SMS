@@ -18,11 +18,11 @@ else
         {
             $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);
             $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
-            $examTypes = isset($_POST['examTypes']) ? implode(",", $_POST['examTypes']) : '';
+            $examType = isset($_POST['examType']) ? $_POST['examType'] : '';
 
-            if (empty($examName) || empty($classIDs) || empty($examTypes)) 
+            if (empty($examName) || empty($classIDs) || empty($examType)) 
             {
-                $msg = "Please fill all the fields and select at least one exam type!";
+                $msg = "Please fill up all the fields!";
                 $dangerAlert = true;
             } 
             else 
@@ -43,11 +43,11 @@ else
                     $classNames = implode(",", $classIDs);
 
                     $sql = "INSERT INTO tblexamination (ExamName, ClassName, ExamType) 
-                            VALUES (:examName, :classNames, :examTypes)";
+                            VALUES (:examName, :classNames, :examType)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':examName', $examName, PDO::PARAM_STR);
                     $query->bindParam(':classNames', $classNames, PDO::PARAM_STR);
-                    $query->bindParam(':examTypes', $examTypes, PDO::PARAM_STR);
+                    $query->bindParam(':examType', $examType, PDO::PARAM_STR);
                     $query->execute();
 
                     $msg = "Exam has been added successfully.";
@@ -159,23 +159,17 @@ else
                                     </div>
                                     <div class="form-group">
                                         <label>Exam Types</label>
-                                        <div class="checkbox-group d-flex flex-wrap justify-content-start">
+                                        <div class="radio-group d-flex flex-wrap justify-content-start">
                                             <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="formative">
                                                     Formative Assessment
-                                                    <input class="form-check-input" type="checkbox" name="examTypes[]" value="Formative" id="formative">
-                                                </label>
-                                            </div>
-                                            <div class="form-check mr-4 mb-2">
-                                                <label class="form-check-label" for="coCurricular">
-                                                    Co-Curricular Activities
-                                                    <input class="form-check-input" type="checkbox" name="examTypes[]" value="Co-Curricular" id="coCurricular">
+                                                    <input class="form-check-input" type="radio" name="examType" value="Formative" id="formative">
                                                 </label>
                                             </div>
                                             <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="summative">
                                                     Summative Assessment
-                                                    <input class="form-check-input" type="checkbox" name="examTypes[]" value="Summative" id="summative">
+                                                    <input class="form-check-input" type="radio" name="examType" value="Summative" id="summative">
                                                 </label>
                                             </div>
                                         </div>

@@ -154,7 +154,7 @@
         if ($results['EmpType'] == "Teaching") 
         {
             $eid = $_SESSION['sturecmsEMPid'];
-            $sql = "SELECT * FROM tblemployees WHERE ID=:eid AND IsDeleted = 0";
+            $sql = "SELECT ID, AssignedSubjects FROM tblemployees WHERE ID=:eid AND IsDeleted = 0";
             $query = $dbh->prepare($sql);
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
             $query->execute();
@@ -205,14 +205,14 @@
             </div>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#syllabus" aria-expanded="false" aria-controls="syllabus">
-                <span class="menu-title">Syllabus</span>
+            <a class="nav-link" data-toggle="collapse" href="#planner" aria-expanded="false" aria-controls="planner">
+                <span class="menu-title">Planner</span>
                 <i class="icon-book-open menu-icon"></i>
             </a>
-            <div class="collapse" id="syllabus">
+            <div class="collapse" id="planner">
                 <ul class="nav flex-column sub-menu">
-                    <li class="nav-item"><a class="nav-link" href="add-syllabus.php">Add Syllabus</a></li>
-                    <li class="nav-item"><a class="nav-link" href="manage-syllabus.php">Manage Syllabus</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add-syllabus.php">Add Planner</a></li>
+                    <li class="nav-item"><a class="nav-link" href="manage-syllabus.php">Manage Planner</a></li>
                 </ul>
             </div>
         </li>    

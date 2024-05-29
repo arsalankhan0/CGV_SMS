@@ -3,12 +3,14 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
-if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
+if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid'])) 
 {
     header('location:logout.php');
 } 
 else 
 {
+
+
     if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
     {
         $className = urldecode($_GET['className']);
@@ -48,18 +50,24 @@ else
         {
             echo "<script>alert('No data found for the selected criteria.');</script>";
         }
-        ?>
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <title>TPS || Student Reports</title>
-            <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
-            <link rel="stylesheet" href="css/style.css" />
-            <link rel="stylesheet" href="./css/reportCard.css" />
-        </head>
-        <body>
-            
-            <div class="container-scroller">
+            ?>
+                <!DOCTYPE html>
+                <html lang="en">
+
+                <head>
+                    <title>TPS || Student Preview</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
+                    <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
+                    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+                    <link rel="stylesheet" href="vendors/select2/select2.min.css">
+                    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+                    <link rel="stylesheet" href="css/style.css" />
+                    <link rel="stylesheet" href="./css/fa-preview.css">
+                </head>
+
+                <body>
+                <div class="container-scroller">
                 <div class="container page-body-wrapper d-flex flex-column">
                     <?php
                     $groupedReports = [];
@@ -109,41 +117,47 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
-                                <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <strong>Result of <?php echo htmlspecialchars($examNameRow); ?></strong>
+                                    <strong>Preview of <?php echo htmlspecialchars($examNameRow); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
                                     <!-- Row 1 -->
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Duration:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label>Duration:</label>
+                                            <span class="underline"></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">To:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label class="text-nowrap">To:</label>
+                                            <span class="underline"></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
                                     <div class="d-flex flex-row align-items-start my-2">
-                                        <div class=" mr-5">
-                                            <label>Code No.:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
+                                        <div class="d-flex align-items-center w-100">
+                                            <label class="text-nowrap">Code No.:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
+                                            <label class="text-nowrap">Student's Name:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 3 -->
                                     <div class="d-flex flex-row justify-content-between" style="gap: 30px">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label>
+                                            <span class="underline"><?php echo htmlentities($studentClass); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label>
+                                            <span class="underline"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Roll No:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            <label class="text-nowrap">Roll No:</label>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +179,7 @@ else
                                             $maxMarks = 'N/A'; 
                                         }
                                     ?>
-                                    <table class="table">
+                                    <table class="table table-bordered table-responsive-sm">
                                         <thead>
                                             <tr class="text-center">
                                                 <th style="width:10%;">S.No.</th>
@@ -289,8 +303,8 @@ else
 
                                 <!-- Co-Curricular Component of Academic Session -->
                                 <div class="d-flex flex-column mt-4">
-                                    <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
-                                    <table class="table  w-100">
+                                    <strong class="text-wrap">Marks Obtained in Co-curricular Component During the Assessment period</strong>
+                                    <table class="table table-bordered w-100">
                                         <thead>
                                             <tr class="text-center">
                                                 <?php
@@ -313,6 +327,7 @@ else
                                                 $subjectsData = !empty($subjectsJson) ? json_decode($subjectsJson, true) : [];
                                                 
                                                 $studentTotalMaxMarks = 0;
+                                                
                                                 foreach ($subjects as $subject) 
                                                 {
                                                     $maxMarks = '';
@@ -365,8 +380,8 @@ else
 
                                 <!-- Optional Subjects in Grades-->
                                 <div class="d-flex flex-column mt-4">
-                                    <strong>Grade in Optional Subjects:</strong>
-                                    <table class="table ">
+                                    <strong class="text-wrap">Grade in Optional Subjects:</strong>
+                                    <table class="table table-bordered">
                                         <?php
                                         // Fetch only those subjects of the class whose IsOptional is 0
                                         $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
@@ -376,8 +391,8 @@ else
                                         $optionalSubjectsQuery->execute();
                                         $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
-                                        <thead>
-                                            <tr class="text-center">
+                                        <thead class="text-center">
+                                            <tr>
                                                 <th>Subjects</th>
                                                 <?php
                                                 foreach ($optionalSubjects as $subject) 
@@ -391,13 +406,12 @@ else
                                             <tr class="text-center">
                                                 <td>Grade Obtained</td>
                                                 <?php
-                                                    // Loop through each optional subject
                                                     foreach ($optionalSubjects as $subject) {
-                                                        $marksObtained = ""; // Initialize marks obtained for the current subject
+                                                        $marksObtained = "";
 
                                                         // Loop through allSubjectsJson to find the matching subject and extract marks obtained
                                                         foreach ($allSubjectsJsonArray as $row) {
-                                                            $subjectData = json_decode($row['SubjectsJSON'], true); // Decode the JSON data into an associative array
+                                                            $subjectData = json_decode($row['SubjectsJSON'], true);
 
                                                             // Loop through subject data to find the matching subject ID and check if it's optional
                                                             foreach ($subjectData as $data) {
@@ -420,24 +434,39 @@ else
 
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="mt-5">
-                                        <label>Date:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
+                                        <label>Date:</label>
+                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>
                                     <div class="mt-5">
-                                        <label>Class Teacher's Signature:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
+                                        <label>Class Teacher's Signature:</label>
+                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>
                                 </footer>
                             </div>
                         </div>
-                    <?php
+                        <?php
                     }
-                    ?>
+                        ?>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <a href="preview.php" class="btn btn-info mb-4">Back</a>
                 </div>
             </div>
-        </body>
-        </html>
-        <?php
-    } else {
-        echo "<script>alert('Invalid Request');</script>";
+
+                    <script src="vendors/js/vendor.bundle.base.js"></script>
+                    <script src="vendors/select2/select2.min.js"></script>
+                    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
+                    <script src="js/off-canvas.js"></script>
+                    <script src="js/misc.js"></script>
+                    <script src="js/typeahead.js"></script>
+                    <script src="js/select2.js"></script>
+                </body>
+                </html>
+<?php
+    } 
+    else 
+    {
+        echo "<script>alert('Invalid Request.'); window.location.href='preview.php';</script>";
     }
 }
 ?>
