@@ -252,9 +252,9 @@ else
                                         if (!empty($filteredReports) && !empty($availableStudent)) 
                                         {
                                             // Display message indicating the filtered results
-                                            echo "<div class='d-flex justify-content-between align-items-center'>";
+                                            echo "<div class='d-flex justify-content-between  flex-column flex-md-row align-items-center'>";
                                             echo "<strong class=''>Showing results of <span class='text-dark'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span>, <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-dark'>Section: " . htmlspecialchars($sectionName) . "</span></strong>";
-                                            echo "<button class='btn btn-info' onclick='previewAll()'>Preview All</button>";
+                                            echo "<button class='btn btn-info mt-3 mt-md-0' onclick='previewAll()'>Preview All</button>";
                                             echo "</div>";
                                             echo "<div class='table-responsive border rounded p-1 mt-4'>";
                                             echo "<table class='table'>";

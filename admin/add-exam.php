@@ -19,6 +19,8 @@ else
             $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);
             $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
             $examType = isset($_POST['examType']) ? $_POST['examType'] : '';
+            $durationFrom = isset($_POST['durationFrom']) ? $_POST['durationFrom'] : '';
+            $durationTo = isset($_POST['durationTo']) ? $_POST['durationTo'] : '';
 
             if (empty($examName) || empty($classIDs) || empty($examType)) 
             {
@@ -42,12 +44,14 @@ else
                 {
                     $classNames = implode(",", $classIDs);
 
-                    $sql = "INSERT INTO tblexamination (ExamName, ClassName, ExamType) 
-                            VALUES (:examName, :classNames, :examType)";
+                    $sql = "INSERT INTO tblexamination (ExamName, ClassName, ExamType, DurationFrom, DurationTo) 
+                            VALUES (:examName, :classNames, :examType, :durationFrom, :durationTo)";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':examName', $examName, PDO::PARAM_STR);
                     $query->bindParam(':classNames', $classNames, PDO::PARAM_STR);
                     $query->bindParam(':examType', $examType, PDO::PARAM_STR);
+                    $query->bindParam(':durationFrom', $durationFrom, PDO::PARAM_STR);
+                    $query->bindParam(':durationTo', $durationTo, PDO::PARAM_STR);
                     $query->execute();
 
                     $msg = "Exam has been added successfully.";
@@ -172,6 +176,14 @@ else
                                                     <input class="form-check-input" type="radio" name="examType" value="Summative" id="summative">
                                                 </label>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="durationFrom">Duration</label>
+                                        <div class="d-flex justify-content-between flex-column flex-md-row align-items-center">
+                                            <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom" required>
+                                            <span>to</span>
+                                            <input type="date" name="durationTo" class="form-control ml-2" id="durationTo" required>
                                         </div>
                                     </div>
 

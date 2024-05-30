@@ -25,12 +25,18 @@ else
             {
                     $selectedClassesImploded = implode(",", $selectedClasses);
                     $examType = isset($_POST['examType']) ? $_POST['examType'] : '';
+                    $durationFrom = isset($_POST['durationFrom']) ? $_POST['durationFrom'] : '';
+                    $durationTo = isset($_POST['durationTo']) ? $_POST['durationTo'] : '';
 
-                    $sql = "UPDATE tblexamination SET ClassName=:cName, ExamType=:examType WHERE ID=:eid";
+                    $sql = "UPDATE tblexamination 
+                            SET ClassName = :cName, ExamType = :examType, DurationFrom = :durationFrom, DurationTo = :durationTo 
+                            WHERE ID = :eid";
                     $query = $dbh->prepare($sql);
                     $query->bindParam(':cName', $selectedClassesImploded, PDO::PARAM_STR);
                     $query->bindParam(':examType', $examType, PDO::PARAM_STR);
-                    $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                    $query->bindParam(':durationFrom', $durationFrom, PDO::PARAM_STR);
+                    $query->bindParam(':durationTo', $durationTo, PDO::PARAM_STR);
+                    $query->bindParam(':eid', $_GET['editid'], PDO::PARAM_STR);
                     $query->execute();
 
                     $successAlert = true;
@@ -187,6 +193,14 @@ else
                                                     </div>";
                                             }
                                             ?>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="durationFrom">Duration</label>
+                                            <div class="d-flex justify-content-between flex-column flex-md-row align-items-center">
+                                                <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom" value="<?php echo isset($examClassesRow->DurationFrom) ? $examClassesRow->DurationFrom : ''; ?>" required>
+                                                <span>to</span>
+                                                <input type="date" name="durationTo" class="form-control ml-2" id="durationTo" value="<?php echo isset($examClassesRow->DurationTo) ? $examClassesRow->DurationTo : ''; ?>" required>
+                                            </div>
                                         </div>
                                     </div>  
 

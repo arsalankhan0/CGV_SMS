@@ -109,7 +109,7 @@ else
                     <?php
 
                         // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        $studentDetailsSql = "SELECT ID, StudentName,CodeNumber, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                         $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
                         $studentDetailsQuery->bindParam(':studentID', $_GET['studentName'], PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
@@ -130,11 +130,11 @@ else
                         $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
 
                         // Fetch Exam Name from the database
-                        $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
+                        $examNameSql = "SELECT ExamName,DurationFrom, DurationTo FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
                         $examNameQuery = $dbh->prepare($examNameSql);
                         $examNameQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
                         $examNameQuery->execute();
-                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_COLUMN);
+                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
@@ -142,25 +142,25 @@ else
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
                                     <!-- <strong>Result of Formative Assessment<span class="border-bottom border-dark ml-2 px-5"></span></strong> -->
-                                    <strong>Result of <?php echo htmlspecialchars($examNameRow); ?></strong>
+                                    <strong>Result of <?php echo htmlspecialchars($examNameRow['ExamName']); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
                                     <!-- Row 1 -->
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
-                                            <label>Duration:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label>Duration:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlspecialchars($examNameRow['DurationFrom']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">To:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"></span>
+                                            <label class="text-nowrap">To:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlspecialchars($examNameRow['DurationTo']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
                                     <div class="d-flex flex-row align-items-start my-2">
                                         <div class=" mr-5">
-                                            <label>Code No.:</label><span class="border-bottom border-dark ml-2 px-5"></span>
+                                            <label>Code No.:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
-                                        <div class="d-flex align-items-center w-100">
+                                        <div class="d-flex align-items-center w-75">
                                             <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
                                         </div>
                                     </div>

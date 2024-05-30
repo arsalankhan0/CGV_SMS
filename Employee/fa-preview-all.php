@@ -109,17 +109,17 @@ else
                         $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
 
                         // Fetch Exam Name from the database
-                        $examNameSql = "SELECT ExamName FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
+                        $examNameSql = "SELECT ExamName, DurationFrom, DurationTo FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
                         $examNameQuery = $dbh->prepare($examNameSql);
                         $examNameQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
                         $examNameQuery->execute();
-                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_COLUMN);
+                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <strong>Preview of <?php echo htmlspecialchars($examNameRow); ?></strong>
+                                    <strong>Preview of <?php echo htmlspecialchars($examNameRow['ExamName']); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
@@ -127,11 +127,11 @@ else
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
                                             <label>Duration:</label>
-                                            <span class="underline"></span>
+                                            <span class="underline"><?php echo htmlspecialchars($examNameRow['DurationFrom']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
                                             <label class="text-nowrap">To:</label>
-                                            <span class="underline"></span>
+                                            <span class="underline"><?php echo htmlspecialchars($examNameRow['DurationTo']); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
