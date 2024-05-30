@@ -32,52 +32,67 @@ else
         {
             $classId = filter_var($_POST['class'], FILTER_SANITIZE_STRING);
 
-            // File upload validation
-            if ($_FILES['syllabusPdf']['error'] === UPLOAD_ERR_OK) 
+            // Check if planner already exists for the selected class
+            $checkSql = "SELECT ID FROM tblsyllabus WHERE Class = :classId";
+            $checkQuery = $dbh->prepare($checkSql);
+            $checkQuery->bindParam(':classId', $classId, PDO::PARAM_INT);
+            $checkQuery->execute();
+            $plannerExists = $checkQuery->rowCount() > 0;
+
+            if($plannerExists)
             {
-                $fileTmpPath = $_FILES['syllabusPdf']['tmp_name'];
-                $fileName = $_FILES['syllabusPdf']['name'];
-                $fileSize = $_FILES['syllabusPdf']['size'];
-                $fileType = $_FILES['syllabusPdf']['type'];
-                $fileNameCmps = explode(".", $fileName);
-                $fileExtension = strtolower(end($fileNameCmps));
-
-                // Check if file is a PDF and size limit is not exceeded
-                $allowedExtensions = array("pdf");
-                $maxFileSize = 10485760; // 10MB
-                if (in_array($fileExtension, $allowedExtensions) && $fileSize <= $maxFileSize) 
+                $dangerAlert = true;
+                $msg = "Planner Already Exists for selected class!";
+            }
+            else
+            {
+                // File upload validation
+                if ($_FILES['syllabusPdf']['error'] === UPLOAD_ERR_OK) 
                 {
-                    $newFileName = "planner_" . time() . '.' . $fileExtension;
-                    $uploadFileDir = '../admin/syllabus/';
-                    $destPath = $uploadFileDir . $newFileName;
+                    $fileTmpPath = $_FILES['syllabusPdf']['tmp_name'];
+                    $fileName = $_FILES['syllabusPdf']['name'];
+                    $fileSize = $_FILES['syllabusPdf']['size'];
+                    $fileType = $_FILES['syllabusPdf']['type'];
+                    $fileNameCmps = explode(".", $fileName);
+                    $fileExtension = strtolower(end($fileNameCmps));
 
-                    if (move_uploaded_file($fileTmpPath, $destPath)) 
+                    // Check if file is a PDF and size limit is not exceeded
+                    $allowedExtensions = array("pdf");
+                    $maxFileSize = 35 * 1048576; // 35MB
+                    if (in_array($fileExtension, $allowedExtensions) && $fileSize <= $maxFileSize) 
                     {
-                        $sql = "INSERT INTO tblsyllabus (Class, Syllabus) VALUES (:classId, :syllabusFile)";
-                        $query = $dbh->prepare($sql);
-                        $query->bindParam(':classId', $classId, PDO::PARAM_INT);
-                        $query->bindParam(':syllabusFile', $newFileName, PDO::PARAM_STR);
-                        $query->execute();
+                        $newFileName = "planner_" . time() . '.' . $fileExtension;
+                        $uploadFileDir = '../admin/syllabus/';
+                        $destPath = $uploadFileDir . $newFileName;
 
-                        $msg = "Planner has been uploaded successfully.";
-                        $successAlert = true;
+                        if (move_uploaded_file($fileTmpPath, $destPath)) 
+                        {
+                            $sql = "INSERT INTO tblsyllabus (Class, Syllabus) VALUES (:classId, :syllabusFile)";
+                            $query = $dbh->prepare($sql);
+                            $query->bindParam(':classId', $classId, PDO::PARAM_INT);
+                            $query->bindParam(':syllabusFile', $newFileName, PDO::PARAM_STR);
+                            $query->execute();
+
+                            $msg = "Planner has been uploaded successfully.";
+                            $successAlert = true;
+                        } 
+                        else 
+                        {
+                            $msg = "Failed to move uploaded file.";
+                            $dangerAlert = true;
+                        }
                     } 
                     else 
                     {
-                        $msg = "Failed to move uploaded file.";
+                        $msg = "File must be a PDF and size must be less than 35MB.";
                         $dangerAlert = true;
                     }
                 } 
                 else 
                 {
-                    $msg = "File must be a PDF and size must be less than 10MB.";
+                    $msg = "Failed to upload planner file.";
                     $dangerAlert = true;
                 }
-            } 
-            else 
-            {
-                $msg = "Failed to upload planner file.";
-                $dangerAlert = true;
             }
         }
     } 
@@ -191,7 +206,7 @@ else
                                     <div class="form-group">
                                         <label for="exampleInputName1">Upload Planner (PDF only)</label>
                                         <input type="file" name="syllabusPdf" class="form-control-file" accept=".pdf" required>
-                                        <p class="text-muted mt-2">PDF must be less than 10MB</p>
+                                        <p class="text-muted mt-2">PDF must be less than 35MB</p>
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                 </form>

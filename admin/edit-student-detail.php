@@ -33,7 +33,31 @@ else
             $address = $_POST['address'];
             $code = $_POST['code'];
             $eid = $_GET['editid'];
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            if(!empty($_POST['password'])) {
+                $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            } else {
+                $password = NULL;
+            }
 
+            if(isset($_POST['password']) && !empty($_POST['password']))
+            {
+                if (strlen($_POST['password']) < 8) 
+                {
+                    $msg = "Password must be at least 8 characters long!";
+                    $dangerAlert = true;
+                } 
+                else if(!preg_match('/[a-zA-Z]/', $_POST['password']))
+                {
+                    $msg = "Password must contain at least one alphabetic character!";
+                    $dangerAlert = true;
+                }
+                else if(!preg_match('/[0-9]/', $_POST['password']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['password']))
+                {
+                    $msg = "Password must contain at least one number and one special character!";
+                    $dangerAlert = true;
+                }
+            }
                 $sql = "UPDATE tblstudent SET 
                         StudentName=:stuname,
                         StudentClass=:stuclass,
@@ -43,25 +67,27 @@ else
                         StuID=:stuid,
                         FatherName=:fname,
                         ContactNumber=:connum,
-                        Address=:address,
-                        CodeNumber=:code 
+                        `Address`=:address,
+                        CodeNumber=:code,
+                        `Password`=:password
                         WHERE ID=:eid";
 
-            $query = $dbh->prepare($sql);
-            $query->bindParam(':stuname', $stuname, PDO::PARAM_STR);
-            $query->bindParam(':stuclass', $stuclass, PDO::PARAM_STR);
-            $query->bindParam(':stusection', $stusection, PDO::PARAM_STR);
-            $query->bindParam(':stuRollNo', $stuRollNo, PDO::PARAM_INT);
-            $query->bindParam(':gender', $gender, PDO::PARAM_STR);
-            $query->bindParam(':stuid', $stuid, PDO::PARAM_STR);
-            $query->bindParam(':fname', $fname, PDO::PARAM_STR);
-            $query->bindParam(':connum', $connum, PDO::PARAM_STR);
-            $query->bindParam(':address', $address, PDO::PARAM_STR);
-            $query->bindParam(':code', $code, PDO::PARAM_STR);
-            $query->bindParam(':eid', $eid, PDO::PARAM_STR);
-            $query->execute();
-            $successAlert = true;
-            $msg = "Student has been updated successfully.";
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':stuname', $stuname, PDO::PARAM_STR);
+                $query->bindParam(':stuclass', $stuclass, PDO::PARAM_STR);
+                $query->bindParam(':stusection', $stusection, PDO::PARAM_STR);
+                $query->bindParam(':stuRollNo', $stuRollNo, PDO::PARAM_INT);
+                $query->bindParam(':gender', $gender, PDO::PARAM_STR);
+                $query->bindParam(':stuid', $stuid, PDO::PARAM_STR);
+                $query->bindParam(':fname', $fname, PDO::PARAM_STR);
+                $query->bindParam(':connum', $connum, PDO::PARAM_STR);
+                $query->bindParam(':address', $address, PDO::PARAM_STR);
+                $query->bindParam(':code', $code, PDO::PARAM_STR);
+                $query->bindParam(':password', $password, PDO::PARAM_STR);
+                $query->bindParam(':eid', $eid, PDO::PARAM_STR);
+                $query->execute();
+                $successAlert = true;
+                $msg = "Student has been updated successfully.";
             
         }
         
@@ -208,7 +234,7 @@ else
                                         foreach ($results as $row) {
                                             ?>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Student Name</label>
+                                                <label for="exampleInputName1">Student Name</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="stuname"
                                                         value="<?php echo htmlentities($row->StudentName); ?>"
                                                         class="form-control" required='true'
@@ -216,7 +242,7 @@ else
                                                 >
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Gender</label>
+                                                <label for="exampleInputName1">Gender</label><span class="text-danger mx-1">*</span>
                                                 <select name="gender" value="" class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
                                                 >
@@ -227,7 +253,7 @@ else
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputEmail3">Student Class</label>
+                                                <label for="exampleInputEmail3">Student Class</label><span class="text-danger mx-1">*</span>
                                                 <select name="stuclass" id="stuclass" class="form-control"
                                                         required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
@@ -261,7 +287,7 @@ else
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputEmail3">Student Section</label>
+                                                <label for="exampleInputEmail3">Student Section</label><span class="text-danger mx-1">*</span>
                                                 <select name="stusection" id="stusection" class="form-control" required='true'
                                                 <?php if ($row->SessionID != $activeSessionID) echo 'disabled'; ?>
                                                 >
@@ -279,7 +305,7 @@ else
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Student Roll No</label>
+                                                <label for="exampleInputName1">Student Roll No</label><span class="text-danger mx-1">*</span>
                                                 <input type="number" name="stuRollNo"
                                                         value="<?php echo htmlentities($row->RollNo); ?>" min="0"
                                                         class="form-control" required='true'
@@ -288,7 +314,7 @@ else
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Father's Name</label>
+                                                <label for="exampleInputName1">Father's Name</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="fname"
                                                         value="<?php echo htmlentities($row->FatherName); ?>"
                                                         class="form-control" required='true'
@@ -296,7 +322,7 @@ else
                                                 >
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Contact Number</label>
+                                                <label for="exampleInputName1">Contact Number</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="connum"
                                                         value="<?php echo htmlentities($row->ContactNumber); ?>"
                                                         class="form-control" required='true' maxlength="10"
@@ -305,21 +331,21 @@ else
                                                 >
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Address</label>
+                                                <label for="exampleInputName1">Address</label><span class="text-danger mx-1">*</span>
                                                 <textarea name="address" class="form-control" required='true'
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>><?php echo htmlentities($row->Address); ?></textarea>
                                             </div>
                                             <div class="form-group">
-                                                <label for="code">Code Number</label>
+                                                <label for="code">Code Number</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="code" class="form-control" required='true'
                                                 <?php echo "value=" . htmlentities($row->CodeNumber);
                                                     if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>>
                                             </div>
                                             <div class="form-group">
-                                                <label for="exampleInputName1">Student ID</label>
+                                                <label for="exampleInputName1">Student ID</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="stuid"
                                                         value="<?php echo htmlentities($row->StuID); ?>"
-                                                        class="form-control" readonly='true'
+                                                        class="form-control"
                                                     <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
                                                 >
                                             </div>
@@ -327,7 +353,15 @@ else
                                                 <label for="exampleInputName1">Password</label>
                                                 <input type="Password" name="password"
                                                         value="<?php echo htmlentities($row->Password); ?>"
-                                                        class="form-control" readonly='true'>
+                                                        class="form-control">
+                                                <p class="text-muted mb-0 mt-2">
+                                                    Password must:
+                                                    <ul class="text-muted">
+                                                        <li>Be at least 8 characters long</li>
+                                                        <li>Contain at least one alphabetic character</li>
+                                                        <li>Contain at least one number and one special character</li>
+                                                    </ul>
+                                                </p>
                                             </div><?php echo ($row->SessionID != $activeSessionID) ? '' : '<button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#confirmationModal">Update</button>' ?>
 
                                         <?php }

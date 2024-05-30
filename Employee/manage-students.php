@@ -49,28 +49,43 @@ else
 
         try
         {
-            // Check whether the record is from tblstudenthistory or tblstudent
-            $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
-            $checkHistoryQuery = $dbh->prepare($checkHistorySql);
-            $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $checkHistoryQuery->execute();
-            $isHistoryRecord = $checkHistoryQuery->fetchColumn();
+            // Check if there are any associated records in tblreports
+            $checkReportSql = "SELECT COUNT(*) FROM tblreports WHERE StudentName = :rid";
+            $checkReportQuery = $dbh->prepare($checkReportSql);
+            $checkReportQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkReportQuery->execute();
+            $hasReport = $checkReportQuery->fetchColumn();
 
-            if ($isHistoryRecord) 
+            if ($hasReport > 0) 
             {
-                $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
-            } 
-            else 
-            {
-                $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+                $dangerAlert = true;
+                $msg = "Student cannot be deleted as there are associated records in the student's report!";
             }
+            else
+            {
+                // Check whether the record is from tblstudenthistory or tblstudent
+                $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
+                $checkHistoryQuery = $dbh->prepare($checkHistorySql);
+                $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+                $checkHistoryQuery->execute();
+                $isHistoryRecord = $checkHistoryQuery->fetchColumn();
 
-            $query = $dbh->prepare($sql);
-            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
-            $query->execute();
-            
-            $successAlert = true;
-            $msg = "Student deleted successfully.";
+                if ($isHistoryRecord) 
+                {
+                    $sql = "UPDATE tblstudenthistory SET IsDeleted = 1 WHERE ID = :rid";
+                } 
+                else 
+                {
+                    $sql = "UPDATE tblstudent SET IsDeleted = 1 WHERE ID = :rid";
+                }
+
+                $query = $dbh->prepare($sql);
+                $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+                $query->execute();
+                
+                $successAlert = true;
+                $msg = "Student deleted successfully.";
+            }
         }
         catch(PDOException $e)
         {

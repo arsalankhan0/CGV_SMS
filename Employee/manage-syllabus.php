@@ -213,7 +213,7 @@ else
                                                     }
                                                     else
                                                     {
-                                                        echo "<tr><th colspan='4' class='text-center'>No Syllabus Available</th></tr>";
+                                                        echo "<tr><th colspan='4' class='text-center'>No Planner Available</th></tr>";
                                                     }
                                                     ?>
                                                 </tbody>

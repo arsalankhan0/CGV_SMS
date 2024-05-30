@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() 
-{
+document.addEventListener('DOMContentLoaded', function() {
     // Get references to form and input elements
     const form = document.querySelector('form');
     const stunameInput = document.getElementsByName('stuname')[0];
@@ -15,19 +14,21 @@ document.addEventListener('DOMContentLoaded', function()
     const passwordInput = document.getElementById('password');
 
     // Add event listeners for validation
-    stunameInput.addEventListener('keyup', validateStudentName);
+    stunameInput.addEventListener('input', validateStudentName);
     genderInput.addEventListener('change', validateGender);
     stuclassInput.addEventListener('change', validateStudentClass);
     stusectionInput.addEventListener('change', validateStudentSection);
-    stuRollNoInput.addEventListener('keyup', validateStudentRollNo);
-    fnameInput.addEventListener('keyup', validateFname);
-    connumInput.addEventListener('keyup', validateContactNumber);
-    addressInput.addEventListener('keyup', validateAddress);
-    codeInput.addEventListener('keyup', validateCode);
-    stuidInput.addEventListener('keyup', function() {
-        checkAvailability('stuid', stuidInput.value);
+    stuRollNoInput.addEventListener('input', validateStudentRollNo);
+    stuRollNoInput.addEventListener('input', debounce(validateRollNoUsingAjax, 300));
+    fnameInput.addEventListener('input', validateFname);
+    connumInput.addEventListener('input', validateContactNumber);
+    addressInput.addEventListener('input', validateAddress);
+    codeInput.addEventListener('input', validateCode);
+    codeInput.addEventListener('input', debounce(validateCodeNumberUsingAjax, 300));
+    stuidInput.addEventListener('input', function() {
+        debounce(checkAvailability('stuid', stuidInput.value), 300);
     });
-    passwordInput.addEventListener('keyup', validatePassword);
+    passwordInput.addEventListener('input', validatePassword);
 
     // Prevent form submission if error occurred
     form.addEventListener('submit', function(event) {
@@ -37,8 +38,7 @@ document.addEventListener('DOMContentLoaded', function()
     });
 
     // Validate Student Name
-    function validateStudentName() 
-    {
+    function validateStudentName() {
         const name = stunameInput.value.trim();
         const namePattern = /^[a-zA-Z\s]+$/;
         if (name === '') {
@@ -49,9 +49,9 @@ document.addEventListener('DOMContentLoaded', function()
             clearError(stunameInput);
         }
     }
+
     // Validate Code No.
-    function validateCode() 
-    {
+    function validateCode() {
         const code = codeInput.value.trim();
         if (code === '') {
             setError(codeInput, 'Code No. is required!');
@@ -139,47 +139,50 @@ document.addEventListener('DOMContentLoaded', function()
     }
 
     // Validate Password
-    function validatePassword() {
-        const password = passwordInput.value;
-        const passwordValidationMessage = document.getElementById('passwordValidationMessage');
+    // function validatePassword() {
+    //     const password = passwordInput.value;
+    //     const passwordValidationMessage = document.getElementById('passwordValidationMessage');
 
-        // Validate password length
-        if (password.length < 8) {
-            setError(passwordInput, 'Password must be at least 8 characters long!');
-            passwordValidationMessage.textContent = 'Password must be at least 8 characters long!';
-            return;
-        }
+    //     // Validate password length
+    //     if (password.length < 8) {
+    //         setError(passwordInput, 'Password must be at least 8 characters long!');
+    //         passwordValidationMessage.textContent = 'Password must be at least 8 characters long!';
+    //         return;
+    //     }
 
-        // Validate alphabetic character
-        if (!/[a-zA-Z]/.test(password)) {
-            setError(passwordInput, 'Password must contain at least one alphabetic character!');
-            passwordValidationMessage.textContent = 'Password must contain at least one alphabetic character!';
-            return;
-        }
+    //     // Validate alphabetic character
+    //     if (!/[a-zA-Z]/.test(password)) {
+    //         setError(passwordInput, 'Password must contain at least one alphabetic character!');
+    //         passwordValidationMessage.textContent = 'Password must contain at least one alphabetic character!';
+    //         return;
+    //     }
 
-        // Validate number and special character
-        if (!/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-            setError(passwordInput, 'Password must contain at least one number and one special character!');
-            passwordValidationMessage.textContent = 'Password must contain at least one number and one special character!';
-            return;
-        }
+    //     // Validate number and special character
+    //     if (!/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    //         setError(passwordInput, 'Password must contain at least one number and one special character!');
+    //         passwordValidationMessage.textContent = 'Password must contain at least one number and one special character!';
+    //         return;
+    //     }
 
-        clearError(passwordInput);
-        passwordValidationMessage.textContent = '';
-    }
+    //     clearError(passwordInput);
+    //     passwordValidationMessage.textContent = '';
+    // }
 
     // Validate Form
-    function validateForm() {
+    function validateForm() 
+    {
         validateStudentName();
         validateGender();
         validateStudentClass();
         validateStudentSection();
         validateStudentRollNo();
+        validateRollNoUsingAjax()
         validateFname();
         validateContactNumber();
         validateAddress();
         validateCode();
-        validatePassword();
+        validateCodeNumberUsingAjax();
+        // validatePassword();
 
         const errors = document.querySelectorAll('.form-control.is-invalid');
         return errors.length === 0;
@@ -218,5 +221,67 @@ document.addEventListener('DOMContentLoaded', function()
         xhr.open('POST', '../ajax/students/student_availability.php');
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.send(type + '=' + encodeURIComponent(value));
+    }
+
+    // Debounce function
+    function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    // Validate RollNo using AJAX
+    function validateRollNoUsingAjax() {
+        const stuRollNo = stuRollNoInput.value;
+        const stuclass = stuclassInput.value;
+        const stusection = stusectionInput.value;
+
+        if (stuRollNo && stuclass && stusection) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '../ajax/students/validate_rollno.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.status === 'error') 
+                    {
+                        setError(stuRollNoInput, response.message);
+                    } 
+                    else 
+                    {
+                        clearError(stuRollNoInput);
+                    }
+                }
+            };
+            xhr.send(`stuRollNo=${stuRollNo}&stuclass=${stuclass}&stusection=${stusection}`);
+        }
+    }
+
+    // Validate CodeNumber using Ajax
+    function validateCodeNumberUsingAjax() {
+            var codeNumber = codeInput.value;
+            var validationMessage = document.getElementById('codeValidationMessage');
+        
+            if (codeNumber !== '') {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '../ajax/students/validate_std_code.php', true);
+                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        if (xhr.responseText === 'exists') {
+                            setError(codeInput, 'Student Code Number already exists!');
+                        } else {
+                            clearError(codeInput);
+                        }
+                    }
+                };
+                xhr.send('codeNumber=' + codeNumber);
+            } else {
+                validationMessage.textContent = '';
+            }
     }
 });

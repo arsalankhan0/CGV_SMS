@@ -149,7 +149,7 @@ function getSectionName($sectionID)
                 <th class="font-weight-bold">Student Name</th>
                 <th class="font-weight-bold">Student Class</th>
                 <th class="font-weight-bold">Student Section</th>
-                <th class="font-weight-bold">Admission Date</th>
+                <th class="font-weight-bold">Entry Date</th>
                 <?php 
                 if (isset($employeePermissions['Students']) && 
                     ($employeePermissions['Students']['UpdatePermission'] == 1 || 

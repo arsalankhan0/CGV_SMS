@@ -4,17 +4,23 @@ error_reporting(0);
 include('includes/dbconnection.php');
 
 // Function to check if there is grading system
-function hasOptionalSubjectWithGrading($dbh, $className, $examSession) 
+function hasOptionalSubjectWithGrading($dbh, $className) 
 {
-    $class = "%$className%";
-    $optionalGradingSql = "SELECT COUNT(*) FROM tblsubjects AS s
-                        INNER JOIN tblmaxmarks AS m ON s.ID = m.SubjectID
-                        WHERE s.ClassName LIKE :className 
-                        AND s.IsOptional = 1 
-                        AND s.IsCurricularSubject = 0 
-                        AND s.IsDeleted = 0
-                        AND m.GradingSystem = 1
-                        AND m.ClassID = :className";
+    // $class = "%$className%";
+    // $optionalGradingSql = "SELECT COUNT(*) FROM tblsubjects AS s
+    //                     INNER JOIN tblmaxmarks AS m ON s.ID = m.SubjectID
+    //                     WHERE s.ClassName LIKE :className 
+    //                     AND s.IsOptional = 1 
+    //                     AND s.IsCurricularSubject = 0 
+    //                     AND s.IsDeleted = 0
+    //                     AND m.GradingSystem = 1
+    //                     AND m.ClassID = :className";
+    $class = $className;
+    $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
+                            INNER JOIN tblexamination AS e ON m.ExamID = e.ID
+                            WHERE m.GradingSystem = 1
+                            AND m.ClassID = :className
+                            AND e.ExamType = 'Summative'";
     $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
     $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
     $optionalGradingQuery->execute();
@@ -652,7 +658,7 @@ else
                                 </div>
                                 <?php
                                 // Check if any optional subject has a grading system
-                                if (hasOptionalSubjectWithGrading($dbh, $className, $examSession)) 
+                                if (hasOptionalSubjectWithGrading($dbh, $className)) 
                                 {
                                 ?>
                                     <!-- Optional Subjects in Grades-->

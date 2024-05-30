@@ -32,6 +32,11 @@ include('includes/dbconnection.php');
           $address=$_POST['address'];
           $code=$_POST['code'];
           $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+          if(!empty($_POST['password'])) {
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+          } else {
+              $password = NULL;
+          }
           $ret="SELECT ID FROM tblstudent WHERE StuID=:stuid AND IsDeleted = 0";
           $query= $dbh -> prepare($ret);
           $query->bindParam(':stuid',$stuid,PDO::PARAM_STR);
@@ -44,23 +49,26 @@ include('includes/dbconnection.php');
                 $msg = "Contact Number must be at least 10 digits";
                 $dangerAlert = true;
             }
-            else if (strlen($_POST['password']) < 8) 
-            {
-                $msg = "Password must be at least 8 characters long!";
-                $dangerAlert = true;
-            } 
-            else if(!preg_match('/[a-zA-Z]/', $_POST['password']))
-            {
-                $msg = "Password must contain at least one alphabetic character!";
-                $dangerAlert = true;
-            }
-            else if(!preg_match('/[0-9]/', $_POST['password']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['password']))
-            {
-                $msg = "Password must contain at least one number and one special character!";
-                $dangerAlert = true;
-            }
             else
             {
+              if(isset($_POST['password']) && !empty($_POST['password']))
+              {
+                  if (strlen($_POST['password']) < 8) 
+                  {
+                      $msg = "Password must be at least 8 characters long!";
+                      $dangerAlert = true;
+                  } 
+                  else if(!preg_match('/[a-zA-Z]/', $_POST['password']))
+                  {
+                      $msg = "Password must contain at least one alphabetic character!";
+                      $dangerAlert = true;
+                  }
+                  else if(!preg_match('/[0-9]/', $_POST['password']) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $_POST['password']))
+                  {
+                      $msg = "Password must contain at least one number and one special character!";
+                      $dangerAlert = true;
+                  }
+              }
               $sql = "INSERT INTO tblstudent(StudentName,StudentClass,StudentSection,RollNo,Gender,StuID,FatherName,ContactNumber,`Address`,CodeNumber,`Password`,SessionID) VALUES (:stuname,:stuclass,:stusection,:stuRollNo,:gender,:stuid,:fname,:connum,:address,:code,:password,:sessionID)";
               $query=$dbh->prepare($sql);
               $query->bindParam(':stuname',$stuname,PDO::PARAM_STR);
@@ -177,13 +185,13 @@ include('includes/dbconnection.php');
                       ?>
                       
                       <div class="form-group">
-                            <label for="stuname">Student Name</label>
+                            <label for="stuname">Student Name</label><span class="text-danger mx-1">*</span>
                             <input type="text" id="stuname" name="stuname" value="" class="form-control" required='true'>
                             <div class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="gender">Gender</label>
+                            <label for="gender">Gender</label><span class="text-danger mx-1">*</span>
                             <select id="gender" name="gender" value="" class="form-control" required='true'>
                                 <option value="">Choose Gender</option>
                                 <option value="Male">Male</option>
@@ -192,7 +200,7 @@ include('includes/dbconnection.php');
                             <div class="text-danger"></div>
                         </div>
                       <div class="form-group">
-                          <label for="stuclass">Student Class</label>
+                          <label for="stuclass">Student Class</label><span class="text-danger mx-1">*</span>
                           <select name="stuclass" id="stuclass" class="form-control" required='true'>
                               <option value="">Select Class</option>
                               <?php
@@ -215,7 +223,7 @@ include('includes/dbconnection.php');
                       </div>
 
                       <div class="form-group">
-                          <label for="stusection">Student Section</label>
+                          <label for="stusection">Student Section</label><span class="text-danger mx-1">*</span>
                           <select name="stusection" id="stusection" class="form-control" required='true'>
                           <?php
                              // Fetch sections from the database
@@ -233,43 +241,43 @@ include('includes/dbconnection.php');
                       </div>
 
                       <div class="form-group">
-                            <label for="stuRollNo">Student Roll No</label>
+                            <label for="stuRollNo">Student Roll No</label><span class="text-danger mx-1">*</span>
                             <input type="number" id="stuRollNo" name="stuRollNo" value="" class="form-control" min="0" required='true'>
                             <div class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="fname">Father's/Guardian's Name</label>
+                            <label for="fname">Father's/Guardian's Name</label><span class="text-danger mx-1">*</span>
                             <input type="text" id="fname" name="fname" value="" class="form-control" required='true'>
                             <div class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="connum">Contact Number</label>
+                            <label for="connum">Contact Number</label><span class="text-danger mx-1">*</span>
                             <input type="tel" id="connum" name="connum" value="" class="form-control" required='true' maxlength="10" pattern="[0-9]+">
                             <div class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="address">Address</label>
+                            <label for="address">Address</label><span class="text-danger mx-1">*</span>
                             <textarea id="address" name="address" class="form-control" required='true'></textarea>
                             <div class="text-danger"></div>
                         </div>
                         <div class="form-group">
-                            <label for="code">Code Number</label>
+                            <label for="code">Code Number</label><span class="text-danger mx-1">*</span>
                             <input type="text" id="code" name="code" class="form-control" required='true'></input>
                             <div class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="stuid">Student ID</label>
+                            <label for="stuid">Student ID</label><span class="text-danger mx-1">*</span>
                             <input type="text" id="stuid" name="stuid" class="form-control" required>
                             <div id="stuidAvailability" class="text-danger"></div>
                         </div>
 
                         <div class="form-group">
                             <label for="password">Password</label>
-                            <input type="password" id="password" name="password" class="form-control" required>
+                            <input type="password" id="password" name="password" class="form-control">
                             <div id="passwordValidationMessage" class="text-danger"></div>
                             <p class="text-muted mb-0 mt-2">
                                 Password must:

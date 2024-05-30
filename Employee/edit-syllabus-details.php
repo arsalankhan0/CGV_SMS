@@ -41,7 +41,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
 
                 // Check if file is a PDF and size limit is not exceeded
                 $allowedExtensions = array("pdf");
-                $maxFileSize = 10485760; // 10MB
+                $maxFileSize = 35 * 1048576; // 35MB
                 // File upload validation
                 if (in_array($fileExtension, $allowedExtensions) && $syllabusSize <= $maxFileSize) {
                     $newFileName = "planner_" . time() . '.' . $fileExtension;
@@ -64,7 +64,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                         $dangerAlert = true;
                     }
                 } else {
-                    $msg = "File must be a PDF and size must be less than 10MB.";
+                    $msg = "File must be a PDF and size must be less than 35MB.";
                     $dangerAlert = true;
                 }
             } else {
@@ -174,7 +174,7 @@ if (strlen($_SESSION['sturecmsEMPid']) == 0) {
                                                             ?>
                                                         </span>
                                                     </div>
-                                                    <p class="text-muted mt-2">PDF must be less than 10MB</p>
+                                                    <p class="text-muted mt-2">PDF must be less than 35MB</p>
                                                 </div>
                                             <?php
                                             }
