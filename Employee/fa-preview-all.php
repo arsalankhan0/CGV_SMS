@@ -9,7 +9,21 @@ if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid']))
 } 
 else 
 {
-
+    // Function to check if there is grading system
+    function hasOptionalSubjectWithGrading($dbh, $className) 
+    {
+        $class = $className;
+        $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
+                                INNER JOIN tblexamination AS e ON m.ExamID = e.ID
+                                WHERE m.GradingSystem = 1
+                                AND m.ClassID = :className
+                                AND e.ExamType = 'Summative'";
+        $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
+        $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
+        $optionalGradingQuery->execute();
+        $optionalGradingCount = $optionalGradingQuery->fetchColumn();
+        return $optionalGradingCount > 0;
+    }
 
     if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
     {
@@ -117,12 +131,18 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
-                                <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
+                            <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
                                     <strong>Preview of <?php echo htmlspecialchars($examNameRow['ExamName']); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
+                                    <!-- Row 1 -->
+                                    <div class="d-flex flex-row align-items-start justify-content-end">
+                                        <div class="d-flex w-25">
+                                            <label>Date:</label><span class="underline"></span>
+                                        </div>
+                                    </div>
                                     <!-- Row 1 -->
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
@@ -378,9 +398,13 @@ else
                                     </table>
                                 </div>
 
+                                <?php
+                                if(hasOptionalSubjectWithGrading($dbh, $className))
+                                {
+                                ?>
                                 <!-- Optional Subjects in Grades-->
                                 <div class="d-flex flex-column mt-4">
-                                    <strong class="text-wrap">Grade in Optional Subjects:</strong>
+                                    <strong>Grade in Optional Subjects:</strong>
                                     <table class="table table-bordered">
                                         <?php
                                         // Fetch only those subjects of the class whose IsOptional is 0
@@ -391,8 +415,8 @@ else
                                         $optionalSubjectsQuery->execute();
                                         $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
-                                        <thead class="text-center">
-                                            <tr>
+                                        <thead>
+                                            <tr class="text-center">
                                                 <th>Subjects</th>
                                                 <?php
                                                 foreach ($optionalSubjects as $subject) 
@@ -407,23 +431,19 @@ else
                                                 <td>Grade Obtained</td>
                                                 <?php
                                                     foreach ($optionalSubjects as $subject) {
-                                                        $marksObtained = "";
+                                                        $marksObtained = ""; 
 
-                                                        // Loop through allSubjectsJson to find the matching subject and extract marks obtained
                                                         foreach ($allSubjectsJsonArray as $row) {
-                                                            $subjectData = json_decode($row['SubjectsJSON'], true);
+                                                            $subjectData = json_decode($row['SubjectsJSON'], true); 
 
-                                                            // Loop through subject data to find the matching subject ID and check if it's optional
                                                             foreach ($subjectData as $data) {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) {
-                                                                    // Marks obtained found for the current optional subject
                                                                     $marksObtained = $data['SubMarksObtained'];
-                                                                    break 2; // Break out of both inner loops
+                                                                    break 2;
                                                                 }
                                                             }
                                                         }
 
-                                                        // Display the marks obtained
                                                         echo "<td>{$marksObtained}</td>";
                                                     }
                                                 ?>
@@ -431,15 +451,91 @@ else
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php
+                                }
+                                else
+                                {
+                                ?>
+                                <!-- Optional Subjects in Marks-->
+                                <div class="d-flex flex-column mt-4">
+                                    <strong>Marks in Optional Subjects:</strong>
+                                    <table class="table table-bordered">
+                                        <?php
+                                        // Fetch only those subjects of the class whose IsOptional is 0
+                                        $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
+                                        $optionalSubjectsQuery = $dbh->prepare($optionalSubjectsSql);
+                                        $optionalSubjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
+                                        $optionalSubjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
+                                        $optionalSubjectsQuery->execute();
+                                        $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+                                        ?>
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th class="align-middle">Subjects</th>
+                                                <?php
+                                                $totalMaxMarks = 0;
+                                                foreach ($optionalSubjects as $subject) 
+                                                {
+                                                    $maxMarks = "";
+                                                    foreach ($allSubjectsJsonArray as $row) 
+                                                    {
+                                                        $subjectData = json_decode($row['SubjectsJSON'], true);
+                                                        foreach ($subjectData as $data) 
+                                                        {
+                                                            if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
+                                                            {
+                                                                $maxMarks = $data['SubMaxMarks'];
+                                                                break 2;
+                                                            }
+                                                        }
+                                                    }
+                                                    $totalMaxMarks += $maxMarks;
+                                                    echo "<th>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                }
+                                                echo "<th>Total <br><br>({$totalMaxMarks})</th>";
+                                                ?>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="text-center">
+                                                <td>Marks Obtained</td>
+                                                <?php
+                                                    $totalMarksObtained = 0;
+                                                    foreach ($optionalSubjects as $subject) 
+                                                    {
+                                                        $marksObtained = "";
+                                                        foreach ($allSubjectsJsonArray as $row) 
+                                                        {
+                                                            $subjectData = json_decode($row['SubjectsJSON'], true);
+
+                                                            foreach ($subjectData as $data) 
+                                                            {
+                                                                if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
+                                                                {
+                                                                    $marksObtained = $data['SubMarksObtained'];
+                                                                    break 2;
+                                                                }
+                                                            }
+                                                        }
+                                                        $totalMarksObtained += $marksObtained;
+                                                        echo "<td>{$marksObtained}</td>";
+                                                    }
+                                                    echo "<td>{$totalMarksObtained}</td>";
+                                                ?>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php
+                                }
+                                ?>
 
                                 <footer class="d-flex justify-content-between mt-5">
-                                    <div class="mt-5">
-                                        <label>Date:</label>
-                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
+                                    <div class="d-flex w-25">
+                                        <label>Supervisor/Principal's Signature:</label>
                                     </div>
-                                    <div class="mt-5">
+                                    <div class="d-flex w-25">
                                         <label>Class Teacher's Signature:</label>
-                                        <span class="border-bottom border-secondary ml-2 signature-line"></span>
                                     </div>
                                 </footer>
                             </div>
