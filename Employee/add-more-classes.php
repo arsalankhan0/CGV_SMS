@@ -14,6 +14,23 @@ else
     $msg = "";
 
     $eid = $_GET['editid'];
+    
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
+
+    // Check if already published
+    $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId 
+                        AND IsPublished = 1
+                        AND session_id = :session_id
+                        AND IsDeleted = 0";
+    $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+    $checkPublishedQuery->bindParam(':examId', $eid, PDO::PARAM_STR);
+    $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+    $checkPublishedQuery->execute();
+    $published = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
 
     try 
     {
@@ -101,6 +118,8 @@ else
                     $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
                     $examName = $examNameRow->ExamName;
 
+                    $disabledInput = ($published) ? 'disabled' : '';
+
                     if (isset($examName)) { ?>
                         <h3 class="page-title"> Manage Classes - Select Classes for '<?php echo $examName; ?>'</h3>
                     <?php } else { ?>
@@ -145,7 +164,7 @@ else
                                     <div class="form-group">
                                         <label for="exampleFormControlSelect2">Select Classes for <?php echo $examName; ?> exam</label>
                                         <select multiple="multiple" name="classes[]"
-                                                class="js-example-basic-multiple w-100">
+                                                class="js-example-basic-multiple w-100" <?php echo $disabledInput; ?>>
                                             <?php
                                             $eid = $_GET['editid'];
                                             $examClassesSql = "SELECT ClassName, ExamType FROM tblexamination WHERE ID = :eid AND IsDeleted = 0";
@@ -188,7 +207,7 @@ else
                                                 echo "<div class='form-check mr-4'>
                                                         <label class='form-check-label' for='$examTypeId'>
                                                             $examTypeLabel
-                                                            <input class='form-check-input' type='radio' name='examType' value='$examTypeLabel' id='$examTypeId' $checked>
+                                                            <input class='form-check-input' type='radio' name='examType' value='$examTypeLabel' id='$examTypeId' $disabledInput $checked>
                                                         </label>
                                                     </div>";
                                             }
@@ -197,9 +216,9 @@ else
                                         <div class="form-group">
                                             <label for="durationFrom">Duration</label>
                                             <div class="d-flex justify-content-between flex-column flex-md-row align-items-center">
-                                                <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom" value="<?php echo isset($examClassesRow->DurationFrom) ? $examClassesRow->DurationFrom : ''; ?>" required>
+                                                <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom" value="<?php echo isset($examClassesRow->DurationFrom) ? $examClassesRow->DurationFrom : ''; ?>" <?php echo $disabledInput; ?> required>
                                                 <span>to</span>
-                                                <input type="date" name="durationTo" class="form-control ml-2" id="durationTo" value="<?php echo isset($examClassesRow->DurationTo) ? $examClassesRow->DurationTo : ''; ?>" required>
+                                                <input type="date" name="durationTo" class="form-control ml-2" id="durationTo" value="<?php echo isset($examClassesRow->DurationTo) ? $examClassesRow->DurationTo : ''; ?>" <?php echo $disabledInput; ?> required>
                                             </div>
                                         </div>
                                     </div>  

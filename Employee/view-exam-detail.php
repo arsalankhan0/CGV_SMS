@@ -23,7 +23,13 @@ else
     $results = $query->fetch(PDO::FETCH_ASSOC);
 
     $employeeRole = $results['Role'];
-    $requiredPermission = $requiredPermissions['view-exam-detail']; 
+    $requiredPermission = $requiredPermissions['view-exam-detail'];
+    
+    // Get the active session ID
+    $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $sessionQuery = $dbh->prepare($getSessionSql);
+    $sessionQuery->execute();
+    $sessionID = $sessionQuery->fetchColumn();
 
     $sqlPermissions = "SELECT * FROM tblpermissions WHERE RoleID=:employeeRole AND Name=:requiredPermission";
     $queryPermissions = $dbh->prepare($sqlPermissions);
@@ -50,7 +56,7 @@ else
         if(isset($_POST['confirmDelete']))
         {
             $rid = intval($_POST['deleteID']);
-            $classIdToDelete = $_POST['classID']; // Get the specific class ID to delete
+            $classIdToDelete = $_POST['classID']; 
 
             // Fetch the current class names
             $fetchSql = "SELECT ClassName FROM tblexamination WHERE ID = :rid";
@@ -128,6 +134,17 @@ else
                     $examNameQuery->execute();
                     $examNameRow = $examNameQuery->fetch(PDO::FETCH_OBJ);
                     $examName = $examNameRow->ExamName;
+
+                     // Check if already published
+                    $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId 
+                                            AND IsPublished = 1
+                                            AND session_id = :session_id
+                                            AND IsDeleted = 0";
+                    $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+                    $checkPublishedQuery->bindParam(':examId', $eid, PDO::PARAM_STR);
+                    $checkPublishedQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+                    $checkPublishedQuery->execute();
+                    $published = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
 
                     if (isset($examName)) { ?>
                         <h3 class="page-title"> View Classes for '<?php echo $examName; ?>' Exam</h3>
@@ -224,11 +241,18 @@ else
                                                                         <td><?php echo htmlentities($classInfo['ClassName']); ?></td>
                                                                         <td>
                                                                             <a href="manage-exam-subject.php?editid=<?php echo htmlentities($classInfo['ID']); ?>&examid=<?php echo htmlentities($row->ID); ?>"><i class="icon-pencil"></i></a>
+                                                                            <?php
+                                                                            if(!$published)
+                                                                            {
+                                                                            ?>
                                                                             || 
                                                                             
                                                                             <a href="#" onclick="setDeleteId(<?php echo $row->ID; ?>, '<?php echo htmlentities($classId); ?>')" data-toggle="modal" data-target="#confirmationModal">
                                                                                 <i class="icon-trash"></i>
                                                                             </a>
+                                                                            <?php
+                                                                            }
+                                                                            ?>
                                                                         </td>
                                                                         
                                                                         
