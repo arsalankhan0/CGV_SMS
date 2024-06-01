@@ -194,9 +194,9 @@ else
                                     <table class="table">
                                         <thead>
                                             <tr class="text-center">
-                                                <th style="width:10%;">S.No.</th>
-                                                <th>Subject</th>
-                                                <th>Marks Obtained (MM: <?php echo $maxMarks; ?>)</th>
+                                                <th class="font-weight-bold" style="width:10%;">S.No.</th>
+                                                <th class="font-weight-bold">Subject</th>
+                                                <th class="font-weight-bold">Marks Obtained (MM: <?php echo $maxMarks; ?>)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -246,7 +246,7 @@ else
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
                                                         <td>{$subject['SubjectName']}</td>";
-                                                        echo "<td>{$marksObtained}</td>";
+                                                        echo "<td class='text-center'>{$marksObtained}</td>";
                                                 echo "</tr>";
                                                 $counter++;
                                             }
@@ -286,28 +286,28 @@ else
                                             ?>
                                             <tr>
                                                 <td></td>
-                                                <td class="text-right">Total Marks Obtained</td>
-                                                <td><?php echo $totalMarksObtained; ?></td>
+                                                <td class="text-right font-weight-bold">Total Marks Obtained</td>
+                                                <td class="text-center"><?php echo $totalMarksObtained; ?></td>
                                             </tr>
                                             <tr>
                                                 <td></td>
-                                                <td class="text-right">Maximum Marks</td>
-                                                <td><?php echo $totalMaxMarks; ?></td>
+                                                <td class="text-right font-weight-bold">Maximum Marks</td>
+                                                <td class="text-center"><?php echo $totalMaxMarks; ?></td>
                                             </tr>
                                             <tr>
                                                 <td></td>
-                                                <td class="text-right">Percentage</td>
-                                                <td><?php echo $percentage; ?>%</td>
+                                                <td class="text-right font-weight-bold">Percentage</td>
+                                                <td class="text-center font-weight-bold"><?php echo $percentage; ?>%</td>
                                             </tr>
                                             <tr>
                                                 <td></td>
-                                                <td class="text-right">Grade</td>
-                                                <td><?php echo $grade; ?></td>
+                                                <td class="text-right font-weight-bold">Grade</td>
+                                                <td class="text-center font-weight-bold"><?php echo $grade; ?></td>
                                             </tr>
                                             <tr>
                                                 <td></td>
-                                                <td class="text-right">Rank</td>
-                                                <td><?php echo $rank; ?></td>
+                                                <td class="text-right font-weight-bold">Rank</td>
+                                                <td class="text-center font-weight-bold"><?php echo $rank; ?></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -352,11 +352,11 @@ else
                                                         }
                                                     }
 
-                                                    echo "<th>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                    echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                     $studentTotalMaxMarks += (float)$maxMarks;
                                                 }
                                                 ?>
-                                                <th>Total Marks Obtained<br><br><?php echo "(".htmlspecialchars($studentTotalMaxMarks).")"; ?></th>
+                                                <th class='font-weight-bold'>Total Marks Obtained<br><br><?php echo "(".htmlspecialchars($studentTotalMaxMarks).")"; ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -408,7 +408,7 @@ else
                                         ?>
                                         <thead>
                                             <tr class="text-center">
-                                                <th>Subjects</th>
+                                                <th class='font-weight-bold'>Subjects</th>
                                                 <?php
                                                 foreach ($optionalSubjects as $subject) 
                                                 {
@@ -419,27 +419,19 @@ else
                                         </thead>
                                         <tbody>
                                             <tr class="text-center">
-                                                <td>Grade Obtained</td>
+                                                <td class='font-weight-bold'>Grade Obtained</td>
                                                 <?php
-                                                    // Loop through each optional subject
                                                     foreach ($optionalSubjects as $subject) {
-                                                        $marksObtained = ""; // Initialize marks obtained for the current subject
-
-                                                        // Loop through allSubjectsJson to find the matching subject and extract marks obtained
+                                                        $marksObtained = "";
                                                         foreach ($allSubjectsJsonArray as $row) {
-                                                            $subjectData = json_decode($row['SubjectsJSON'], true); // Decode the JSON data into an associative array
-
-                                                            // Loop through subject data to find the matching subject ID and check if it's optional
+                                                            $subjectData = json_decode($row['SubjectsJSON'], true);
                                                             foreach ($subjectData as $data) {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) {
-                                                                    // Marks obtained found for the current optional subject
                                                                     $marksObtained = $data['SubMarksObtained'];
-                                                                    break 2; // Break out of both inner loops
+                                                                    break 2;
                                                                 }
                                                             }
                                                         }
-
-                                                        // Display the marks obtained
                                                         echo "<td>{$marksObtained}</td>";
                                                     }
                                                 ?>
@@ -467,7 +459,7 @@ else
                                         ?>
                                         <thead>
                                             <tr class="text-center">
-                                                <th class="align-middle">Subjects</th>
+                                                <th class="align-middle font-weight-bold">Subjects</th>
                                                 <?php
                                                 $totalMaxMarks = 0;
                                                 foreach ($optionalSubjects as $subject) 
@@ -488,13 +480,13 @@ else
                                                     $totalMaxMarks += $maxMarks;
                                                     echo "<th>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                 }
-                                                echo "<th>Total <br><br>({$totalMaxMarks})</th>";
+                                                echo "<th class='font-weight-bold'>Total <br><br>({$totalMaxMarks})</th>";
                                                 ?>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="text-center">
-                                                <td>Marks Obtained</td>
+                                                <td class="font-weight-bold">Marks Obtained</td>
                                                 <?php
                                                     $totalMarksObtained = 0;
                                                     foreach ($optionalSubjects as $subject) 
