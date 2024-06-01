@@ -44,7 +44,7 @@ else
 
                     // Check if file is a PDF and size limit is not exceeded
                     $allowedExtensions = array("pdf");
-                    $maxFileSize = 35 * 1048576; // 135MB
+                    $maxFileSize = 20 * 1048576; // 20MB
                     if (in_array($fileExtension, $allowedExtensions) && $fileSize <= $maxFileSize) 
                     {
                         $newFileName = "syllabus_" . time() . '.' . $fileExtension;
@@ -70,7 +70,7 @@ else
                     } 
                     else 
                     {
-                        $msg = "File must be a PDF and size must be less than 35MB.";
+                        $msg = "File must be a PDF and size must be less than 20MB.";
                         $dangerAlert = true;
                     }
                 } 
@@ -181,7 +181,7 @@ else
                                     <div class="form-group">
                                         <label for="exampleInputName1">Upload Planner (PDF only)</label>
                                         <input type="file" name="syllabusPdf" class="form-control-file" accept=".pdf" required>
-                                        <p class="text-muted mt-2">PDF must be less than 35MB</p>
+                                        <p class="text-muted mt-2">PDF must be less than 20MB</p>
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>
                                 </form>
