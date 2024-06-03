@@ -341,11 +341,11 @@ else
                                                             <td><?php  echo htmlentities($row->CreationDate);?></td>
                                                             <td>
                                                                 <div><a href="view-exam-detail.php?editid=<?php echo htmlentities ($row->ID);?>"><i class="icon-pencil"></i></a>
-                                                                            || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
-                                                                                    <i class="icon-trash"></i>
-                                                                                </a>
-                                                                        </div>
-                                                                    </td> 
+                                                                    || <a href="" onclick="setDeleteId(<?php echo ($row->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
+                                                                            <i class="icon-trash"></i>
+                                                                        </a>
+                                                                </div>
+                                                            </td> 
                                                                     <td>
                                                                         <form method="post" action="">
                                                                             <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
@@ -383,42 +383,6 @@ else
                                                                             <?php
                                                                             }
                                                                             ?>
-                                                                            <!-- Confirmation Modal (Publish Exam) -->
-                                                                            <div class="modal fade" id="confirmPublishModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                                                                                <div class="modal-dialog">
-                                                                                    <div class="modal-content">
-                                                                                    <div class="modal-header">
-                                                                                        <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
-                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                                                                    </div>
-                                                                                    <div class="modal-body">
-                                                                                        Are you sure you want to Publish <strong><?php echo $row->ExamName; ?></strong> Exam ?
-                                                                                    </div>
-                                                                                    <div class="modal-footer">
-                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                                                        <button type="submit" class="btn btn-primary" name="publish">Publish</button>
-                                                                                    </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <!-- Confirmation Modal (Publish Result) -->
-                                                                            <div class="modal fade" id="confirmResultModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                                                                                <div class="modal-dialog">
-                                                                                    <div class="modal-content">
-                                                                                    <div class="modal-header">
-                                                                                        <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
-                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                                                                    </div>
-                                                                                    <div class="modal-body">
-                                                                                        Are you sure you want to Publish Result of <strong><?php echo $row->ExamName; ?></strong> ?
-                                                                                    </div>
-                                                                                    <div class="modal-footer">
-                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                                                        <button type="submit" class="btn btn-primary" name="publish_result">Publish</button>
-                                                                                    </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
                                                                         </form>  
                                                                     </td>                                                                      
                                                                     
@@ -479,6 +443,58 @@ else
                 </div>
             </div>
         </div>
+        <?php
+        if ($query->rowCount() > 0) 
+        {
+            foreach ($results as $row) 
+            {
+                ?>
+                <!-- Confirmation Modal (Publish Exam) -->
+                <div class="modal fade" id="confirmPublishModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to Publish <strong><?php echo $row->ExamName; ?></strong> Exam ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                <form method="post" action="">
+                                    <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
+                                    <button type="submit" class="btn btn-primary" name="publish">Publish</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Confirmation Modal (Publish Result) -->
+                <div class="modal fade" id="confirmResultModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to Publish Result of <strong><?php echo $row->ExamName; ?></strong> ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                <form method="post" action="">
+                                    <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
+                                    <button type="submit" class="btn btn-primary" name="publish_result">Publish</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+        }
+        ?>
 
 
     <!-- plugins:js -->
