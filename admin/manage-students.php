@@ -142,6 +142,13 @@ else
                                         
                                     </div>
                                 </div>
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <select name="sort" class="form-control" id="sort" onchange="getSelectedSessionStudents()">
+                                        <option value="class_asc">Class Ascending</option>
+                                        <option value="class_desc">Class Descending</option>
+                                    </select>
+                                </div>
+
                                 <!-- Dismissible Alert messages -->
                                 <?php 
                                     if ($successAlert) 

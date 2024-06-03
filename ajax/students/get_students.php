@@ -10,10 +10,17 @@ $activeSessionQuery->execute();
 $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
 
 $sessionId = $_GET['session_id'] ?? $activeSession;
+$sort = $_GET['sort'] ?? 'class_asc';
 $no_of_records_per_page = 15;
 $page = max((int)$_GET['page'] ?? 1, 1);
 $offset = ($page - 1) * $no_of_records_per_page;
 $offset = max($offset, 0);
+
+$orderClause = "ORDER BY FIELD(LOWER(derived.ClassName), 'nursery', 'lkg', 'ukg', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th') ASC";
+if ($sort === 'class_desc') {
+    $orderClause = "ORDER BY FIELD(LOWER(derived.ClassName), 'nursery', 'lkg', 'ukg', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th') DESC";
+}
+
 // Count the total number of records
 $total_records_sql = "SELECT COUNT(*) FROM (
     SELECT tblstudent.ID
@@ -34,38 +41,41 @@ $total_records = $total_records_query->fetchColumn();
 $total_pages = ceil($total_records / $no_of_records_per_page);
 
 // SQL query for fetching student records
-$studentSql = "SELECT 
-    tblstudent.ID,
-    tblstudent.StuID, 
-    tblstudent.StudentName, 
-    tblstudent.StudentClass, 
-    tblstudent.StudentSection, 
-    tblstudent.DateofAdmission,
-    tblstudent.SessionID,
-    tblclass.ClassName,
-    tblclass.Section as ClassSection,
-    NULL as HistoricalClass,
-    NULL as HistoricalSection
-FROM tblstudent
-JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0
-UNION 
-SELECT 
-    tblstudenthistory.ID as ID,
-    tblstudent.StuID as StuID, 
-    tblstudent.StudentName, 
-    tblstudenthistory.ClassID as StudentClass, 
-    tblstudenthistory.Section as StudentSection,
-    tblstudent.DateofAdmission,
-    tblstudenthistory.SessionID as SessionID,
-    tblclass.ClassName,
-    tblclass.Section as ClassSection,
-    tblstudenthistory.ClassID as HistoricalClass,
-    tblstudenthistory.Section as HistoricalSection
-FROM tblstudenthistory
-JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
-JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
+$studentSql = "SELECT * FROM (
+    SELECT 
+        tblstudent.ID,
+        tblstudent.StuID, 
+        tblstudent.StudentName, 
+        tblstudent.StudentClass, 
+        tblstudent.StudentSection, 
+        tblstudent.DateofAdmission,
+        tblstudent.SessionID,
+        tblclass.ClassName,
+        tblclass.Section as ClassSection,
+        NULL as HistoricalClass,
+        NULL as HistoricalSection
+    FROM tblstudent
+    JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
+    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0
+    UNION 
+    SELECT 
+        tblstudenthistory.ID as ID,
+        tblstudent.StuID as StuID, 
+        tblstudent.StudentName, 
+        tblstudenthistory.ClassID as StudentClass, 
+        tblstudenthistory.Section as StudentSection,
+        tblstudent.DateofAdmission,
+        tblstudenthistory.SessionID as SessionID,
+        tblclass.ClassName,
+        tblclass.Section as ClassSection,
+        tblstudenthistory.ClassID as HistoricalClass,
+        tblstudenthistory.Section as HistoricalSection
+    FROM tblstudenthistory
+    JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
+    JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
+    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
+) as derived
+$orderClause
 LIMIT :offset, :no_of_records_per_page";
 
 $studentQuery = $dbh->prepare($studentSql);
@@ -148,16 +158,17 @@ function getSectionName($sectionID)
 
 <div align="left">
     <ul class="pagination">
-        <li><a href="javascript:void(0);" onclick="changePage(1)"><strong>First</strong></a></li>
+        <li><a href="javascript:void(0);" onclick="changePage(1, <?php echo $total_pages; ?>)"><strong>First</strong></a></li>
         <li class="<?php if ($page <= 1) { echo 'disabled'; } ?>">
-            <a href="javascript:void(0);" onclick="changePage(<?php echo ($page - 1); ?>)"><strong style="padding-left: 10px">Prev</strong></a>
+            <a href="javascript:void(0);" onclick="changePage(<?php echo ($page - 1); ?>, <?php echo $total_pages; ?>)"><strong style="padding-left: 10px">Prev</strong></a>
         </li>
         <li class="<?php if ($page >= $total_pages) { echo 'disabled'; } ?>">
-            <a href="javascript:void(0);" onclick="changePage(<?php echo ($page + 1); ?>)"><strong style="padding-left: 10px">Next</strong></a>
+            <a href="javascript:void(0);" onclick="changePage(<?php echo ($page + 1); ?>, <?php echo $total_pages; ?>)"><strong style="padding-left: 10px">Next</strong></a>
         </li>
-        <li><a href="javascript:void(0);" onclick="changePage(<?php echo $total_pages; ?>)"><strong style="padding-left: 10px">Last</strong></a></li>
+        <li><a href="javascript:void(0);" onclick="changePage(<?php echo $total_pages; ?>, <?php echo $total_pages; ?>)"><strong style="padding-left: 10px">Last</strong></a></li>
     </ul>
 </div>
+
 
 
 <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
