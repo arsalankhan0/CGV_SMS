@@ -13498,3 +13498,22 @@ dl {
 {
   cursor: pointer !important;
 }
+.password-container
+{
+  position: relative;
+}
+.password-icon
+{
+  position: absolute;
+  left: 90%;
+  top: 40%;
+}
+@media (max-width: 450px)
+{
+  .password-icon
+  {
+    position: absolute;
+    left: 87%;
+    top: 40%;
+  }
+}

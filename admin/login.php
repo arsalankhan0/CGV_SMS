@@ -109,12 +109,7 @@ if(isset($_POST['login']))
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
     <link rel="stylesheet" href="vendors/flag-icon-css/css/flag-icon.min.css">
     <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
-    <!-- endinject -->
-    <!-- Plugin css for this page -->
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <!-- endinject -->
-    <!-- Layout styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 
   </head>
@@ -153,9 +148,9 @@ if(isset($_POST['login']))
                   <div class="form-group">
                     <input type="text" class="form-control form-control-lg" placeholder="enter your username" required="true" name="username" value="<?php if(isset($_COOKIE["user_login"])) { echo $_COOKIE["user_login"]; } ?>" >
                   </div>
-                  <div class="form-group">
-                    
-                    <input type="password" class="form-control form-control-lg" placeholder="enter your password" name="password" required="true" value="<?php if(isset($_COOKIE["userpassword"])) { echo $_COOKIE["userpassword"]; } ?>">
+                  <div class="form-group password-container">
+                    <input type="password" id="password" class="form-control form-control-lg" placeholder="enter your password" name="password" required="true" value="<?php if(isset($_COOKIE["userpassword"])) { echo $_COOKIE["userpassword"]; } ?>">
+                    <i class="password-icon fas fa-eye" onclick="togglePassword('password')"></i>
                   </div>
                   <div class="mt-3">
                     <button class="btn btn-success btn-block loginbtn" name="login" type="submit">Login</button>
@@ -190,6 +185,7 @@ if(isset($_POST['login']))
     <script src="js/off-canvas.js"></script>
     <script src="js/misc.js"></script>
     <script src="./js/manageAlert.js"></script>
+    <script src="../Main/js/togglePassword.js"></script>
     <!-- endinject -->
   </body>
 </html>
