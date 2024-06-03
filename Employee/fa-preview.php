@@ -17,7 +17,7 @@ else
                                 INNER JOIN tblexamination AS e ON m.ExamID = e.ID
                                 WHERE m.GradingSystem = 1
                                 AND m.ClassID = :className
-                                AND e.ExamType = 'Summative'";
+                                AND e.ExamType = 'Formative'";
         $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
         $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
         $optionalGradingQuery->execute();
