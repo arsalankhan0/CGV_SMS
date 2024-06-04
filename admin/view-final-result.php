@@ -112,32 +112,28 @@ else
                                         $selectedSession = $_POST['session'];
                                         $selectedClass = $_POST['class'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT StudentName, ClassName, ExamSession FROM tblreports WHERE ClassName = :class AND ExamSession = :SelectedSession AND IsDeleted = 0";
+                                        $sqlFilteredReports = "SELECT DISTINCT tr.StudentName, tc.ID AS ClassID, ts.session_id AS SessionID, tc.ClassName, ts.session_name AS ExamSession 
+                                                                FROM tblreports tr
+                                                                INNER JOIN tblclass tc ON tr.ClassName = tc.ID
+                                                                INNER JOIN tblsessions ts ON tr.ExamSession = ts.session_id
+                                                                WHERE tr.ClassName = :class 
+                                                                AND tr.ExamSession = :selectedSession 
+                                                                AND tr.IsDeleted = 0";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
-                                        $queryFilteredReports->bindParam(':SelectedSession', $selectedSession, PDO::PARAM_STR);
+                                        $queryFilteredReports->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
 
-                                        // Fetch ClassName from tblclass
-                                        $sqlSelectedClassName = "SELECT * FROM tblclass WHERE ID = :selectedClass AND IsDeleted = 0";
-                                        $querySelectedClassName = $dbh->prepare($sqlSelectedClassName);
-                                        $querySelectedClassName->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
-                                        $querySelectedClassName->execute();
-                                        $filteredClassName = $querySelectedClassName->fetch(PDO::FETCH_ASSOC);
-
-                                        // Fetch SessionName from tblsessions
-                                        $sqlSelectedSessionName = "SELECT * FROM tblsessions WHERE session_id = :selectedSession AND IsDeleted = 0";
-                                        $querySelectedSessionName = $dbh->prepare($sqlSelectedSessionName);
-                                        $querySelectedSessionName->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
-                                        $querySelectedSessionName->execute();
-                                        $filteredSessionName = $querySelectedSessionName->fetch(PDO::FETCH_ASSOC);
                                         
                                         if (!empty($filteredReports)) 
                                         {
+                                            $filteredClassName = $filteredReports[0]['ClassName'];
+                                            $filteredSessionName = $filteredReports[0]['ExamSession'];
+
                                             // Display message indicating the filtered results
-                                            echo "<div class='d-flex justify-content-between align-items-center'>";
-                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
+                                            echo "<div class='d-flex flex-md-row flex-column justify-content-between align-items-center'>";
+                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName) . "</span>, <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName) . "</span></strong>";
                                             echo "<button class='btn btn-info' onclick='printAllReports()'>Print All</button>";
                                             echo "</div>";
                                             echo "<div class='table-responsive border rounded p-1 mt-4'>";
@@ -168,7 +164,7 @@ else
                                                 echo "<td>". htmlentities($studentDetails['RollNo']) ."</td>";
                                                 echo "<td>";
                                                 echo "<div>";
-                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-report-details.php?className=" . urlencode($report['ClassName']) . "&studentName=" . urlencode($report['StudentName']) . "&examSession=" . urlencode($report['ExamSession']) . "\")'>Print</button>";
+                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-report-details.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&studentName=" . urlencode(base64_encode($report['StudentName'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\")'>Print</button>";
                                                 echo "</div>";
                                                 echo "</td>";
                                                 echo "</tr>";
@@ -181,8 +177,7 @@ else
                                         } 
                                         else 
                                         {
-                                            // Display message indicating the filtered results
-                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-danger'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
+                                            echo "<strong>No Record found!</strong>";
                                         }
                                     }
                                     ?>
@@ -224,7 +219,7 @@ else
     function printAllReports() {
         <?php
         foreach ($filteredReports as $report) {
-            echo "printReportDetails(\"print-all-reports.php?className=" . urlencode($report['ClassName']) . "&examSession=" . urlencode($report['ExamSession']) . "\");";
+            echo "printReportDetails(\"print-all-reports.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\");";
         }
         ?>
     }

@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
@@ -10,38 +10,60 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid']))
 else 
 {
     // Function to check if there is grading system
-function hasOptionalSubjectWithGrading($dbh, $className, $examSession) 
-{
-    // $class = "%$className%";
-    // $optionalGradingSql = "SELECT COUNT(*) FROM tblsubjects AS s
-    //                     INNER JOIN tblmaxmarks AS m ON s.ID = m.SubjectID
-    //                     WHERE s.ClassName LIKE :className 
-    //                     AND s.IsOptional = 1 
-    //                     AND s.IsCurricularSubject = 0 
-    //                     AND s.IsDeleted = 0
-    //                     AND m.GradingSystem = 1
-    //                     AND m.ClassID = :className";
-    // $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
-    // $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
-    // $optionalGradingQuery->execute();
-    // $optionalGradingCount = $optionalGradingQuery->fetchColumn();
-    // return $optionalGradingCount > 0;
-    $class = $className;
-    $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
-                            INNER JOIN tblexamination AS e ON m.ExamID = e.ID
-                            WHERE m.GradingSystem = 1
-                            AND m.ClassID = :className
-                            AND e.ExamType = 'Summative'";
-    $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
-    $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
-    $optionalGradingQuery->execute();
-    $optionalGradingCount = $optionalGradingQuery->fetchColumn();
-    return $optionalGradingCount > 0;
-}
+    function hasOptionalSubjectWithGrading($dbh, $className, $sessionID) 
+    {
+        $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
+                                INNER JOIN tblexamination AS e ON m.ExamID = e.ID
+                                WHERE m.GradingSystem = 1
+                                AND m.ClassID = :className
+                                AND m.SessionID = :sessionID
+                                AND e.ExamType = 'Summative'";
+        $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
+        $optionalGradingQuery->bindParam(':className', $className, PDO::PARAM_STR);
+        $optionalGradingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+        $optionalGradingQuery->execute();
+        $optionalGradingCount = $optionalGradingQuery->fetchColumn();
+        return $optionalGradingCount > 0;
+    }
+    function fetchExamNames($dbh, $examType, $examSession) {
+        $examNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = :examType AND IsDeleted = 0 AND session_id = :examSession";
+        $examNamesQuery = $dbh->prepare($examNamesSql);
+        $examNamesQuery->bindParam(':examType', $examType, PDO::PARAM_STR);
+        $examNamesQuery->bindParam(':examSession', $examSession, PDO::PARAM_INT);
+        $examNamesQuery->execute();
+        return $examNamesQuery->fetchAll(PDO::FETCH_ASSOC);
+    }
+    // Function to show subjects as per the condition
+    function fetchSubjects($dbh, $className, $isOptional, $isCurricularSubject, $examSession) 
+    {
+        $subjectsSql = "SELECT ID, SubjectName FROM tblsubjects 
+                        WHERE ClassName LIKE :className 
+                        AND IsOptional = :isOptional 
+                        AND IsCurricularSubject = :isCurricularSubject 
+                        AND IsDeleted = 0 
+                        AND SessionID = :examSession";
+        $subjectsQuery = $dbh->prepare($subjectsSql);
+        $subjectsQuery->bindParam(':className', $className, PDO::PARAM_STR);
+        $subjectsQuery->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
+        $subjectsQuery->bindParam(':isCurricularSubject', $isCurricularSubject, PDO::PARAM_INT);
+        $subjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_INT);
+        $subjectsQuery->execute();
+        return $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+    }
+    function fetchSubjectsJson($dbh, $className, $studentID, $sessionID) 
+    {
+        $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID AND ExamSession = :sessionID";
+        $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
+        $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+        $fetchSubjectsJsonQuery->bindParam(':studentID', $studentID, PDO::PARAM_STR);
+        $fetchSubjectsJsonQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+        $fetchSubjectsJsonQuery->execute();
+        return $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_COLUMN);
+    }
 
     if (isset($_GET['studentName'])) 
     {
-        $studentID = filter_var($_GET['studentName'], FILTER_VALIDATE_INT);
+        $studentID = filter_var(base64_decode(urldecode($_GET['studentName'])), FILTER_VALIDATE_INT);
 
         $sqlStudent = "SELECT * FROM tblstudent WHERE ID = :studentName AND IsDeleted = 0";
         $queryStudent = $dbh->prepare($sqlStudent);
@@ -66,8 +88,8 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
             try 
             {
                 $examSession = $session['session_id'];
-                $className = $_GET['className'];
-                $studentName = $_GET['studentName'];
+                $className = base64_decode(urldecode($_GET['className']));
+                $studentName = base64_decode(urldecode($_GET['studentName']));
 
                 $sqlReports = "SELECT * FROM tblreports WHERE ExamSession = :examSession AND ClassName = :className AND StudentName = :studentName AND IsDeleted = 0";
                 $stmtReports = $dbh->prepare($sqlReports);
@@ -88,7 +110,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                 echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
             }
 
-            $examSession = $_GET['examSession'];
+            $examSession = base64_decode(urldecode($_GET['examSession']));
             $sqlSubjects = "SELECT * FROM tblsubjects WHERE SessionID = :examSession AND IsDeleted = 0";
             $querySubjects = $dbh->prepare($sqlSubjects);
             $querySubjects->bindParam(':examSession', $examSession, PDO::PARAM_INT);
@@ -122,32 +144,38 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                 <div class="container-scroller">
                 <div class="container page-body-wrapper d-flex flex-column">
                     <?php
-
                         // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, CodeNumber, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                        $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
-                        $studentDetailsQuery->bindParam(':studentID', $_GET['studentName'], PDO::PARAM_INT);
+                        $sql = "SELECT 
+                                    s.ID AS StudentID,
+                                    s.StudentName,
+                                    s.CodeNumber,
+                                    s.StudentSection,
+                                    s.StudentClass,
+                                    s.RollNo,
+                                    s.FatherName,
+                                    c.ClassName,
+                                    c.ID AS ClassID,
+                                    sec.SectionName,
+                                    sec.ID AS SectionID
+                                FROM 
+                                    tblstudent s
+                                INNER JOIN 
+                                    tblclass c ON s.StudentClass = c.ID
+                                INNER JOIN 
+                                    tblsections sec ON s.StudentSection = sec.ID
+                                WHERE 
+                                    s.ID = :studentID 
+                                    AND s.IsDeleted = 0 
+                                    AND c.IsDeleted = 0 
+                                    AND sec.IsDeleted = 0";
+                        $studentDetailsQuery = $dbh->prepare($sql);
+                        $studentDetailsQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
                         $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
-
-                        // Fetch Class Details
-                        $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
-                        $studentClassQuery = $dbh->prepare($studentClassSql);
-                        $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
-                        $studentClassQuery->execute();
-                        $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
-
-                        // Fetch sections from the database
-                        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
-                        $sectionQuery = $dbh->prepare($sectionSql);
-                        $sectionQuery->bindParam(':studentDetails', $studentDetails['StudentSection'], PDO::PARAM_STR);
-                        $sectionQuery->execute();
-                        $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
-                                <img src="../Main/img/logo1.png" alt="img" class="watermark">
                                 <!-- Student's Details -->
                                 <div class="mt-4">
                                     <div class="d-flex flex-row justify-content-between">
@@ -155,10 +183,10 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             <label>Student's Code No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
                                         </div>
                                         <div>
                                             <label>Roll No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
@@ -188,14 +216,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                             </tr>
                                             <tr class="text-center">
                                                 <?php
-                                                function fetchExamNames($dbh, $examType, $examSession) {
-                                                    $examNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = :examType AND IsDeleted = 0 AND session_id = :examSession";
-                                                    $examNamesQuery = $dbh->prepare($examNamesSql);
-                                                    $examNamesQuery->bindParam(':examType', $examType, PDO::PARAM_STR);
-                                                    $examNamesQuery->bindParam(':examSession', $examSession, PDO::PARAM_INT);
-                                                    $examNamesQuery->execute();
-                                                    return $examNamesQuery->fetchAll(PDO::FETCH_ASSOC);
-                                                }
                                                 // Fetch exam names and IDs as per the parameters
                                                 $examNames = fetchExamNames($dbh, 'Formative', $examSession);
                                                 $coCurricularExamNames = fetchExamNames($dbh, 'Co-Curricular', $examSession);
@@ -215,23 +235,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                         <tbody>
                                             <?php
                                             $class = "%$className%";
-
-                                            // Function to show subjects as per the condition
-                                            function fetchSubjects($dbh, $className, $isOptional, $isCurricularSubject, $examSession) {
-                                                $subjectsSql = "SELECT ID, SubjectName FROM tblsubjects 
-                                                                WHERE ClassName LIKE :className 
-                                                                AND IsOptional = :isOptional 
-                                                                AND IsCurricularSubject = :isCurricularSubject 
-                                                                AND IsDeleted = 0 
-                                                                AND SessionID = :examSession";
-                                                $subjectsQuery = $dbh->prepare($subjectsSql);
-                                                $subjectsQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                $subjectsQuery->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
-                                                $subjectsQuery->bindParam(':isCurricularSubject', $isCurricularSubject, PDO::PARAM_INT);
-                                                $subjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_INT);
-                                                $subjectsQuery->execute();
-                                                return $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
-                                            }
                                             // Fetch only those subjects of the class whose IsOptional is 0
                                             $subjects = fetchSubjects($dbh, $class, 0, 0, $examSession);
                                             
@@ -288,15 +291,7 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                                 // Calculating the grand total of co-curricular subject 
                                                 $CCGrandTotal += $CCtotalMarksObtained;
                                                 $CCGrandMaxTotal += $CCtotalMaxMarks;
-
-                                                // Fetch SubjectsJSON for the current subject from tblreports for all exam sessions
-                                                $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID AND ExamSession = :sessionID";
-                                                $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':sessionID', $examSession, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->execute();
-                                                $allSubjectsJson = $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_COLUMN);
+                                                $allSubjectsJson = fetchSubjectsJson($dbh, $studentDetails['ClassID'], $studentDetails['StudentID'], $examSession);
 
                                                 // Loop through all subjects JSON data for the current subject
                                                 foreach ($allSubjectsJson as $subjectsJson) 
@@ -666,7 +661,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $examSession)
                                         </tbody>
                                     </table>
                                 </div>
-
 
                                 <!-- Grading System -->
                                 <div class="d-flex flex-column mt-3">

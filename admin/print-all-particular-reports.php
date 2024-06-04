@@ -24,12 +24,24 @@ else
         $optionalGradingCount = $optionalGradingQuery->fetchColumn();
         return $optionalGradingCount > 0;
     }
+    // Function to get the subjects based on parameters
+    function getSubjects($dbh, $className, $examSession, $isOptional, $isCurricularSubject) 
+    {
+        $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = :isOptional AND IsCurricularSubject = :isCurricularSubject AND IsDeleted = 0 AND SessionID = :examSession";
+        $subjectsQuery = $dbh->prepare($subjectsSql);
+        $subjectsQuery->bindParam(':className', $className, PDO::PARAM_STR);
+        $subjectsQuery->bindParam(':isOptional', $isOptional, PDO::PARAM_INT);
+        $subjectsQuery->bindParam(':isCurricularSubject', $isCurricularSubject, PDO::PARAM_INT);
+        $subjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
+        $subjectsQuery->execute();
+        return $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
     {
-        $className = urldecode($_GET['className']);
-        $examSession = urldecode($_GET['examSession']);
-        $examName = urldecode($_GET['examName']);
+        $className = base64_decode(urldecode($_GET['className']));
+        $examSession = base64_decode(urldecode($_GET['examSession']));
+        $examName = base64_decode(urldecode($_GET['examName']));
 
         // Fetch all students and their reports based on the specified criteria
         $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
@@ -39,16 +51,17 @@ else
         $stmtReports->execute();
         $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
 
-        // Filter the reports based on examName
-        $allReports = array_filter($allReports, function($report) use ($examName) {
-            // Extract ExamName from SubjectsJSON and compare with examName
+        $allReports = array_filter($allReports, function($report) use ($examName) 
+        {
             $subjectsJSON = json_decode($report['SubjectsJSON'], true);
-            foreach ($subjectsJSON as $subject) {
-                if ($subject['ExamName'] === $examName) {
-                    return true; // Keep the report if the examName matches
+            foreach ($subjectsJSON as $subject) 
+            {
+                if ($subject['ExamName'] === $examName) 
+                {
+                    return true;
                 }
             }
-            return false; // Exclude the report if no match is found
+            return false; 
         });
 
         // Get the active session ID and Name
@@ -95,83 +108,77 @@ else
 
                     foreach ($groupedReports as $studentName => $studentReports) 
                     {
-                        // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, CodeNumber, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                        $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
+                        $sql = "SELECT s.ID, StudentName, CodeNumber, sec.SectionName, c.ClassName, RollNo, FatherName, e.ID as ExamID, e.ExamName, e.DurationFrom, e.DurationTo
+                                FROM tblstudent s
+                                INNER JOIN tblclass c ON (s.StudentClass = c.ID AND c.IsDeleted = 0)
+                                INNER JOIN tblsections sec ON (s.StudentSection = sec.ID AND sec.IsDeleted = 0)
+                                LEFT JOIN tblexamination e ON (s.ID = :studentID AND e.IsDeleted = 0)
+                                WHERE s.ID = :studentID AND s.IsDeleted = 0";
+                        $studentDetailsQuery = $dbh->prepare($sql);
                         $studentDetailsQuery->bindParam(':studentID', $studentReports[0]['StudentName'], PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
                         $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
 
-                        // Fetch Class Details
-                        $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
-                        $studentClassQuery = $dbh->prepare($studentClassSql);
-                        $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
-                        $studentClassQuery->execute();
-                        $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
+                        $durationFrom = (new DateTime($studentDetails['DurationFrom']))->format('d-m-Y');
+                        $durationTo = (new DateTime($studentDetails['DurationTo']))->format('d-m-Y');
 
-                        // Fetch sections from the database
-                        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
-                        $sectionQuery = $dbh->prepare($sectionSql);
-                        $sectionQuery->bindParam(':studentDetails', $studentDetails['StudentSection'], PDO::PARAM_STR);
-                        $sectionQuery->execute();
-                        $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
-
-                        // Fetch Exam Name from the database
-                        $examNameSql = "SELECT ExamName, DurationFrom, DurationTo FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
-                        $examNameQuery = $dbh->prepare($examNameSql);
-                        $examNameQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
-                        $examNameQuery->execute();
-                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                 <div class="d-flex justify-content-center align-items-center">
+                                    <img src="../Main/img/logo1.png" width="120px" alt="TPS" class="img-fluid">
                                     <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid">
                                 </div>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <strong style="font-size: 1.3rem;">Result of <?php echo htmlspecialchars($examNameRow['ExamName']); ?></strong>
+                                    <strong style="font-size: 1.3rem;">Result of <?php echo htmlspecialchars($studentDetails['ExamName']); ?></strong>
                                 </div>
-                                <!-- Student's Details -->
-                                <div class="my-4">
-                                    <!-- Row 1 -->
-                                    <div class="d-flex flex-row align-items-start justify-content-end">
-                                        <div class="mb-2">
-                                            <label>Date:</label><span class="border-bottom border-dark ml-2 signature-line"></span>
+                                <!-- Duration -->
+                                <div class="container mt-4">
+                                    <div class="d-flex flex-row align-items-start mb-3" style="gap: 30px;">
+                                        <div class="d-flex align-items-center w-100">
+                                            <label class="font-weight-bold">Duration:</label>
+                                            <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;">
+                                                <?php echo htmlspecialchars($durationFrom); ?>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex align-items-center w-100">
+                                            <label class="font-weight-bold">To:</label>
+                                            <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;">
+                                                <?php echo htmlspecialchars($durationTo); ?>
+                                            </span>
                                         </div>
                                     </div>
-                                    <!-- Row 1 -->
-                                    <div class="d-flex flex-row align-items-start" style="gap: 30px;">
-                                        <div class="d-flex align-items-center w-100">
-                                            <label>Duration:</label>
-                                            <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlspecialchars($examNameRow['DurationFrom']); ?></span>
-                                        </div>
-                                        <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">To:</label>
-                                            <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlspecialchars($examNameRow['DurationTo']); ?></span>
-                                        </div>
-                                    </div>
-                                    <!-- Row 2 -->
-                                    <div class="d-flex flex-row align-items-start my-2" style="white-space: nowrap;">
-                                        <div class="mr-5">
-                                            <label>Code No.:</label><span class="border-bottom border-dark ml-1 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
-                                        </div>
-                                        <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Student's Name:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></span>
-                                        </div>
-                                    </div>
-                                    <!-- Row 3 -->
-                                    <div class="d-flex flex-row justify-content-between" style="gap: 30px">
-                                        <div class="d-flex align-items-center w-100">
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentClass); ?></span>
-                                        </div>
-                                        <div class="d-flex align-items-center w-100">
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
-                                        </div>
-                                        <div class="d-flex align-items-center w-100">
-                                            <label class="text-nowrap">Roll No:</label><span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
-                                        </div>
-                                    </div>
+                                </div>
+                                <!-- Student Details -->
+                                <div class="d-flex flex-column mb-4">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="font-weight-bold text-center" colspan="4">STUDENT DETAILS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Code No.</td>
+                                                <td><?php echo htmlentities($studentDetails['CodeNumber']); ?></td>
+                                                <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Date</td>
+                                                <td style="border-top: none; border-bottom: none;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Name</td>
+                                                <td><?php echo htmlentities($studentDetails['StudentName']); ?></td>
+                                                <td class="font-weight-bold">Class</td>
+                                                <td><?php echo htmlentities($studentDetails['ClassName']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">Roll No</td>
+                                                <td><?php echo htmlentities($studentDetails['RollNo']); ?></td>
+                                                <td class="font-weight-bold">Section</td>
+                                                <td><?php echo htmlentities($studentDetails['SectionName']); ?></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <!-- Main Subjects -->
                                 <div class="d-flex flex-column">
@@ -185,11 +192,7 @@ else
                                         $maxMarksQuery->execute();
                                         $maxMarksRow = $maxMarksQuery->fetch(PDO::FETCH_ASSOC);
 
-                                        if ($maxMarksRow) {
-                                            $maxMarks = $maxMarksRow['SubMaxMarks'];
-                                        } else {
-                                            $maxMarks = 'N/A'; 
-                                        }
+                                        $maxMarks = ($maxMarksRow) ? $maxMarksRow['SubMaxMarks'] : 'N/A';
                                     ?>
                                     <table class="table">
                                         <thead>
@@ -202,13 +205,7 @@ else
                                         <tbody>
                                             <?php
                                             $class = "%$className%";
-                                            // Fetch only those subjects of the class whose IsOptional is 0
-                                            $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
-                                            $subjectsQuery = $dbh->prepare($subjectsSql);
-                                            $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
-                                            $subjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                            $subjectsQuery->execute();
-                                            $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+                                            $subjects = getSubjects($dbh, $class, $examSession, 0, 0);
 
                                             $counter = 1;
                                             $totalMarksObtained = 0;
@@ -256,7 +253,7 @@ else
                                                 $percentage = ($totalMarksObtained / $totalMaxMarks) * 100;
                                                 $percentage = number_format($percentage, 2);
 
-                                               //Grade based on the percentage
+                                                //Grade based on the percentage
                                                 if ($percentage >= 85) {
                                                     $grade = 'A+';
                                                     $rank = 'SKY';
@@ -320,12 +317,7 @@ else
                                         <thead>
                                             <tr class="text-center">
                                                 <?php
-                                                // Fetch only those subjects of the class whose Co-curricular is 1
-                                                $subjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 0 AND IsCurricularSubject = 1 AND IsDeleted = 0";
-                                                $subjectsQuery = $dbh->prepare($subjectsSql);
-                                                $subjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
-                                                $subjectsQuery->execute();
-                                                $subjects = $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
+                                                $subjects = getSubjects($dbh, $class, $examSession, 0, 1);
 
                                                 // Fetch SubjectsJSON for the current student and session
                                                 $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
@@ -390,6 +382,7 @@ else
                                 </div>
                                 
                                 <?php
+                                $optionalSubjects = getSubjects($dbh, $class, $examSession, 1, 0);
                                 if(hasOptionalSubjectWithGrading($dbh, $className))
                                 {
                                 ?>
@@ -397,15 +390,6 @@ else
                                 <div class="d-flex flex-column mt-4">
                                     <strong>Grade in Optional Subjects:</strong>
                                     <table class="table ">
-                                        <?php
-                                        // Fetch only those subjects of the class whose IsOptional is 0
-                                        $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
-                                        $optionalSubjectsQuery = $dbh->prepare($optionalSubjectsSql);
-                                        $optionalSubjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
-                                        $optionalSubjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                        $optionalSubjectsQuery->execute();
-                                        $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
-                                        ?>
                                         <thead>
                                             <tr class="text-center">
                                                 <th class='font-weight-bold'>Subjects</th>
@@ -448,15 +432,6 @@ else
                                 <div class="d-flex flex-column mt-4">
                                     <strong>Marks in Optional Subjects:</strong>
                                     <table class="table ">
-                                        <?php
-                                        // Fetch only those subjects of the class whose IsOptional is 0
-                                        $optionalSubjectsSql = "SELECT * FROM tblsubjects WHERE ClassName LIKE :className AND IsOptional = 1 AND IsCurricularSubject = 0 AND IsDeleted = 0 AND SessionID = :examSession";
-                                        $optionalSubjectsQuery = $dbh->prepare($optionalSubjectsSql);
-                                        $optionalSubjectsQuery->bindParam(':className', $class, PDO::PARAM_STR);
-                                        $optionalSubjectsQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                        $optionalSubjectsQuery->execute();
-                                        $optionalSubjects = $optionalSubjectsQuery->fetchAll(PDO::FETCH_ASSOC);
-                                        ?>
                                         <thead>
                                             <tr class="text-center">
                                                 <th class="align-middle font-weight-bold">Subjects</th>
@@ -517,7 +492,6 @@ else
                                 <?php
                                 }
                                 ?>
-
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="mt-5">
                                         <label>Supervisor/Principal's Signature:</label><span class="border-bottom border-dark ml-2 px-5"></span>
@@ -536,7 +510,9 @@ else
         </body>
         </html>
         <?php
-    } else {
+    } 
+    else 
+    {
         echo "<script>alert('Invalid Request');</script>";
     }
 }

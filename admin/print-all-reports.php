@@ -4,25 +4,17 @@ error_reporting(0);
 include('includes/dbconnection.php');
 
 // Function to check if there is grading system
-function hasOptionalSubjectWithGrading($dbh, $className) 
+function hasOptionalSubjectWithGrading($dbh, $className, $sessionID) 
 {
-    // $class = "%$className%";
-    // $optionalGradingSql = "SELECT COUNT(*) FROM tblsubjects AS s
-    //                     INNER JOIN tblmaxmarks AS m ON s.ID = m.SubjectID
-    //                     WHERE s.ClassName LIKE :className 
-    //                     AND s.IsOptional = 1 
-    //                     AND s.IsCurricularSubject = 0 
-    //                     AND s.IsDeleted = 0
-    //                     AND m.GradingSystem = 1
-    //                     AND m.ClassID = :className";
-    $class = $className;
     $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
                             INNER JOIN tblexamination AS e ON m.ExamID = e.ID
                             WHERE m.GradingSystem = 1
                             AND m.ClassID = :className
+                            AND m.SessionID = :sessionID
                             AND e.ExamType = 'Summative'";
     $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
-    $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
+    $optionalGradingQuery->bindParam(':className', $className, PDO::PARAM_STR);
+    $optionalGradingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
     $optionalGradingQuery->execute();
     $optionalGradingCount = $optionalGradingQuery->fetchColumn();
     return $optionalGradingCount > 0;
@@ -55,6 +47,16 @@ function fetchSubjects($dbh, $className, $isOptional, $isCurricularSubject, $exa
     $subjectsQuery->execute();
     return $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
 }
+function fetchSubjectsJson($dbh, $className, $studentID, $sessionID) 
+{
+    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID AND ExamSession = :sessionID";
+    $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
+    $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentID, PDO::PARAM_STR);
+    $fetchSubjectsJsonQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
+    $fetchSubjectsJsonQuery->execute();
+    return $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_COLUMN);
+}
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
 {
@@ -65,8 +67,8 @@ else
     if (isset($_GET['className']) && isset($_GET['examSession'])) 
     {
 
-        $className = urldecode($_GET['className']);
-        $examSession = urldecode($_GET['examSession']);
+        $className = base64_decode(urldecode($_GET['className']));
+        $examSession = base64_decode(urldecode($_GET['examSession']));
 
         // Fetch all students and their reports based on the specified criteria
         $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
@@ -120,30 +122,38 @@ else
                     foreach ($groupedReports as $studentName => $studentReports) 
                     {
                         // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, CodeNumber, StudentSection, StudentClass, RollNo, FatherName FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                        $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
+                        $sql = "SELECT 
+                                    s.ID AS StudentID,
+                                    s.StudentName,
+                                    s.CodeNumber,
+                                    s.StudentSection,
+                                    s.StudentClass,
+                                    s.RollNo,
+                                    s.FatherName,
+                                    c.ClassName,
+                                    c.ID AS ClassID,
+                                    sec.SectionName,
+                                    sec.ID AS SectionID
+                                FROM 
+                                    tblstudent s
+                                INNER JOIN 
+                                    tblclass c ON s.StudentClass = c.ID
+                                INNER JOIN 
+                                    tblsections sec ON s.StudentSection = sec.ID
+                                WHERE 
+                                    s.ID = :studentID 
+                                    AND s.IsDeleted = 0 
+                                    AND c.IsDeleted = 0 
+                                    AND sec.IsDeleted = 0";
+                        $studentDetailsQuery = $dbh->prepare($sql);
                         $studentDetailsQuery->bindParam(':studentID', $studentReports[0]['StudentName'], PDO::PARAM_INT);
                         $studentDetailsQuery->execute();
                         $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
 
-                        // Fetch Class Details
-                        $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
-                        $studentClassQuery = $dbh->prepare($studentClassSql);
-                        $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
-                        $studentClassQuery->execute();
-                        $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
-
-                        // Fetch sections from the database
-                        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
-                        $sectionQuery = $dbh->prepare($sectionSql);
-                        $sectionQuery->bindParam(':studentDetails', $studentDetails['StudentSection'], PDO::PARAM_STR);
-                        $sectionQuery->execute();
-                        $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
-                                <img src="../Main/img/logo1.png" alt="img" class="watermark">
                                 <!-- Student's Details -->
                                 <div class="mt-4">
                                     <div class="d-flex flex-row justify-content-between">
@@ -151,10 +161,10 @@ else
                                             <label>Student's Code No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentClass); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
                                         </div>
                                         <div>
                                             <label>Roll No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
@@ -239,9 +249,9 @@ else
                                                 // Fetch SubjectsJSON for the current subject from tblreports
                                                 $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblcocurricularreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
                                                 $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                 $fetchSubjectsJsonQuery->execute();
                                                 $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
 
@@ -258,13 +268,7 @@ else
                                                 $CCGrandMaxTotal += $CCtotalMaxMarks;
 
                                                 // Fetch SubjectsJSON for the current subject from tblreports for all exam sessions
-                                                $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND StudentName = :studentID AND ExamSession = :sessionID";
-                                                $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->bindParam(':sessionID', $examSession, PDO::PARAM_STR);
-                                                $fetchSubjectsJsonQuery->execute();
-                                                $allSubjectsJson = $fetchSubjectsJsonQuery->fetchAll(PDO::FETCH_COLUMN);
+                                                $allSubjectsJson = fetchSubjectsJson($dbh, $studentDetails['ClassID'], $studentDetails['StudentID'], $examSession);
 
                                                 // Loop through all subjects JSON data for the current subject
                                                 foreach ($allSubjectsJson as $subjectsJson) 
@@ -658,7 +662,7 @@ else
                                 </div>
                                 <?php
                                 // Check if any optional subject has a grading system
-                                if (hasOptionalSubjectWithGrading($dbh, $className)) 
+                                if (hasOptionalSubjectWithGrading($dbh, $className, $sessionID)) 
                                 {
                                 ?>
                                     <!-- Optional Subjects in Grades-->
@@ -699,9 +703,9 @@ else
                                                     {
                                                         $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID AND IsDeleted = 0";
                                                         $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                        $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                                        $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
                                                         $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                        $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                        $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                         $fetchSubjectsJsonQuery->execute();
                                                         $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
 
@@ -799,9 +803,9 @@ else
 
                                                             $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
                                                             $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                            $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                                            $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                            $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                            $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->execute();
                                                             $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
 
@@ -893,9 +897,9 @@ else
                                                     // Fetch SubjectsJSON for the current subject from tblreports
                                                     $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblcocurricularreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
                                                     $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                    $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                                    $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
                                                     $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                     $fetchSubjectsJsonQuery->execute();
                                                     $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
 

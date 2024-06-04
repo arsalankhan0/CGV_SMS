@@ -58,7 +58,6 @@ else
                                 <div class="d-sm-flex align-items-center mb-4">
                                     <h4 class="card-title mb-sm-0">View Results</h4>
                                 </div>
-                                
                                 <!-- Filter this Form -->
                                 <form method="post" class="mb-3">
                                     <div class="form-row">
@@ -79,7 +78,6 @@ else
                                                 }
                                                 ?>
                                             </select>
-                                            
                                         </div>
                                         <!-- Select Exam -->
                                         <div class="form-group col-md-4">
@@ -130,52 +128,43 @@ else
                                         $selectedExam = $_POST['exam'];
                                         $selectedClass = $_POST['class'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT StudentName, ClassName, ExamSession, SubjectsJSON FROM tblreports WHERE ClassName = :class AND ExamSession = :selectedSession AND IsDeleted = 0";
+                                        $sqlFilteredReports = "SELECT
+                                                                    s.StudentName, 
+                                                                    c.ClassName, 
+                                                                    r.ClassName as ClassID, 
+                                                                    r.StudentName as StudentID, 
+                                                                    r.ExamSession, 
+                                                                    r.SubjectsJSON, 
+                                                                    s.RollNo,
+                                                                    ss.session_name,
+                                                                    e.ExamName
+                                                                FROM tblreports r
+                                                                INNER JOIN tblstudent s ON r.StudentName = s.ID
+                                                                INNER JOIN tblclass c ON r.ClassName = c.ID
+                                                                INNER JOIN tblsessions ss ON r.ExamSession = ss.session_id
+                                                                INNER JOIN tblexamination e ON JSON_CONTAINS(r.SubjectsJSON, CONCAT('{\"ExamName\":\"', :selectedExam, '\"}'))
+                                                                WHERE r.ClassName = :class 
+                                                                AND r.ExamSession = :selectedSession 
+                                                                AND r.IsDeleted = 0
+                                                                AND JSON_CONTAINS(r.SubjectsJSON, CONCAT('{\"ExamName\":\"', :selectedExam, '\"}'))
+                                                                GROUP BY 
+                                                                s.StudentName;";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
+                                        $queryFilteredReports->bindParam(':selectedExam', $selectedExam, PDO::PARAM_STR);
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
-
-                                        // Filter the reports based on selectedExam
-                                        $filteredReports = array_filter($filteredReports, function($report) use ($selectedExam) {
-                                            // Extract ExamName from SubjectsJSON and compare with selectedExam
-                                            $subjectsJSON = json_decode($report['SubjectsJSON'], true);
-                                            foreach ($subjectsJSON as $subject) {
-                                                if ($subject['ExamName'] === $selectedExam) {
-                                                    return true; // Keep the report if the selectedExam matches
-                                                }
-                                            }
-                                            return false; // Exclude the report if no match is found
-                                        });
-
-
-                                        // Fetch ClassName from tblclass
-                                        $sqlSelectedClassName = "SELECT ID, ClassName FROM tblclass WHERE ID = :selectedClass AND IsDeleted = 0";
-                                        $querySelectedClassName = $dbh->prepare($sqlSelectedClassName);
-                                        $querySelectedClassName->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
-                                        $querySelectedClassName->execute();
-                                        $filteredClassName = $querySelectedClassName->fetch(PDO::FETCH_ASSOC);
-
-                                        // Fetch SessionName from tblsessions
-                                        $sqlSelectedSessionName = "SELECT session_id, session_name FROM tblsessions WHERE session_id = :selectedSession AND IsDeleted = 0";
-                                        $querySelectedSessionName = $dbh->prepare($sqlSelectedSessionName);
-                                        $querySelectedSessionName->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
-                                        $querySelectedSessionName->execute();
-                                        $filteredSessionName = $querySelectedSessionName->fetch(PDO::FETCH_ASSOC);
                                         
-                                        // Fetch SessionName from tblexamination
-                                        $sqlSelectedExamName = "SELECT ID, ExamName FROM tblexamination WHERE ID = :SelectedExam AND IsDeleted = 0";
-                                        $querySelectedExamName = $dbh->prepare($sqlSelectedExamName);
-                                        $querySelectedExamName->bindParam(':SelectedExam', $selectedExam, PDO::PARAM_STR);
-                                        $querySelectedExamName->execute();
-                                        $filteredExamName = $querySelectedExamName->fetch(PDO::FETCH_ASSOC);
                                         
                                         if (!empty($filteredReports)) 
                                         {
-                                            // Display message indicating the filtered results
-                                            echo "<div class='d-flex justify-content-between align-items-center'>";
-                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-dark'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span> and <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
+                                            $filteredClassName = $filteredReports[0]['ClassName'];
+                                            $filteredExamName = $filteredReports[0]['ExamName']; 
+                                            $filteredSessionName = $filteredReports[0]['session_name'];
+                                            
+                                            echo "<div class='d-flex flex-md-row flex-column justify-content-between align-items-center'>";
+                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName) . "</span>, <span class='text-dark'>Exam: " . htmlspecialchars($filteredExamName) . "</span> and <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName) . "</span></strong>";
                                             echo "<button class='btn btn-info' onclick='printAllReports()'>Print All</button>";
                                             echo "</div>";
                                             echo "<div class='table-responsive border rounded p-1 mt-4'>";
@@ -193,47 +182,37 @@ else
                                             $cnt = 1;
                                             foreach ($filteredReports as $report) 
                                             {
-                                                // Fetch Name of student from tblstudent based on the StudentID
-                                                $sqlStudentDetails = "SELECT StudentName, RollNo FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                                                $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
-                                                $queryStudentDetails->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
-                                                $queryStudentDetails->execute();
-                                                $studentDetails = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
-
-                                                // Decode the JSON data from SubjectsJSON field
-                                                $subjectsJSON = json_decode($report['SubjectsJSON'], true);
-                                                
-                                                // Extract the exam name
                                                 $examName = '';
-                                                foreach ($subjectsJSON as $subject) {
-                                                    if ($subject['ExamName'] === $selectedExam) {
+                                                $subjectsJSON = json_decode($report['SubjectsJSON'], true);
+                                                foreach ($subjectsJSON as $subject) 
+                                                {
+                                                    if ($subject['ExamName'] === $selectedExam) 
+                                                    {
                                                         $examName = $subject['ExamName'];
                                                         break;
                                                     }
                                                 }
-
-                                                
+                                            
                                                 echo "<tr>";
                                                 echo "<td>" . htmlentities($cnt) . "</td>";
-                                                echo "<td>". htmlentities($studentDetails['StudentName']) ."</td>";
-                                                echo "<td>". htmlentities($studentDetails['RollNo']) ."</td>";
+                                                echo "<td>" . htmlentities($report['StudentName']) . "</td>";
+                                                echo "<td>" . htmlentities($report['RollNo']) . "</td>";
                                                 echo "<td>";
                                                 echo "<div>";
-                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-particular-report-details.php?className=" . urlencode($report['ClassName']) . "&studentName=" . urlencode($report['StudentName']) . "&examName=" . urlencode($examName) . "&examSession=" . urlencode($report['ExamSession']) . "\")'>Print</button>";
+                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-particular-report-details.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&studentName=" . urlencode(base64_encode($report['StudentID'])) . "&examName=" . urlencode(base64_encode($examName)) . "&examSession=" . urlencode(base64_encode($report['ExamSession'])) . "\")'>Print</button>";
                                                 echo "</div>";
                                                 echo "</td>";
                                                 echo "</tr>";
                                                 $cnt = $cnt + 1;
                                             }
-
+                                        
                                             echo "</tbody>";
                                             echo "</table>";
                                             echo "</div>";
                                         } 
                                         else 
                                         {
-                                            // Display message indicating the filtered results
-                                            echo "<strong>No Record found or the Result is not published for <span class='text-danger'>Class: " . htmlspecialchars($filteredClassName['ClassName']) . "</span>, <span class='text-danger'>Exam: " . htmlspecialchars($filteredExamName['ExamName']) . "</span> and <span class='text-danger'>Session: " . htmlspecialchars($filteredSessionName['session_name']) . "</span></strong>";
+                                            echo "<strong>No record found!</strong>";
                                         }
                                     }
                                     ?>
@@ -269,13 +248,13 @@ else
 <script src="./js/dashboard.js"></script>
 <script>
     function printReportDetails(url) {
-        var newWindow = window.open(url, '_blank');
+        let newWindow = window.open(url, '_blank');
         newWindow.print();
     }
     function printAllReports() {
         <?php
         foreach ($filteredReports as $report) {
-            echo "printReportDetails(\"print-all-particular-reports.php?className=" . urlencode($report['ClassName']) .  "&examName=" . urlencode($examName) . "&examSession=" . urlencode($report['ExamSession']) . "\");";
+            echo "printReportDetails(\"print-all-particular-reports.php?className=" . urlencode(base64_encode($report['ClassID'])) .  "&examName=" . urlencode(base64_encode($examName)) . "&examSession=" . urlencode(base64_encode($report['ExamSession'])) . "\");";
         }
         ?>
     }
