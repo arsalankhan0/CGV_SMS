@@ -19,7 +19,6 @@ function hasOptionalSubjectWithGrading($dbh, $className, $sessionID)
     $optionalGradingCount = $optionalGradingQuery->fetchColumn();
     return $optionalGradingCount > 0;
 }
-
 // Function to fetch examNames as per the parameter
 function fetchExamNames($dbh, $examType, $examSession) 
 {
@@ -64,16 +63,18 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid']))
 } 
 else 
 {
-    if (isset($_GET['className']) && isset($_GET['examSession'])) 
+    if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['SecName'])) 
     {
 
         $className = base64_decode(urldecode($_GET['className']));
+        $sectionName = base64_decode(urldecode($_GET['SecName']));
         $examSession = base64_decode(urldecode($_GET['examSession']));
 
         // Fetch all students and their reports based on the specified criteria
-        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
+        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND SectionName = :sectionName AND ExamSession = :examSession AND IsDeleted = 0";
         $stmtReports = $dbh->prepare($sqlReports);
         $stmtReports->bindParam(':className', $className, PDO::PARAM_STR);
+        $stmtReports->bindParam(':sectionName', $sectionName, PDO::PARAM_STR);
         $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
         $stmtReports->execute();
         $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);

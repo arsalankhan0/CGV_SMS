@@ -147,10 +147,11 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
+                                <div class="site-name">tibetanpublicschool.com</div>
                                 <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                <div class="d-flex justify-content-center align-items-center">
+                                <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
                                     <img src="../Main/img/logo1.png" width="120px" alt="TPS" class="img-fluid">
-                                    <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid">
+                                    <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid mr-5 pr-5">
                                 </div>
                                 <div class="d-flex justify-content-center mt-4">
                                     <strong style="font-size: 1.3rem;">Result of <?php echo htmlspecialchars($studentDetails['ExamName']); ?></strong>

@@ -37,16 +37,18 @@ else
         return $subjectsQuery->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
+    if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName']) && isset($_GET['SecName'])) 
     {
         $className = base64_decode(urldecode($_GET['className']));
         $examSession = base64_decode(urldecode($_GET['examSession']));
         $examName = base64_decode(urldecode($_GET['examName']));
+        $sectionName = base64_decode(urldecode($_GET['SecName']));
 
         // Fetch all students and their reports based on the specified criteria
-        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
+        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND SectionName = :sectionName AND ExamSession = :examSession AND IsDeleted = 0";
         $stmtReports = $dbh->prepare($sqlReports);
         $stmtReports->bindParam(':className', $className, PDO::PARAM_STR);
+        $stmtReports->bindParam(':sectionName', $sectionName, PDO::PARAM_STR);
         $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
         $stmtReports->execute();
         $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
@@ -108,7 +110,17 @@ else
 
                     foreach ($groupedReports as $studentName => $studentReports) 
                     {
-                        $sql = "SELECT s.ID, StudentName, CodeNumber, sec.SectionName, c.ClassName, RollNo, FatherName, e.ID as ExamID, e.ExamName, e.DurationFrom, e.DurationTo
+                        $sql = "SELECT 
+                                    s.ID, StudentName, 
+                                    CodeNumber, 
+                                    sec.SectionName, 
+                                    c.ClassName, 
+                                    RollNo, 
+                                    FatherName, 
+                                    e.ID as ExamID, 
+                                    e.ExamName, 
+                                    e.DurationFrom, 
+                                    e.DurationTo
                                 FROM tblstudent s
                                 INNER JOIN tblclass c ON (s.StudentClass = c.ID AND c.IsDeleted = 0)
                                 INNER JOIN tblsections sec ON (s.StudentSection = sec.ID AND sec.IsDeleted = 0)
@@ -125,10 +137,11 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
+                                <div class="site-name">tibetanpublicschool.com</div>
                                 <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                <div class="d-flex justify-content-center align-items-center">
+                                <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
                                     <img src="../Main/img/logo1.png" width="120px" alt="TPS" class="img-fluid">
-                                    <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid">
+                                    <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid mr-5 pr-5">
                                 </div>
                                 <div class="d-flex justify-content-center mt-4">
                                     <strong style="font-size: 1.3rem;">Result of <?php echo htmlspecialchars($studentDetails['ExamName']); ?></strong>

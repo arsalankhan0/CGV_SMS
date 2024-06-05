@@ -1,6 +1,6 @@
 <?php
 session_start();
-// error_reporting(0);
+error_reporting(0);
 include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) 
@@ -25,6 +25,7 @@ else
         $optionalGradingCount = $optionalGradingQuery->fetchColumn();
         return $optionalGradingCount > 0;
     }
+    // Function to show the Exam Names as per the condition
     function fetchExamNames($dbh, $examType, $examSession) {
         $examNamesSql = "SELECT ExamName, ID FROM tblexamination WHERE ExamType = :examType AND IsDeleted = 0 AND session_id = :examSession";
         $examNamesQuery = $dbh->prepare($examNamesSql);
@@ -63,6 +64,7 @@ else
 
     if (isset($_GET['studentName'])) 
     {
+        
         $studentID = filter_var(base64_decode(urldecode($_GET['studentName'])), FILTER_VALIDATE_INT);
 
         $sqlStudent = "SELECT * FROM tblstudent WHERE ID = :studentName AND IsDeleted = 0";
@@ -829,7 +831,7 @@ else
                                                             $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
                                                             $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                            $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                                            $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->execute();
                                                             $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
 
@@ -970,7 +972,7 @@ else
         } 
         else 
         {
-            echo "<script>alert('Student not selected.'); window.location.href='view-result.php';</script>";
+            echo "<script>alert('Student not selected.'); window.location.href='view-result.php';</script>";        
         }
     }
     else 

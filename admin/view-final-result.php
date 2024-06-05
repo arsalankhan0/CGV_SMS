@@ -62,43 +62,82 @@ else
                                 <!-- Filter this Form -->
                                 <form method="post" class="mb-3">
                                     <div class="form-row">
+                                        <?php
+                                        $sql = "SELECT 
+                                                        session_id, 
+                                                        session_name,
+                                                        NULL as class_id,
+                                                        NULL as class_name,
+                                                        NULL as section_id,
+                                                        NULL as section_name
+                                                    FROM tblsessions
+                                                    WHERE IsDeleted = 0
+                                                UNION ALL
+                                                    SELECT 
+                                                        NULL as session_id, 
+                                                        NULL as session_name,
+                                                        ID as class_id,
+                                                        ClassName as class_name,
+                                                        NULL as section_id,
+                                                        NULL as section_name
+                                                    FROM tblclass
+                                                    WHERE IsDeleted = 0
+                                                UNION ALL
+                                                    SELECT 
+                                                        NULL as session_id, 
+                                                        NULL as session_name,
+                                                        NULL as class_id,
+                                                        NULL as class_name,
+                                                        ID as section_id,
+                                                        SectionName as section_name
+                                                    FROM tblsections
+                                                    WHERE IsDeleted = 0";
+                                        $query = $dbh->prepare($sql);
+                                        $query->execute();
+                                        $data = $query->fetchAll(PDO::FETCH_ASSOC);
+                                        ?>
                                         <!-- Select Session -->
-                                        <div class="form-group col-md-6">
+                                        <div class="form-group col-md-4">
                                             <label for="session">Select Session:</label>
                                             <select name="session" id="session" class="form-control">
                                                 <?php
-
-                                                // Fetch session names and IDs
-                                                $sqlSessions = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
-                                                $querySessions = $dbh->prepare($sqlSessions);
-                                                $querySessions->execute();
-                                                $Sessions = $querySessions->fetchAll(PDO::FETCH_ASSOC);
-
-                                                foreach ($Sessions as $Session) 
+                                                foreach ($data as $Session) 
                                                 {
-                                                    echo "<option value='" . $Session['session_id'] . "'>" . $Session['session_name'] . "</option>";
+                                                    if ($Session['session_id'] !== null) {
+                                                        echo "<option value='" . $Session['session_id'] . "'>" . $Session['session_name'] . "</option>";
+                                                    }                                                
                                                 }
                                                 ?>
                                             </select>
                                             
                                         </div>
-
                                         <!-- Select Class -->
-                                        <div class="form-group col-md-6">
+                                        <div class="form-group col-md-4">
                                             <label for="class">Select Class:</label>
                                             <select name="class" id="class" class="form-control">
                                                 <?php
-
-                                                // Fetch class names and IDs
-                                                $sqlClassNames = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
-                                                $queryClassNames = $dbh->prepare($sqlClassNames);
-                                                $queryClassNames->execute();
-                                                $classes = $queryClassNames->fetchAll(PDO::FETCH_ASSOC);
-
-                                                foreach ($classes as $class) 
-                                                {
-                                                    echo "<option value='" . $class['ID'] . "'>" . $class['ClassName'] . "</option>";
-                                                }
+                                                    foreach ($data as $class) 
+                                                    {
+                                                        if($class['class_id'] !== null)
+                                                        {
+                                                            echo "<option value='" . $class['class_id'] . "'>" . $class['class_name'] . "</option>";
+                                                        }
+                                                    }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <!-- Select Section -->
+                                        <div class="form-group col-md-4">
+                                            <label for="section">Select Class:</label>
+                                            <select name="section" id="section" class="form-control">
+                                                <?php
+                                                    foreach ($data as $section) 
+                                                    {
+                                                        if($section['section_id'] !== null)
+                                                        {
+                                                            echo "<option value='" . $section['section_id'] . "'>" . $section['section_name'] . "</option>";
+                                                        }
+                                                    }
                                                 ?>
                                             </select>
                                         </div>
@@ -111,16 +150,31 @@ else
                                     {
                                         $selectedSession = $_POST['session'];
                                         $selectedClass = $_POST['class'];
+                                        $selectedSection = $_POST['section'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT tr.StudentName, tc.ID AS ClassID, ts.session_id AS SessionID, tc.ClassName, ts.session_name AS ExamSession 
+                                        $sqlFilteredReports = "SELECT DISTINCT 
+                                                                    tr.StudentName AS StudentID, 
+                                                                    tc.ID AS ClassID, 
+                                                                    sec.ID AS SectionID, 
+                                                                    ts.session_id AS SessionID, 
+                                                                    s.StudentName,
+                                                                    s.RollNo,
+                                                                    tc.ClassName, 
+                                                                    sec.SectionName, 
+                                                                    ts.session_name AS ExamSession 
                                                                 FROM tblreports tr
+                                                                INNER JOIN tblstudent s ON tr.StudentName = s.ID
                                                                 INNER JOIN tblclass tc ON tr.ClassName = tc.ID
                                                                 INNER JOIN tblsessions ts ON tr.ExamSession = ts.session_id
+                                                                INNER JOIN tblsections sec ON tr.SectionName = sec.ID
                                                                 WHERE tr.ClassName = :class 
+                                                                AND tr.SectionName = :selectedSection 
                                                                 AND tr.ExamSession = :selectedSession 
-                                                                AND tr.IsDeleted = 0";
+                                                                AND tr.IsDeleted = 0
+                                                                ORDER BY s.RollNo ASC";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
+                                        $queryFilteredReports->bindParam(':selectedSection', $selectedSection, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':selectedSession', $selectedSession, PDO::PARAM_STR);
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
@@ -129,11 +183,12 @@ else
                                         if (!empty($filteredReports)) 
                                         {
                                             $filteredClassName = $filteredReports[0]['ClassName'];
+                                            $filteredSectionName = $filteredReports[0]['SectionName'];
                                             $filteredSessionName = $filteredReports[0]['ExamSession'];
 
                                             // Display message indicating the filtered results
                                             echo "<div class='d-flex flex-md-row flex-column justify-content-between align-items-center'>";
-                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName) . "</span>, <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName) . "</span></strong>";
+                                            echo "<strong class=''>Showing results for <span class='text-dark'>Class: " . htmlspecialchars($filteredClassName) . "</span>, <span class='text-dark'>Section: " . htmlspecialchars($filteredSectionName) . "</span>, <span class='text-dark'>Session: " . htmlspecialchars($filteredSessionName) . "</span></strong>";
                                             echo "<button class='btn btn-info' onclick='printAllReports()'>Print All</button>";
                                             echo "</div>";
                                             echo "<div class='table-responsive border rounded p-1 mt-4'>";
@@ -150,21 +205,14 @@ else
                                             
                                             $cnt = 1;
                                             foreach ($filteredReports as $report) 
-                                            {
-                                                // Fetch Name of student from tblstudent based on the StudentID
-                                                $sqlStudentDetails = "SELECT StudentName, RollNo FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
-                                                $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
-                                                $queryStudentDetails->bindParam(':studentID', $report['StudentName'], PDO::PARAM_STR);
-                                                $queryStudentDetails->execute();
-                                                $studentDetails = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
-                                                
+                                            {   
                                                 echo "<tr>";
                                                 echo "<td>" . htmlentities($cnt) . "</td>";
-                                                echo "<td>". htmlentities($studentDetails['StudentName']) ."</td>";
-                                                echo "<td>". htmlentities($studentDetails['RollNo']) ."</td>";
+                                                echo "<td>". htmlentities($report['StudentName']) ."</td>";
+                                                echo "<td>". htmlentities($report['RollNo']) ."</td>";
                                                 echo "<td>";
                                                 echo "<div>";
-                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-report-details.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&studentName=" . urlencode(base64_encode($report['StudentName'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\")'>Print</button>";
+                                                echo "<button class='btn btn-info' onclick='printReportDetails(\"view-report-details.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&studentName=" . urlencode(base64_encode($report['StudentID'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\")'>Print</button>";
                                                 echo "</div>";
                                                 echo "</td>";
                                                 echo "</tr>";
@@ -219,7 +267,7 @@ else
     function printAllReports() {
         <?php
         foreach ($filteredReports as $report) {
-            echo "printReportDetails(\"print-all-reports.php?className=" . urlencode(base64_encode($report['ClassID'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\");";
+            echo "printReportDetails(\"print-all-reports.php?className=" . urlencode(base64_encode($report['ClassID'])) .  "&SecName=" . urlencode(base64_encode($report['SectionID'])) . "&examSession=" . urlencode(base64_encode($report['SessionID'])) . "\");";
         }
         ?>
     }

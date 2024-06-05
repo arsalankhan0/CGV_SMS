@@ -31,3 +31,8 @@ table,th, td, tr
     transform: translate(-50%, -50%);
     opacity: 0.1;
 }
+.site-name
+{
+    text-align: end;
+    font-size: 0.8rem;
+}
