@@ -507,10 +507,10 @@ else
                                 ?>
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="mt-5">
-                                        <label>Supervisor/Principal's Signature:</label><span class="border-bottom border-dark ml-2 px-5"></span>
+                                        <label>Supervisor/Principal</label>
                                     </div>
                                     <div class="mt-5">
-                                        <label>Class Teacher's Signature:</label><span class="border-bottom border-dark ml-2 px-5"></span>
+                                        <label>Form Teacher</label>
                                     </div>
                                 </footer>
                             </div>
