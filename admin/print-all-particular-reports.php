@@ -149,14 +149,14 @@ else
                                 <!-- Duration -->
                                 <div class="container mt-4">
                                     <div class="d-flex flex-row align-items-start mb-3" style="gap: 30px;">
-                                        <div class="d-flex align-items-center w-100">
-                                            <label class="font-weight-bold">Duration:</label>
+                                        <div class="d-flex align-items-center w-100 font-weight-bold">
+                                            <label>Duration:</label>
                                             <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;">
                                                 <?php echo htmlspecialchars($durationFrom); ?>
                                             </span>
                                         </div>
-                                        <div class="d-flex align-items-center w-100">
-                                            <label class="font-weight-bold">To:</label>
+                                        <div class="d-flex align-items-center w-100 font-weight-bold">
+                                            <label>To:</label>
                                             <span class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;">
                                                 <?php echo htmlspecialchars($durationTo); ?>
                                             </span>
@@ -387,7 +387,7 @@ else
                                                     $studentTotalMarks += (float)$subMarksObtained;
                                                 }
 
-                                                echo "<td>{$studentTotalMarks}</td>";
+                                                echo "<td class='font-weight-bold'>{$studentTotalMarks}</td>";
                                                 ?>
                                             </tr>
                                         </tbody>
@@ -409,7 +409,7 @@ else
                                                 <?php
                                                 foreach ($optionalSubjects as $subject) 
                                                 {
-                                                    echo "<th>{$subject['SubjectName']}</th>";
+                                                    echo "<th class='font-weight-bold'>{$subject['SubjectName']}</th>";
                                                 }
                                                 ?>
                                             </tr>
@@ -466,7 +466,7 @@ else
                                                         }
                                                     }
                                                     $totalMaxMarks += $maxMarks;
-                                                    echo "<th>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                    echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                 }
                                                 echo "<th class='font-weight-bold'>Total <br><br>({$totalMaxMarks})</th>";
                                                 ?>
@@ -496,7 +496,7 @@ else
                                                         $totalMarksObtained += $marksObtained;
                                                         echo "<td>{$marksObtained}</td>";
                                                     }
-                                                    echo "<td>{$totalMarksObtained}</td>";
+                                                    echo "<td class='font-weight-bold'>{$totalMarksObtained}</td>";
                                                 ?>
                                             </tr>
                                         </tbody>
@@ -505,7 +505,7 @@ else
                                 <?php
                                 }
                                 ?>
-                                <footer class="d-flex justify-content-between mt-5">
+                                <footer class="d-flex justify-content-between mt-5 font-weight-bold">
                                     <div class="mt-5">
                                         <label>Supervisor/Principal</label>
                                     </div>
