@@ -529,7 +529,7 @@ else
                                                     $totalMarksObtained = 0;
                                                     foreach ($optionalSubjects as $subject) 
                                                     {
-                                                        $marksObtained = "";
+                                                        $marksObtained = 0;
                                                         foreach ($allSubjectsJsonArray as $row) 
                                                         {
                                                             $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -538,7 +538,7 @@ else
                                                             {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
                                                                 {
-                                                                    $marksObtained = $data['SubMarksObtained'];
+                                                                    $marksObtained = (float)$data['SubMarksObtained'];
                                                                     break 2;
                                                                 }
                                                             }

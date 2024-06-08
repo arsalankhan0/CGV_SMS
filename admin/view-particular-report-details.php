@@ -367,7 +367,7 @@ else
                                                         }
                                                     }
 
-                                                    echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                    echo "<th class='font-weight-bold' style='font-size: 1rem !important;'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                     $studentTotalMaxMarks += (float)$maxMarks;
                                                 }
                                                 ?>
@@ -492,7 +492,7 @@ else
                                                     $totalMarksObtained = 0;
                                                     foreach ($optionalSubjects as $subject) 
                                                     {
-                                                        $marksObtained = "";
+                                                        $marksObtained = 0;
                                                         foreach ($allSubjectsJsonArray as $row) 
                                                         {
                                                             $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -501,7 +501,7 @@ else
                                                             {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
                                                                 {
-                                                                    $marksObtained = $data['SubMarksObtained'];
+                                                                    $marksObtained = (float)$data['SubMarksObtained'];
                                                                     break 2;
                                                                 }
                                                             }
@@ -524,7 +524,7 @@ else
                                         <label>Supervisor/Principal</label>
                                     </div>
                                     <div class="mt-5">
-                                        <label>Form Teacher</label>
+                                        <label>Teacher Incharge</label>
                                     </div>
                                 </footer>
                             </div>

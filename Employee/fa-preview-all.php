@@ -41,14 +41,13 @@ else
 
         // Filter the reports based on examName
         $allReports = array_filter($allReports, function($report) use ($examName) {
-            // Extract ExamName from SubjectsJSON and compare with examName
             $subjectsJSON = json_decode($report['SubjectsJSON'], true);
             foreach ($subjectsJSON as $subject) {
                 if ($subject['ExamName'] === $examName) {
-                    return true; // Keep the report if the examName matches
+                    return true; 
                 }
             }
-            return false; // Exclude the report if no match is found
+            return false;
         });
 
         // Get the active session ID and Name
@@ -503,7 +502,7 @@ else
                                                     $totalMarksObtained = 0;
                                                     foreach ($optionalSubjects as $subject) 
                                                     {
-                                                        $marksObtained = "";
+                                                        $marksObtained = 0;
                                                         foreach ($allSubjectsJsonArray as $row) 
                                                         {
                                                             $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -512,7 +511,7 @@ else
                                                             {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
                                                                 {
-                                                                    $marksObtained = $data['SubMarksObtained'];
+                                                                    $marksObtained = (float)$data['SubMarksObtained'];
                                                                     break 2;
                                                                 }
                                                             }
@@ -535,7 +534,7 @@ else
                                         <label>Supervisor/Principal's Signature:</label>
                                     </div>
                                     <div class="d-flex w-25">
-                                        <label>Class Teacher's Signature:</label>
+                                        <label>Form Teacher's Signature:</label>
                                     </div>
                                 </footer>
                             </div>
