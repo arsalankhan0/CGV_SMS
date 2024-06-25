@@ -57,16 +57,16 @@
 					<!-- Items to be hidden in desktop view -->
                     <li class="desktop-hide"><a href="./resources.php">Resources</a></li>
                     <li class="desktop-hide"><a href="./contact.php">Contact</a></li>
-                    <li class="desktop-hide"><a href="./admin/login.php">Admin</a></li>
-                    <li class="desktop-hide"><a href="./user/login.php">Student</a></li>
+                    <!-- <li class="desktop-hide"><a href="./admin/login.php">Admin</a></li>
+                    <li class="desktop-hide"><a href="./user/login.php">Student</a></li> -->
                     <!-- Dropdown for desktop view -->
                     <li class="dropdown desktop-show">
                         <a href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Services</a>
                         <ul class="dropdown-menu">
                             <li><a href="./resources.php">Resources</a></li>
                             <li><a href="./contact.php">Contact</a></li>
-                            <li><a href="./admin/login.php">Admin</a></li>
-                            <li><a href="./user/login.php">Student</a></li>
+                            <!-- <li><a href="./admin/login.php">Admin</a></li>
+                            <li><a href="./user/login.php">Student</a></li> -->
                         </ul>
                     </li>
 				</ul>

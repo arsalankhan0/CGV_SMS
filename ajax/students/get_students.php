@@ -9,33 +9,30 @@ $activeSessionQuery = $dbh->prepare($activeSessionSql);
 $activeSessionQuery->execute();
 $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
 
+$classID = isset($_GET['class']) ? $_GET['class'] : '';
+
 $sessionId = $_GET['session_id'] ?? $activeSession;
-$sort = $_GET['sort'] ?? 'class_asc';
 $no_of_records_per_page = 15;
 $page = max((int)$_GET['page'] ?? 1, 1);
 $offset = ($page - 1) * $no_of_records_per_page;
 $offset = max($offset, 0);
-
-$orderClause = "ORDER BY FIELD(LOWER(derived.ClassName), 'nursery', 'lkg', 'ukg', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th') ASC";
-if ($sort === 'class_desc') {
-    $orderClause = "ORDER BY FIELD(LOWER(derived.ClassName), 'nursery', 'lkg', 'ukg', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th') DESC";
-}
 
 // Count the total number of records
 $total_records_sql = "SELECT COUNT(*) FROM (
     SELECT tblstudent.ID
     FROM tblstudent
     JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0
+    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID
     UNION 
     SELECT tblstudenthistory.ID
     FROM tblstudenthistory
     JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
     JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
+    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID
 ) AS total_records";
 $total_records_query = $dbh->prepare($total_records_sql);
 $total_records_query->bindParam(':sessionId', $sessionId, PDO::PARAM_STR);
+$total_records_query->bindParam(':classID', $classID, PDO::PARAM_INT);
 $total_records_query->execute();
 $total_records = $total_records_query->fetchColumn();
 $total_pages = ceil($total_records / $no_of_records_per_page);
@@ -56,7 +53,7 @@ $studentSql = "SELECT * FROM (
         NULL as HistoricalSection
     FROM tblstudent
     JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0
+    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID
     UNION 
     SELECT 
         tblstudenthistory.ID as ID,
@@ -73,14 +70,14 @@ $studentSql = "SELECT * FROM (
     FROM tblstudenthistory
     JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
     JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0
+    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID
 ) as derived
-$orderClause
 LIMIT :offset, :no_of_records_per_page";
 
 $studentQuery = $dbh->prepare($studentSql);
 $studentQuery->bindParam(':sessionId', $sessionId, PDO::PARAM_STR);
 $studentQuery->bindParam(':offset', $offset, PDO::PARAM_INT);
+$studentQuery->bindParam(':classID', $classID, PDO::PARAM_INT);
 $studentQuery->bindParam(':no_of_records_per_page', $no_of_records_per_page, PDO::PARAM_INT);
 $studentQuery->execute();
 $students = $studentQuery->fetchAll(PDO::FETCH_OBJ);

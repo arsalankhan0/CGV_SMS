@@ -143,9 +143,16 @@ else
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-center align-items-center">
-                                    <select name="sort" class="form-control" id="sort" onchange="getSelectedSessionStudents()">
-                                        <option value="class_asc">Class Ascending</option>
-                                        <option value="class_desc">Class Descending</option>
+                                    <select name="class" class="form-control" id="class" onchange="getSelectedSessionStudents()">
+                                        <?php
+                                            $classSql = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
+                                            $classQuery = $dbh->prepare($classSql);
+                                            $classQuery->execute();
+                                            $classes = $classQuery->fetchAll(PDO::FETCH_ASSOC);
+                                            foreach ($classes as $class) {
+                                                echo "<option value='" . $class['ID'] . "'>" . htmlentities($class['ClassName']) . "</option>";
+                                            }
+                                        ?>
                                     </select>
                                 </div>
 
