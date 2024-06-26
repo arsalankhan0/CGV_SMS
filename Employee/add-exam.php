@@ -48,8 +48,8 @@ else
             $examName = filter_var($_POST['examName'], FILTER_SANITIZE_STRING);
             $classIDs = isset($_POST['classes']) ? $_POST['classes'] : [];
             $examType = isset($_POST['examType']) ? $_POST['examType'] : '';
-            $durationFrom = isset($_POST['durationFrom']) ? $_POST['durationFrom'] : '';
-            $durationTo = isset($_POST['durationTo']) ? $_POST['durationTo'] : '';
+            $durationFrom = isset($_POST['durationFrom']) && !empty($_POST['durationFrom']) ? $_POST['durationFrom'] : NULL;
+            $durationTo = isset($_POST['durationTo']) && !empty($_POST['durationTo']) ? $_POST['durationTo'] : NULL;
 
 
             if (empty($examName) || empty($classIDs) || empty($examType)) 
@@ -197,7 +197,7 @@ else
                                             <div class="form-check mr-4 mb-2">
                                                 <label class="form-check-label" for="formative">
                                                     Formative Assessment
-                                                    <input class="form-check-input" type="radio" name="examType" value="Formative" id="formative">
+                                                    <input class="form-check-input" type="radio" name="examType" value="Formative" id="formative" checked>
                                                 </label>
                                             </div>
                                             <div class="form-check mr-4 mb-2">
@@ -211,9 +211,9 @@ else
                                     <div class="form-group">
                                         <label for="durationFrom">Duration</label>
                                         <div class="d-flex justify-content-between flex-column flex-md-row align-items-center">
-                                            <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom" required>
+                                            <input type="date" name="durationFrom" class="form-control mr-2" id="durationFrom">
                                             <span>to</span>
-                                            <input type="date" name="durationTo" class="form-control ml-2" id="durationTo" required>
+                                            <input type="date" name="durationTo" class="form-control ml-2" id="durationTo">
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2" name="submit">Add</button>

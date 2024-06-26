@@ -10,16 +10,18 @@ if (!isset($_SESSION['sturecmsEMPid']) || empty($_SESSION['sturecmsEMPid']))
 else 
 {
     // Function to check if there is grading system
-    function hasOptionalSubjectWithGrading($dbh, $className) 
+    function hasOptionalSubjectWithGrading($dbh, $className, $examID) 
     {
         $class = $className;
         $optionalGradingSql = "SELECT COUNT(*) FROM tblmaxmarks AS m
                                 INNER JOIN tblexamination AS e ON m.ExamID = e.ID
                                 WHERE m.GradingSystem = 1
                                 AND m.ClassID = :className
+                                AND m.ExamID = :examID
                                 AND e.ExamType = 'Formative'";
         $optionalGradingQuery = $dbh->prepare($optionalGradingSql);
         $optionalGradingQuery->bindParam(':className', $class, PDO::PARAM_STR);
+        $optionalGradingQuery->bindParam(':examID', $examID, PDO::PARAM_STR);
         $optionalGradingQuery->execute();
         $optionalGradingCount = $optionalGradingQuery->fetchColumn();
         return $optionalGradingCount > 0;
@@ -126,40 +128,29 @@ else
                 <div class="container-scroller">
                 <div class="container page-body-wrapper d-flex flex-column">
                     <?php
-
-                        // Fetch student details
-                        $studentDetailsSql = "SELECT ID, StudentName, StudentSection, StudentClass, RollNo, FatherName, CodeNumber FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        // Fetch student details along with class name, section name, and exam details
+                        $studentDetailsSql = "SELECT s.ID, s.StudentName, s.CodeNumber, s.StudentSection, s.StudentClass, s.RollNo, s.FatherName,
+                                            c.ClassName, sec.SectionName,
+                                            e.ExamName, e.DurationFrom, e.DurationTo
+                                            FROM tblstudent s
+                                            INNER JOIN tblclass c ON s.StudentClass = c.ID AND c.IsDeleted = 0
+                                            INNER JOIN tblsections sec ON s.StudentSection = sec.ID AND sec.IsDeleted = 0
+                                            INNER JOIN tblexamination e ON e.ID = :examName AND e.IsDeleted = 0
+                                            WHERE s.ID = :studentID AND s.IsDeleted = 0";
                         $studentDetailsQuery = $dbh->prepare($studentDetailsSql);
-                        $studentDetailsQuery->bindParam(':studentID', $_GET['studentName'], PDO::PARAM_INT);
+                        $studentDetailsQuery->bindParam(':studentID', $studentName, PDO::PARAM_INT);
+                        $studentDetailsQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
                         $studentDetailsQuery->execute();
                         $studentDetails = $studentDetailsQuery->fetch(PDO::FETCH_ASSOC);
 
-                        // Fetch Class Details
-                        $studentClassSql = "SELECT ClassName FROM tblclass WHERE ID = :classID AND IsDeleted = 0";
-                        $studentClassQuery = $dbh->prepare($studentClassSql);
-                        $studentClassQuery->bindParam(':classID', $studentDetails['StudentClass'], PDO::PARAM_INT);
-                        $studentClassQuery->execute();
-                        $studentClass = $studentClassQuery->fetch(PDO::FETCH_COLUMN);
-
-                        // Fetch sections from the database
-                        $sectionSql = "SELECT SectionName FROM tblsections WHERE ID = :studentDetails AND IsDeleted = 0";
-                        $sectionQuery = $dbh->prepare($sectionSql);
-                        $sectionQuery->bindParam(':studentDetails', $studentDetails['StudentSection'], PDO::PARAM_STR);
-                        $sectionQuery->execute();
-                        $sectionRow = $sectionQuery->fetch(PDO::FETCH_ASSOC);
-
-                        // Fetch Exam Name from the database
-                        $examNameSql = "SELECT ExamName, DurationFrom, DurationTo FROM tblexamination WHERE ID = :examName AND IsDeleted = 0";
-                        $examNameQuery = $dbh->prepare($examNameSql);
-                        $examNameQuery->bindParam(':examName', $examName, PDO::PARAM_STR);
-                        $examNameQuery->execute();
-                        $examNameRow = $examNameQuery->fetch(PDO::FETCH_ASSOC);
+                        $durationFrom = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationFrom']))->format('d-m-Y') : '';
+                        $durationTo = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationTo']))->format('d-m-Y') : '';
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
                                 <h4 class="card-title" style="text-align: center;">TIBETAN PUBLIC SCHOOL</h4>
                                 <div class="d-flex justify-content-center mt-4">
-                                    <strong>Preview of <?php echo htmlspecialchars($examNameRow['ExamName']); ?></strong>
+                                    <strong>Preview of <?php echo htmlspecialchars($studentDetails['ExamName']); ?></strong>
                                 </div>
                                 <!-- Student's Details -->
                                 <div class="my-4">
@@ -173,11 +164,11 @@ else
                                     <div class="d-flex flex-row align-items-start" style="gap: 30px;">
                                         <div class="d-flex align-items-center w-100">
                                             <label>Duration:</label>
-                                            <span class="underline"><?php echo htmlspecialchars($examNameRow['DurationFrom']); ?></span>
+                                            <span class="underline"><?php echo htmlspecialchars($durationFrom); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
                                             <label class="text-nowrap">To:</label>
-                                            <span class="underline"><?php echo htmlspecialchars($examNameRow['DurationTo']); ?></span>
+                                            <span class="underline"><?php echo htmlspecialchars($durationTo); ?></span>
                                         </div>
                                     </div>
                                     <!-- Row 2 -->
@@ -195,11 +186,11 @@ else
                                     <div class="d-flex flex-row justify-content-between" style="gap: 30px">
                                         <div class="d-flex align-items-center w-100">
                                             <label>Class:</label>
-                                            <span class="underline"><?php echo htmlentities($studentClass); ?></span>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
                                             <label>Section:</label>
-                                            <span class="underline"><?php echo htmlentities($sectionRow['SectionName']); ?></span>
+                                            <span class="underline"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
                                         </div>
                                         <div class="d-flex align-items-center w-100">
                                             <label class="text-nowrap">Roll No:</label>
@@ -406,7 +397,7 @@ else
                                                     // Loop through the decoded JSON to find the SubMarksObtained for the current subject
                                                     foreach ($subjectsData as $subjectData) 
                                                     {
-                                                        if ($subjectData['SubjectID'] == $subject['ID']) 
+                                                        if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) 
                                                         {
                                                             $subMarksObtained = $subjectData['SubMarksObtained'];
                                                             break;
@@ -425,7 +416,7 @@ else
                                 </div>
 
                                 <?php
-                                if(hasOptionalSubjectWithGrading($dbh, $className))
+                                if(hasOptionalSubjectWithGrading($dbh, $className, $examName))
                                 {
                                 ?>
                                 <!-- Optional Subjects in Grades-->
@@ -463,7 +454,7 @@ else
                                                             $subjectData = json_decode($row['SubjectsJSON'], true); 
 
                                                             foreach ($subjectData as $data) {
-                                                                if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) {
+                                                                if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) {
                                                                     $marksObtained = $data['SubMarksObtained'];
                                                                     break 2;
                                                                 }
@@ -508,7 +499,7 @@ else
                                                         $subjectData = json_decode($row['SubjectsJSON'], true);
                                                         foreach ($subjectData as $data) 
                                                         {
-                                                            if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
+                                                            if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) 
                                                             {
                                                                 $maxMarks = $data['SubMaxMarks'];
                                                                 break 2;
@@ -536,7 +527,7 @@ else
 
                                                             foreach ($subjectData as $data) 
                                                             {
-                                                                if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1) 
+                                                                if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) 
                                                                 {
                                                                     $marksObtained = (float)$data['SubMarksObtained'];
                                                                     break 2;
@@ -558,10 +549,10 @@ else
 
                                 <footer class="d-flex justify-content-between mt-5">
                                     <div class="d-flex w-25">
-                                        <label>Supervisor/Principal's Signature:</label>
+                                        <label>Supervisor/Principal</label>
                                     </div>
                                     <div class="d-flex w-25">
-                                        <label>Class Teacher's Signature:</label>
+                                        <label>Teacher Incharge</label>
                                     </div>
                                 </footer>
                             </div>
