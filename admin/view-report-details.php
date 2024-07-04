@@ -144,7 +144,7 @@ else
 
                 <body>
                 <div class="container-scroller">
-                <div class="container page-body-wrapper d-flex flex-column">
+                <div class="container-fluid page-body-wrapper d-flex flex-column">
                     <?php
                         // Fetch student details
                         $sql = "SELECT 
@@ -185,10 +185,10 @@ else
                                             <label>Student's Code No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
+                                            <label>Class:</label><span class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
                                         </div>
                                         <div>
-                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
+                                            <label>Section:</label><span class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
                                         </div>
                                         <div>
                                             <label>Roll No:</label><span class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
@@ -197,12 +197,12 @@ else
                                     <!-- Student's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Student's Name: </label>
-                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['StudentName']); ?></p>
                                     </div>
                                     <!-- Parent's Name -->
                                     <div class="d-flex w-100 align-items-center">
                                         <label class="text-nowrap">Parents'/Guardian's Name: </label>
-                                        <p class="border-bottom border-dark ml-2 pl-3 w-100" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize" style="box-sizing: border-box;"><?php echo htmlentities($studentDetails['FatherName']); ?></p>
                                     </div>
                                 </div>
                                 <!-- Main Subjects -->
