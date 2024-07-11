@@ -134,3 +134,84 @@
 }
 
 
+/* For latest Updates */
+.img-container
+{
+  overflow: hidden;
+}
+.custom-card
+{
+  border: none;
+}
+.item {
+  border: none;
+  border-radius: 15px;
+  margin: 10px 0;
+  overflow: hidden;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;			
+  transition: transform 0.3s, box-shadow 0.3s;
+  min-height: 65vh;
+  height: 100%;
+}
+
+.custom-card > .img-container:hover img {
+  transform: scale(110%, 110%);
+}
+
+.custom-card>.img-container>img {
+  min-height: 20vh;
+  height: 40vh;
+  object-fit: cover;
+}
+
+.custom-card .card-body {
+  padding: 15px;
+  text-align: center;
+}
+
+.custom-card .card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.custom-card .card-text {
+  font-size: 1rem;
+  color: #777;
+}
+
+.latest-updates .card.custom-card .see-more {
+  color: #007bff;
+  cursor: pointer;
+}
+.latest-updates .card.custom-card .full-desc.d-none {
+  display: none;
+}
+
+/* Owl Carousel Navigation */
+.owl-nav {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+}
+
+.owl-nav button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.owl-nav .owl-prev {
+  position: absolute;
+  left: 10px;
+}
+
+.owl-nav .owl-next {
+  position: absolute;
+  right: 10px;
+}
+

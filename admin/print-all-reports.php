@@ -192,6 +192,7 @@ else
                                                 <th colspan="2" class="text-wrap">Co-Curricular Activities</th>
                                                 <th colspan="2" class="text-wrap">Summative Assessment</th>
                                                 <th colspan="2" class="text-wrap">Total (FA+CA+SA)</th>
+                                                <th colspan="2" class="text-wrap">Bar Comparison</th>
                                             </tr>
                                             <tr class="text-center">
                                                 <?php
@@ -208,6 +209,7 @@ else
                                                 <th colspan="2">Max Marks: 20</th>
                                                 <th colspan="2">Max Marks: 50</th>
                                                 <th colspan="2">Max Marks: 100</th>
+                                                <th colspan="2"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -262,6 +264,7 @@ else
                                             $CCtotalMaxMarks = array_sum(array_column($CCsubjectsData, 'CoCurricularMaxMarks'));
                                             $CCGrandTotal = 0;
                                             $CCGrandMaxTotal = 0;
+                                            $subjectsCount = 0;
 
                                             foreach ($subjects as $subject) 
                                             {
@@ -332,6 +335,16 @@ else
                                                         }
                                                         // Total marks obtained for all assessments (FA+CA+SA)
                                                         echo "<td colspan='2'>" . (array_sum($examMarksArray) + $CCtotalMarksObtained + array_sum($summativeMarksArray)) . "</td>";
+
+                                                        // Display the bar comparison for the first subject row
+                                                        if ($subjectsCount == 0) {
+                                                            $studentID = $studentReports[0]['StudentName'];
+                                                            $canvasID = "performanceChart_" . $studentID;
+                                                            echo "<td class='text-center' colspan='2' rowspan='" . ($subjectsCount ) . "'>
+                                                                        <canvas id='$canvasID' style='width: 100%; height: 100%;'></canvas>
+                                                                </div></td>";
+                                                        }
+                                                        $subjectsCount++;
                                                 echo "</tr>";
                                             }
 
@@ -454,9 +467,9 @@ else
                                                 <?php
                                                     // Grading system thresholds
                                                     $gradingSystem = array(
-                                                        array('A+', 'A', 'B', 'C', 'D'),
-                                                        array(85, 70, 55, 40, 33),
-                                                        array(100, 85, 70, 55, 40)
+                                                        array('A+', 'A', 'B', 'C', 'D', 'E'),
+                                                        array(85, 70, 55, 40, 33, 0),
+                                                        array(100, 85, 70, 55, 40, 33)
                                                     );
 
                                                     foreach ($totalMarks as $key => $examTotalMarks) 
@@ -543,7 +556,8 @@ else
                                                     'A' => 'MOUNTAIN',
                                                     'B' => 'MOUNTAIN',
                                                     'C' => 'MOUNTAIN',
-                                                    'D' => 'RIVER'
+                                                    'D' => 'RIVER',
+                                                    'E' => 'RIVER'
                                                 );
 
                                                 foreach ($totalMarks as $key => $examTotalMarks) {
@@ -638,6 +652,29 @@ else
                                         </tbody>
                                     </table>
                                 </div>
+
+                                <?php
+                                    // Required Data for Chart
+                                    $allExamNames = array_merge($examNames, $summativeExamNames);
+                                    $examLabels = array_column($allExamNames, 'ExamName');
+                                    $allPercentages = [];
+
+                                    $examTypes = ['formative' => $totalMarks, 'summative' => $totalSummativeMarks];
+                                    $maxMarks = ['formative' => $totalMaxMarks, 'summative' => $totalSummativeMaxMarks];
+
+                                    foreach ($examTypes as $type => $examData) {
+                                        foreach ($examData as $key => $examTotalMarks) {
+                                            $maxMark = $maxMarks[$type][$key];
+                                            $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $maxMark) * 100, 2) : 0;
+                                            $allPercentages[] = [
+                                                'type' => $type,
+                                                'percentage' => $percentage
+                                            ];
+                                        }
+                                    }
+                                    $allPercentagesJson = json_encode(array_values($allPercentages));
+                                    $examLabelsJson = json_encode(array_values($examLabels));
+                                ?>
 
                                 <!-- Grading System -->
                                 <div class="d-flex flex-column mt-3">
@@ -933,6 +970,50 @@ else
                                 </footer>
                             </div>
                         </div>
+                    <?php
+                    $studentID = $studentReports[0]['StudentName'];
+                    $canvasID = "performanceChart_" . $studentID;
+                    ?>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+                    <script>
+                        
+
+                        var allPercentages = <?php echo $allPercentagesJson; ?>;
+                        // let examLabels = <?php echo $examLabelsJson; ?>;
+                        var examLabels = ['FA1', 'FA2', 'FA3', 'FA4', 'FA5', 'FA6', 'SA'];
+
+                        var percentages = allPercentages.map(item => item.percentage);
+                        
+                        // Create the chart
+                        var ctx = document.getElementById('<?php echo $canvasID; ?>').getContext('2d');
+                        var performanceChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: examLabels,
+                                datasets: [
+                                    {
+                                        label: 'Percentage',
+                                        data: percentages,
+                                        backgroundColor: 'rgba(128, 0, 0, 0.7)',
+                                        borderColor: 'rgba(128, 0, 0, 1)',
+                                        borderWidth: 1
+                                    }
+                                ]
+                            },
+                            options: {
+                                animation: false,
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        max: 100
+                                    }
+                                }
+                            }
+                        });
+                    </script>
                     <?php
                     }
                     ?>

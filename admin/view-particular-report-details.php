@@ -168,7 +168,7 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
 
                             $durationFrom = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationFrom']))->format('d-m-Y') : '';
                             $durationTo = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationTo']))->format('d-m-Y') : '';
-                            
+
                             $selectedExams = explode(',', $examNames);
                             $selectedExamIDs = explode(',', $examIDs);
                             ?>
@@ -233,17 +233,20 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                 <tr>
                                                     <td class="font-weight-bold">Name</td>
                                                     <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['StudentName']); ?></td>
+                                                        <?php echo htmlentities($studentDetails['StudentName']); ?>
+                                                    </td>
                                                     <td class="font-weight-bold">Class</td>
                                                     <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['ClassName']); ?></td>
+                                                        <?php echo htmlentities($studentDetails['ClassName']); ?>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-weight-bold">Roll No</td>
                                                     <td><?php echo htmlentities($studentDetails['RollNo']); ?></td>
                                                     <td class="font-weight-bold">Section</td>
                                                     <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['SectionName']); ?></td>
+                                                        <?php echo htmlentities($studentDetails['SectionName']); ?>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -704,8 +707,9 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
-                            var ctx = document.getElementById('performanceChart').getContext('2d');
-                            var performanceChart = new Chart(ctx, {
+                            let ctx = document.getElementById('performanceChart').getContext('2d');
+
+                            let performanceChart = new Chart(ctx, {
                                 type: 'bar',
                                 data: {
                                     labels: <?php echo $examLabels; ?>,
@@ -718,6 +722,7 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                     }]
                                 },
                                 options: {
+                                    animation: false,
                                     responsive: true,
                                     maintainAspectRatio: false,
                                     scales: {
