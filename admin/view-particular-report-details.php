@@ -636,12 +636,12 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                     foreach ($selectedExamIDs as $examName) {
                                                                         if ($data['SubjectID'] == $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) {
                                                                             $maxMarks = $data['SubMaxMarks'];
-                                                                            break;
+                                                                            break 3;
                                                                         }
                                                                     }
                                                                 }
                                                             }
-                                                            $totalMaxMarks += $maxMarks;
+                                                            $totalMaxMarks += (float)$maxMarks;
                                                             echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                         }
                                                         echo "<th class='font-weight-bold'>Total <br><br>({$totalMaxMarks})</th>";
