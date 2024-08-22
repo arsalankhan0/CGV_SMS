@@ -697,7 +697,6 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                         ?>
                         <script>
                             document.addEventListener('DOMContentLoaded', function () {
-                                // var ctx = document.getElementById('performanceChart').getContext('2d');
                                 var ctx = document.getElementById('<?php echo $canvasID; ?>').getContext('2d');
                                 var performanceChart = new Chart(ctx, {
                                     type: 'bar',
@@ -708,16 +707,26 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                             data: <?php echo $examPercentagesData; ?>,
                                             backgroundColor: 'rgba(128, 0, 0, 0.7)',
                                             borderColor: 'rgba(128, 0, 0, 1)',
-                                            borderWidth: 1
+                                            borderWidth: 1,
                                         }]
                                     },
                                     options: {
+                                        animation: false,
                                         responsive: true,
                                         maintainAspectRatio: false,
                                         scales: {
                                             y: {
                                                 beginAtZero: true,
-                                                max: 100
+                                                max: 100,
+                                                ticks: {
+                                                    callback: function(value) {
+                                                        const customTicks = [10, 40, 60, 80, 100];
+                                                        if (customTicks.includes(value)) {
+                                                            return value;
+                                                        }
+                                                        return null; 
+                                                    },
+                                                }
                                             }
                                         }
                                     }

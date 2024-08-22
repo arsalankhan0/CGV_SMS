@@ -1,6 +1,6 @@
 <?php
-include('includes/dbconnection.php');
 error_reporting(0);
+include('includes/dbconnection.php');
 
 
 if (isset($_POST['roleID'])) 
@@ -8,7 +8,7 @@ if (isset($_POST['roleID']))
     $roleID = $_POST['roleID'];
 
     // Fetch role name
-    $checkRoleQuery = "SELECT RoleName FROM tblroles WHERE ID = :roleID";
+    $checkRoleQuery = "SELECT RoleName FROM tblroles WHERE ID = :roleID AND IsDeleted = 0";
     $checkRoleStmt = $dbh->prepare($checkRoleQuery);
     $checkRoleStmt->bindParam(':roleID', $roleID, PDO::PARAM_STR);
     $checkRoleStmt->execute();
@@ -55,6 +55,11 @@ if (isset($_POST['roleID']))
         $updateChecked = getPermissionValue($currentPermissions, $permission, 'UpdatePermission');
         $deleteChecked = getPermissionValue($currentPermissions, $permission, 'DeletePermission');
 
+        $viewValue = getInputValue($currentPermissions, $permission, 'ReadPermission');
+        $createValue = getInputValue($currentPermissions, $permission, 'CreatePermission');
+        $updateValue = getInputValue($currentPermissions, $permission, 'UpdatePermission');
+        $deleteValue = getInputValue($currentPermissions, $permission, 'DeletePermission');
+
 
         // Disable Create, Update, and Delete for Promotion by default
         $createDisabled = ($permission === 'Promotion') ? 'disabled' : '';
@@ -62,10 +67,22 @@ if (isset($_POST['roleID']))
 
         echo '<tr>
                 <td>' . $permission . '</td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][view]" class="select2-checkbox" ' . $viewChecked . '></td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][create]" class="select2-checkbox" ' . $createChecked . ' ' . $createDisabled . '></td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][update]" class="select2-checkbox" ' . $updateChecked . '></td>
-                <td><input type="checkbox" name="permissions[' . $permission . '][delete]" class="select2-checkbox" ' . $deleteChecked . ' ' . $deleteDisabled . '></td>
+                <td>
+                    <input type="hidden" id="permissions_'.$permission.'_view" name="permissions[' . $permission . '][view]" value="'. $viewValue .'">
+                    <input type="checkbox" id="checkbox_'.$permission.'_view" class="select2-checkbox" ' . $viewChecked . '  onchange="updatePermissionValue(this)">
+                </td>
+                <td>
+                    <input type="hidden" id="permissions_'.$permission.'_create" name="permissions[' . $permission . '][create]" value="'. $createValue .'">
+                    <input type="checkbox" id="checkbox_'.$permission.'_create" class="select2-checkbox" ' . $createChecked . ' ' . $createDisabled . '  onchange="updatePermissionValue(this)">
+                </td>
+                <td>
+                    <input type="hidden" id="permissions_'.$permission.'_update" name="permissions[' . $permission . '][update]" value="'. $updateValue .'">
+                    <input type="checkbox" id="checkbox_'.$permission.'_update" class="select2-checkbox" ' . $updateChecked . '  onchange="updatePermissionValue(this)">
+                </td>
+                <td>
+                    <input type="hidden" id="permissions_'.$permission.'delete" name="permissions[' . $permission . '][delete]" value="'. $deleteValue .'">
+                    <input type="checkbox" id="checkbox_'.$permission.'delete" class="select2-checkbox" ' . $deleteChecked . ' ' . $deleteDisabled . '  onchange="updatePermissionValue(this)">
+                </td>
             </tr>';
     }
 
@@ -104,7 +121,7 @@ function getPermissionValue($permissions, $permissionName, $columnName)
 {
     foreach ($permissions as $permission) 
     {
-        if ($permission[$columnName] == 1 && $permission['Name'] === $permissionName  ) 
+        if (isset($permission[$columnName]) && $permission[$columnName] == 1 && $permission['Name'] === $permissionName  ) 
         {
             return 'checked';
         }
@@ -112,4 +129,15 @@ function getPermissionValue($permissions, $permissionName, $columnName)
     return '';
 }
 
+function getInputValue($permissions, $permissionName, $columnName)
+{
+    foreach ($permissions as $permission) 
+    {
+        if (isset($permission[$columnName]) && $permission[$columnName] == 1 && $permission['Name'] === $permissionName  ) 
+        {
+            return '1';
+        }
+    }
+    return '0';
+}
 ?>

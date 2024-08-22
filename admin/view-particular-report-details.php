@@ -728,7 +728,16 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                     scales: {
                                         y: {
                                             beginAtZero: true,
-                                            max: 100
+                                            max: 100,
+                                            ticks: {
+                                                callback: function(value) {
+                                                    const customTicks = [10, 40, 60, 80, 100];
+                                                    if (customTicks.includes(value)) {
+                                                        return value;
+                                                    }
+                                                    return null; 
+                                                },
+                                            }
                                         }
                                     }
                                 }

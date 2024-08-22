@@ -79,6 +79,44 @@ else
 
     try
     {
+        if (isset($_POST['unPublish'])) 
+        {
+            // Get values from the submitted form
+            $examId = $_POST['exam_id'];
+        
+            // Check if already published
+            $checkPublishedSql = "SELECT IsPublished, session_id FROM tblexamination WHERE ID = :examId AND IsDeleted = 0";
+            $checkPublishedQuery = $dbh->prepare($checkPublishedSql);
+            $checkPublishedQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+            $checkPublishedQuery->execute();
+            $publish = $checkPublishedQuery->fetch(PDO::FETCH_ASSOC);
+        
+            if ($publish['IsPublished'] === 0 && $publish['session_id'] === $sessionID) 
+            {
+                $msg = "Exam is already UnPublished!";
+                $dangerAlert = true;
+            } 
+            else 
+            {
+                // Update IsPublished
+                $updateSql = "UPDATE tblexamination SET IsPublished = 0, session_id = :session_id WHERE ID = :examId";
+                $updateQuery = $dbh->prepare($updateSql);
+                $updateQuery->bindParam(':session_id', $sessionID, PDO::PARAM_STR);
+                $updateQuery->bindParam(':examId', $examId, PDO::PARAM_STR);
+                $updateQuery->execute();
+        
+                $msg = "Exam UnPublished successfully.";
+                $successAlert = true;
+            }
+        }
+    }
+    catch(PDOException $e)
+    {
+        $dangerAlert = true;
+        $msg = "Ops! An error occurred while UnPublishing the exam.";
+    }
+    try
+    {
         if (isset($_POST['publish'])) 
         {
             // Get values from the submitted form
@@ -332,7 +370,7 @@ else
                                                                         } 
                                                                         else 
                                                                         {
-                                                                            echo "Error fetching class"; 
+                                                                            echo "Error fetching classes!"; 
                                                                         }
                                                                     }
                                                                     
@@ -353,8 +391,8 @@ else
                                                                             if($examPublished)
                                                                             {
                                                                             ?>
-                                                                                <button type="button" class="btn-sm btn-secondary text-muted font-weight-bold border-0" disabled>
-                                                                                    Exam Published
+                                                                                <button type="button" class="btn-sm <?php echo ($resultPublished) ? "btn-secondary text-muted font-weight-bold border-0" : "btn-dark"; ?>" <?php echo ($resultPublished) ? "disabled" : ""; ?> data-toggle="modal" data-target="#confirmUnpublishModal_<?php echo $row->ID; ?>">
+                                                                                    Unpublish Exam
                                                                                 </button>
                                                                             <?php
                                                                             }
@@ -449,6 +487,27 @@ else
             foreach ($results as $row) 
             {
                 ?>
+                <!-- Confirmation Modal (Unpublish Exam) -->
+                <div class="modal fade" id="confirmUnpublishModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                Do you really want to UnPublish <strong><?php echo $row->ExamName; ?></strong> Exam ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                                <form method="post" action="">
+                                    <input type="hidden" name="exam_id" value="<?php echo htmlentities($row->ID); ?>">
+                                    <button type="submit" class="btn btn-primary" name="unPublish">Yes</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Confirmation Modal (Publish Exam) -->
                 <div class="modal fade" id="confirmPublishModal_<?php echo $row->ID; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                     <div class="modal-dialog">

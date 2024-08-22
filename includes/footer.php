@@ -17,7 +17,6 @@
 							<div class="single-footer-widget">
 								<h4>Login</h4>
 								<ul>
-									<li><a href="./admin/login.php">Admin</a></li>
 									<li><a href="./user/login.php">Student</a></li>
 								</ul>								
 							</div>
