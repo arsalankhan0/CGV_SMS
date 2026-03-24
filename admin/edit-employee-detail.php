@@ -32,11 +32,20 @@ else
             $contactnumber = filter_var($_POST['contactnumber'], FILTER_SANITIZE_STRING);
             $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
             $eid = filter_var($_GET['editid'], FILTER_SANITIZE_STRING);
+            $username = filter_var($_POST['username'], FILTER_SANITIZE_STRING);
+            $password = $_POST['password']; // Get raw password input
 
             // Fetch assigned classes and subjects from form
             $assignedClasses = isset($_POST['assignedClasses']) ? implode(',', $_POST['assignedClasses']) : '';
             $assignedSections = isset($_POST['assignedSection']) ? implode(',', $_POST['assignedSection']) : '';
             $assignedSubjects = isset($_POST['assignedSubjects']) ? implode(',', $_POST['assignedSubjects']) : '';
+
+            // Add password update logic only if password is not empty
+            $passwordUpdate = '';
+            if (!empty($password)) {
+                $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+                $passwordUpdate = ", Password = :password";
+            }
 
             $sql = "UPDATE tblemployees SET 
                     Name = :name, 
@@ -50,7 +59,9 @@ else
                     Address = :address,
                     AssignedClasses = :assignedClasses,
                     AssignedSections = :assignedSections,
-                    AssignedSubjects = :assignedSubjects
+                    AssignedSubjects = :assignedSubjects,
+                    UserName = :username
+                    {$passwordUpdate}
                     WHERE ID = :eid";
 
             $query = $dbh->prepare($sql);
@@ -66,6 +77,10 @@ else
             $query->bindParam(':assignedClasses', $assignedClasses, PDO::PARAM_STR);
             $query->bindParam(':assignedSections', $assignedSections, PDO::PARAM_STR);
             $query->bindParam(':assignedSubjects', $assignedSubjects, PDO::PARAM_STR);
+            $query->bindParam(':username', $username, PDO::PARAM_STR);
+            if (!empty($password)) {
+                $query->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
+            }
             $query->bindParam(':eid', $eid, PDO::PARAM_STR);
 
             $query->execute();
@@ -325,11 +340,12 @@ else
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputName1">Username</label>
-                                            <input type="text" name="username" value="<?php echo htmlentities($row->UserName); ?>" class="form-control" readonly='true'>
+                                            <input type="text" name="username" value="<?php echo htmlentities($row->UserName); ?>" class="form-control" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputName1">Password</label>
-                                            <input type="Password" name="password" value="<?php echo htmlentities($row->Password); ?>" class="form-control" readonly='true'>
+                                            <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                                            <small class="text-muted">Only enter if you want to change the password</small>
                                         </div>
                                         <?php $cnt=$cnt+1;}} ?>
 

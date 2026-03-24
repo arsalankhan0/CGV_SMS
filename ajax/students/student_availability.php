@@ -6,7 +6,7 @@ if(isset($_POST['stuid']))
 {
     $stuid = $_POST['stuid'];
     
-    $query = "SELECT ID FROM tblstudent WHERE StuID = :stuid AND IsDeleted = 0";
+    $query = "SELECT ID FROM tblstudent WHERE StuID = :stuid AND IsDeleted = 0 AND is_discharged = 0";
     $stmt = $dbh->prepare($query);
     $stmt->bindParam(':stuid', $stuid, PDO::PARAM_STR);
     $stmt->execute();

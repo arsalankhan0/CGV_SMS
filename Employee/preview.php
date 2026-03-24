@@ -181,11 +181,14 @@ else
                                         $selectedClass = $_POST['classes'];
                                         $selectedSection = $_POST['sections'];
 
-                                        $sqlFilteredReports = "SELECT StudentName, ClassName, ExamSession, SubjectsJSON FROM tblreports 
-                                                                WHERE ClassName = :class 
-                                                                AND SectionName = :section
-                                                                AND ExamSession = :activeSession 
-                                                                AND IsDeleted = 0";
+                                        $sqlFilteredReports = "SELECT r.StudentName, r.ClassName, r.SectionName, r.ExamSession, r.SubjectsJSON, s.RollNo 
+                                                                FROM tblreports r
+                                                                INNER JOIN tblstudent s ON r.StudentName = s.ID
+                                                                WHERE r.ClassName = :class 
+                                                                AND r.SectionName = :section
+                                                                AND r.ExamSession = :activeSession 
+                                                                AND r.IsDeleted = 0
+                                                                ORDER BY CAST(s.RollNo AS UNSIGNED)";
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':section', $selectedSection, PDO::PARAM_STR);
@@ -270,6 +273,13 @@ else
                                             echo "<tbody>";
                                             
                                             $cnt = 1;
+                                            // Sort the filtered reports by roll number
+                                            usort($filteredReports, function($a, $b) {
+                                                $rollA = intval($a['RollNo']);
+                                                $rollB = intval($b['RollNo']);
+                                                return $rollA - $rollB;
+                                            });
+                                            
                                             foreach ($filteredReports as $report) 
                                             {
                                                 // Fetch Name of student from tblstudent based on the StudentID
@@ -356,7 +366,7 @@ else
     function previewAll() {
         <?php
         foreach ($filteredReports as $report) {
-            echo "printReportDetails(\"fa-preview-all.php?className=" . urlencode($report['ClassName']) .  "&examName=" . urlencode($examName) . "&examSession=" . urlencode($report['ExamSession']) . "\");";
+            echo "printReportDetails(\"fa-preview-all.php?className=" . urlencode($report['ClassName']) . "&sectionName=" . urlencode($report['SectionName']) . "&examName=" . urlencode($examName) . "&examSession=" . urlencode($report['ExamSession']) . "\");";
         }
         ?>
     }

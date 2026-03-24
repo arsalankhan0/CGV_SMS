@@ -1,9 +1,9 @@
 <?php 
 // DB credentials.
 define('DB_HOST','localhost');
-define('DB_USER','root');
-define('DB_PASS','');
-define('DB_NAME','studentmsdb');
+define('DB_USER','u311638402_tibetan');
+define('DB_PASS','Tibetan@786');
+define('DB_NAME','u311638402_studentmsdb');
 // Establish database connection.
 try
 {

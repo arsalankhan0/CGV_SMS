@@ -338,8 +338,8 @@ else
                                             <div class="form-group">
                                                 <label for="code">Code Number</label><span class="text-danger mx-1">*</span>
                                                 <input type="text" name="code" class="form-control" required='true'
-                                                <?php echo "value=" . htmlentities($row->CodeNumber);
-                                                    if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>>
+                                                value="<?php echo htmlentities($row->CodeNumber); ?>"
+                                                <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>>
                                             </div>
                                             <div class="form-group">
                                                 <label for="exampleInputName1">Student ID</label><span class="text-danger mx-1">*</span>
@@ -353,6 +353,7 @@ else
                                                 <label for="exampleInputName1">Password</label>
                                                 <input type="Password" name="password"
                                                         value="<?php echo htmlentities($row->Password); ?>"
+                                                        <?php if ($row->SessionID != $activeSessionID) echo 'readonly'; ?>
                                                         class="form-control">
                                                 <p class="text-muted mb-0 mt-2">
                                                     Password must:

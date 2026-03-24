@@ -3,7 +3,7 @@ include('../../includes/dbconnection.php');
 
 if (isset($_POST['codeNumber'])) {
     $codeNumber = $_POST['codeNumber'];
-    $sql = "SELECT ID FROM tblstudent WHERE CodeNumber=:codeNumber AND IsDeleted = 0";
+    $sql = "SELECT ID FROM tblstudent WHERE CodeNumber=:codeNumber AND IsDeleted = 0 AND is_discharged = 0";
     $query = $dbh->prepare($sql);
     $query->bindParam(':codeNumber', $codeNumber, PDO::PARAM_STR);
     $query->execute();

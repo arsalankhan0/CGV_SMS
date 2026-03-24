@@ -25,6 +25,9 @@ maxMarksInputs.forEach(function(input) {
 
 // Function to handle input event on marks obtained input fields
 function handleMarksObtainedInput(event) {
+    // Skip validation if input is disabled (absent case)
+    if(event.target.disabled) return;
+
     let marksObtained = parseFloat(event.target.value);
     let maxMarksInputField = event.target.parentNode.previousElementSibling.querySelector('.max-marks-input');
     let maxMarks = parseFloat(maxMarksInputField.value);
@@ -47,7 +50,7 @@ function handleMarksObtainedInput(event) {
 
 // Function to validate marks obtained inputs before form submission
 function validateFormBeforeSubmit() {
-    let marksObtainedInputs = document.querySelectorAll('.marks-obtained-input');
+    let marksObtainedInputs = document.querySelectorAll('.marks-obtained-input:not(:disabled)');
     let isValid = true;
 
     marksObtainedInputs.forEach(function(input) {
@@ -130,6 +133,85 @@ document.getElementById('search-btn').addEventListener('click', function() {
             result.innerText = "";    
         }
     
+});
+
+// Add this new function to handle absent checkbox changes
+function handleAbsentCheckboxChange(event) {
+    const checkbox = event.target;
+    const row = checkbox.closest('tr');
+    const marksInput = row.querySelector('.marks-obtained-input');
+    
+    if(checkbox.checked) {
+        marksInput.value = 0;
+        marksInput.disabled = true;
+    } else {
+        marksInput.disabled = false;
+    }
+    
+    // Trigger validation on checkbox change
+    handleMarksObtainedInput({ target: marksInput });
+}
+
+// Update the "Assign All" hidden input handling
+document.querySelectorAll('.absent-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const studentID = this.dataset.studentId;
+        const subjectID = this.dataset.subjectId;
+        
+        // Update hidden input in assign-all-form
+        const hiddenCheckbox = document.querySelector(
+            `#assign-all-form input[name="subjectCheckbox[${studentID}][${subjectID}]"]`
+        );
+        
+        if(this.checked) {
+            if(!hiddenCheckbox) {
+                const newInput = document.createElement('input');
+                newInput.type = 'hidden';
+                newInput.name = `subjectCheckbox[${studentID}][${subjectID}]`;
+                newInput.value = '1';
+                document.querySelector('#assign-all-form').appendChild(newInput);
+            }
+        } else {
+            if(hiddenCheckbox) {
+                hiddenCheckbox.value = '0'; // Explicitly set to 0
+            } else {
+                const newInput = document.createElement('input');
+                newInput.type = 'hidden';
+                newInput.name = `subjectCheckbox[${studentID}][${subjectID}]`;
+                newInput.value = '0';
+                document.querySelector('#assign-all-form').appendChild(newInput);
+            }
+        }
+    });
+});
+
+// Add this initialization function
+function initializeAbsentCheckboxes() {
+    document.querySelectorAll('.absent-checkbox').forEach(checkbox => {
+        const marksInput = checkbox.closest('tr').querySelector('.marks-obtained-input');
+        if(checkbox.checked) {
+            marksInput.value = 0;
+            marksInput.disabled = true;
+        }
+    });
+}
+
+// Call the initialization when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAbsentCheckboxes();
+    
+    // Existing checkbox change handler
+    document.querySelectorAll('.absent-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const marksInput = this.closest('tr').querySelector('.marks-obtained-input');
+            if(this.checked) {
+                marksInput.value = 0;
+                marksInput.disabled = true;
+            } else {
+                marksInput.disabled = false;
+            }
+        });
+    });
 });
 
 

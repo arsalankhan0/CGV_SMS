@@ -8,7 +8,11 @@ if (strlen($_SESSION['sturecmsEMPid']==0))
 } 
 else
 {
-
+        // Get the active session ID
+        $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+        $sessionQuery = $dbh->prepare($getSessionSql);
+        $sessionQuery->execute();
+        $sessionID = $sessionQuery->fetchColumn();
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -88,9 +92,11 @@ else
                                   AND FIND_IN_SET(std.StudentSection, e.AssignedSections)
                                   WHERE e.ID = :empID 
                                   AND e.IsDeleted = 0 
+                                  AND std.SessionID = :sessionID
                                   AND std.IsDeleted = 0";
                           $query2 = $dbh -> prepare($sql2);
                           $query2->bindParam(':empID', $_SESSION['sturecmsEMPid'], PDO::PARAM_INT);
+                          $query2->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                           $query2->execute();
                           $results2=$query2->fetchAll(PDO::FETCH_OBJ);
                           $totstu=$query2->rowCount();

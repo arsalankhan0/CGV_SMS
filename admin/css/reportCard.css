@@ -6,6 +6,12 @@
 {
     padding: 0 4em;
 }
+.absent-mark
+{
+    color: red;
+    font-weight: bold;
+    font-size: 1.4rem !important;    
+}
 table 
 { 
     table-layout:fixed;
@@ -39,5 +45,5 @@ table,th, td, tr
 }
 body
 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }

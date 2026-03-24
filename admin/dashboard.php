@@ -5,6 +5,12 @@ include('includes/dbconnection.php');
 if (strlen($_SESSION['sturecmsaid']==0)) {
   header('location:logout.php');
   } else{
+
+            // Get the active session ID
+            $getSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+            $sessionQuery = $dbh->prepare($getSessionSql);
+            $sessionQuery->execute();
+            $sessionID = $sessionQuery->fetchColumn();
    
   ?>
 <!DOCTYPE html>
@@ -55,7 +61,7 @@ if (strlen($_SESSION['sturecmsaid']==0)) {
                       <div class=" col-md -6 col-xl report-inner-card">
                         <div class="inner-card-text">
                             <?php 
-                            $sql1 ="SELECT * from  tblclass";
+                            $sql1 ="SELECT * from  tblclass WHERE IsDeleted = 0";
                             $query1 = $dbh -> prepare($sql1);
                             $query1->execute();
                             $results1=$query1->fetchAll(PDO::FETCH_OBJ);
@@ -72,8 +78,9 @@ if (strlen($_SESSION['sturecmsaid']==0)) {
                       <div class="col-md-6 col-xl report-inner-card">
                         <div class="inner-card-text">
                           <?php 
-                          $sql2 ="SELECT * from  tblstudent";
+                          $sql2 ="SELECT * from  tblstudent WHERE SessionID = :sessionID AND IsDeleted = 0";
                           $query2 = $dbh -> prepare($sql2);
+                          $query2->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
                           $query2->execute();
                           $results2=$query2->fetchAll(PDO::FETCH_OBJ);
                           $totstu=$query2->rowCount();

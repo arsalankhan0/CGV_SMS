@@ -128,7 +128,7 @@ else
                                         </div>
                                         <!-- Select Section -->
                                         <div class="form-group col-md-4">
-                                            <label for="section">Select Class:</label>
+                                            <label for="section">Select Section:</label>
                                             <select name="section" id="section" class="form-control">
                                                 <?php
                                                     foreach ($data as $section) 
@@ -152,7 +152,17 @@ else
                                         $selectedClass = $_POST['class'];
                                         $selectedSection = $_POST['section'];
 
-                                        $sqlFilteredReports = "SELECT DISTINCT 
+                                        // Check if the selected session is the active session
+                                        $sqlCheckActive = "SELECT session_id FROM tblsessions WHERE session_id = :sessionId AND is_active = 1";
+                                        $queryCheckActive = $dbh->prepare($sqlCheckActive);
+                                        $queryCheckActive->bindParam(':sessionId', $selectedSession, PDO::PARAM_STR);
+                                        $queryCheckActive->execute();
+                                        $isActiveSession = ($queryCheckActive->rowCount() > 0);
+
+                                        // Modify the SQL query based on whether the session is active or not
+                                        if ($isActiveSession) {
+                                            // For active session, use roll numbers from tblstudent
+                                            $sqlFilteredReports = "SELECT DISTINCT 
                                                                     tr.StudentName AS StudentID, 
                                                                     tc.ID AS ClassID, 
                                                                     sec.ID AS SectionID, 
@@ -172,6 +182,30 @@ else
                                                                 AND tr.ExamSession = :selectedSession 
                                                                 AND tr.IsDeleted = 0
                                                                 ORDER BY s.RollNo ASC";
+                                        } else {
+                                            // For past sessions, get roll numbers from tblstudenthistory
+                                            $sqlFilteredReports = "SELECT DISTINCT 
+                                                                    tr.StudentName AS StudentID, 
+                                                                    tc.ID AS ClassID, 
+                                                                    sec.ID AS SectionID, 
+                                                                    ts.session_id AS SessionID, 
+                                                                    s.StudentName,
+                                                                    sh.RollNo,
+                                                                    tc.ClassName, 
+                                                                    sec.SectionName, 
+                                                                    ts.session_name AS ExamSession 
+                                                                FROM tblreports tr
+                                                                INNER JOIN tblstudent s ON tr.StudentName = s.ID
+                                                                INNER JOIN tblstudenthistory sh ON tr.StudentName = sh.StudentID AND tr.ExamSession = sh.SessionID
+                                                                INNER JOIN tblclass tc ON tr.ClassName = tc.ID
+                                                                INNER JOIN tblsessions ts ON tr.ExamSession = ts.session_id
+                                                                INNER JOIN tblsections sec ON tr.SectionName = sec.ID
+                                                                WHERE tr.ClassName = :class 
+                                                                AND tr.SectionName = :selectedSection 
+                                                                AND tr.ExamSession = :selectedSession 
+                                                                AND tr.IsDeleted = 0
+                                                                ORDER BY sh.rollNo ASC";
+                                        }
                                         $queryFilteredReports = $dbh->prepare($sqlFilteredReports);
                                         $queryFilteredReports->bindParam(':class', $selectedClass, PDO::PARAM_STR);
                                         $queryFilteredReports->bindParam(':selectedSection', $selectedSection, PDO::PARAM_STR);
@@ -179,6 +213,40 @@ else
                                         $queryFilteredReports->execute();
                                         $filteredReports = $queryFilteredReports->fetchAll(PDO::FETCH_ASSOC);
 
+                                        
+                                        // $query = "SELECT 
+                                        //                 tr.StudentName AS StudentID, 
+                                        //                 s.StudentName,
+                                        //                 tr.ExamSession, 
+                                        //                 sh.rollno,    
+                                        //                 c.ClassName,
+                                        //                 sec.SectionName
+                                        //             FROM 
+                                        //                 tblreports tr
+                                        //             INNER JOIN 
+                                        //                 tblstudent s ON tr.StudentName = s.ID 
+                                        //             INNER JOIN
+                                        //                 tblstudenthistory sh ON tr.StudentName = StudentID
+                                        //             INNER JOIN 
+                                        //                 tblclass c ON tr.ClassName = c.ID 
+                                        //             INNER JOIN 
+                                        //                 tblsections sec ON tr.SectionName = sec.ID 
+                                        //             WHERE 
+                                        //                 tr.ClassName = :selectedClass AND
+                                        //                 tr.SectionName = :selectedSection AND
+                                        //                 tr.ExamSession = :examSession AND
+                                        //                 tr.IsDeleted = 0";
+                                        
+                                        // $sql = $dbh->prepare($query);
+                                        // $sql->bindParam(':selectedClass', $selectedClass, PDO::PARAM_STR);
+                                        // $sql->bindParam(':selectedSection', $selectedSection, PDO::PARAM_STR);
+                                        // $sql->bindParam(':examSession', $selectedSession, PDO::PARAM_STR);
+                                        // $sql->execute();
+                                        // $queryStudentReports = $sql->fetchAll(PDO::FETCH_ASSOC);
+                                        
+                                        // echo "<pre>";
+                                        // print_r($queryStudentReports);
+                                        // echo "</pre>";
                                         
                                         if (!empty($filteredReports)) 
                                         {

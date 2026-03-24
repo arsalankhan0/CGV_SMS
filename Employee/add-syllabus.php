@@ -32,17 +32,17 @@ else
         {
             $classId = filter_var($_POST['class'], FILTER_SANITIZE_STRING);
 
-            // Check if planner already exists for the selected class
+            // Check if Assignment already exists for the selected class
             $checkSql = "SELECT ID FROM tblsyllabus WHERE Class = :classId";
             $checkQuery = $dbh->prepare($checkSql);
             $checkQuery->bindParam(':classId', $classId, PDO::PARAM_INT);
             $checkQuery->execute();
-            $plannerExists = $checkQuery->rowCount() > 0;
+            $AssignmentExists = $checkQuery->rowCount() > 0;
 
-            if($plannerExists)
+            if($AssignmentExists)
             {
                 $dangerAlert = true;
-                $msg = "Planner Already Exists for selected class!";
+                $msg = "Assignment Already Exists for selected class!";
             }
             else
             {
@@ -61,7 +61,7 @@ else
                     $maxFileSize = 20 * 1048576; // 20MB
                     if (in_array($fileExtension, $allowedExtensions) && $fileSize <= $maxFileSize) 
                     {
-                        $newFileName = "planner_" . time() . '.' . $fileExtension;
+                        $newFileName = "Assignment_" . time() . '.' . $fileExtension;
                         $uploadFileDir = '../admin/syllabus/';
                         $destPath = $uploadFileDir . $newFileName;
 
@@ -73,7 +73,7 @@ else
                             $query->bindParam(':syllabusFile', $newFileName, PDO::PARAM_STR);
                             $query->execute();
 
-                            $msg = "Planner has been uploaded successfully.";
+                            $msg = "Assignment has been uploaded successfully.";
                             $successAlert = true;
                         } 
                         else 
@@ -90,7 +90,7 @@ else
                 } 
                 else 
                 {
-                    $msg = "Failed to upload planner file.";
+                    $msg = "Failed to upload Assignment file.";
                     $dangerAlert = true;
                 }
             }
@@ -108,7 +108,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>TPS || Add Planner</title>
+    <title>TPS || Add Assignment</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -136,11 +136,11 @@ else
         <div class="main-panel">
             <div class="content-wrapper">
                 <div class="page-header">
-                    <h3 class="page-title"> Add Planner </h3>
+                    <h3 class="page-title"> Add Assignment </h3>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"> Add Planner</li>
+                            <li class="breadcrumb-item active" aria-current="page"> Add Assignment</li>
                         </ol>
                     </nav>
                 </div>
@@ -148,7 +148,7 @@ else
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title" style="text-align: center;">Add Planner</h4>
+                                <h4 class="card-title" style="text-align: center;">Add Assignment</h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php 
                                     if ($successAlert) 
@@ -204,7 +204,7 @@ else
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleInputName1">Upload Planner (PDF only)</label>
+                                        <label for="exampleInputName1">Upload Assignment (PDF only)</label>
                                         <input type="file" name="syllabusPdf" class="form-control-file" accept=".pdf" required>
                                         <p class="text-muted mt-2">PDF must be less than 20MB</p>
                                     </div>

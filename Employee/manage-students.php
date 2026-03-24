@@ -224,6 +224,7 @@ else
                                                 tblstudent.StuID, 
                                                 tblstudent.StudentName, 
                                                 tblstudent.StudentClass, 
+                                                tblstudent.RollNo,
                                                 tblstudent.StudentSection, 
                                                 tblstudent.DateofAdmission,
                                                 tblstudent.SessionID,
@@ -240,6 +241,7 @@ else
                                     if (isset($assignedSections)) {
                                         $studentSql .= " AND tblstudent.StudentSection IN ($assignedSections)";
                                     }
+                                    $studentSql .= " ORDER BY tblstudent.RollNo ASC";
 
 
                                     $studentQuery = $dbh->prepare($studentSql);
@@ -293,6 +295,7 @@ else
                                                     <th class="font-weight-bold">Student Name</th>
                                                     <th class="font-weight-bold">Student Class</th>
                                                     <th class="font-weight-bold">Student Section</th>
+                                                    <th class="font-weight-bold">Roll No.</th>
                                                     <th class="font-weight-bold">Entry Date</th>
                                                     <?php 
                                                     if (isset($employeePermissions['Students']) && 
@@ -313,6 +316,7 @@ else
                                                             <td><?php echo htmlentities($student->StudentName); ?></td>
                                                             <td><?php echo htmlentities(getClassName($student->StudentClass)); ?></td>
                                                             <td><?php echo htmlentities(getSectionName($student->StudentSection)); ?></td>
+                                                            <td><?php echo htmlentities($student->RollNo); ?></td>
                                                             <td><?php echo htmlentities($student->DateofAdmission); ?></td>
                                                             <?php 
                                                             if (isset($employeePermissions['Students']) && 

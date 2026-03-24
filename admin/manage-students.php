@@ -13,17 +13,24 @@ else
     $dangerAlert = false;
     $msg = "";
 
+    // Fetch active session from tblsessions
+    $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
+    $activeSessionQuery = $dbh->prepare($activeSessionSql);
+    $activeSessionQuery->execute();
+    $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
+
     // Code for deletion
     if (isset($_POST['confirmDelete'])) 
     {
         $rid = intval($_POST['studentID']);
-
+        $sessionID = intval($_POST['sessionID']);
         try
         {
             // Check if there are any associated records in tblreports
-            $checkReportSql = "SELECT COUNT(*) FROM tblreports WHERE StudentName = :rid";
+            $checkReportSql = "SELECT COUNT(*) FROM tblreports WHERE StudentName = :rid AND ExamSession = :sessionID";
             $checkReportQuery = $dbh->prepare($checkReportSql);
             $checkReportQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkReportQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
             $checkReportQuery->execute();
             $hasReport = $checkReportQuery->fetchColumn();
 
@@ -65,6 +72,43 @@ else
             echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
         }
 
+    }
+
+    if (isset($_POST['confirmDischarge'])) 
+    {
+        $rid = intval($_POST['studentID']);
+        $sessionID = intval($_POST['sessionID']);
+        try
+        {
+            // Check whether the record is from tblstudenthistory or tblstudent
+            $checkHistorySql = "SELECT COUNT(*) FROM tblstudenthistory WHERE ID = :rid AND IsDeleted = 0";
+            $checkHistoryQuery = $dbh->prepare($checkHistorySql);
+            $checkHistoryQuery->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $checkHistoryQuery->execute();
+            $isHistoryRecord = $checkHistoryQuery->fetchColumn();
+
+            if ($isHistoryRecord) 
+            {
+                $sql = "UPDATE tblstudenthistory SET is_discharged = 1 WHERE ID = :rid";
+            } 
+            else 
+            {
+                $sql = "UPDATE tblstudent SET is_discharged = 1 WHERE ID = :rid";
+            }
+
+            $query = $dbh->prepare($sql);
+            $query->bindParam(':rid', $rid, PDO::PARAM_STR);
+            $query->execute();
+            
+            $successAlert = true;
+            $msg = "Student discharged successfully.";
+        }
+        catch(PDOException $e)
+        {
+            $dangerAlert = true;
+            $msg = "Ops! Something went wrong while discharging the student.";
+            echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+        }
     }
      // Fetch sessions from tblsessions
     $sessionSql = "SELECT session_id, session_name FROM tblsessions WHERE IsDeleted = 0";
@@ -123,12 +167,6 @@ else
                                 
                                         <select name="session" class="form-control" id="session" onchange="getSelectedSessionStudents()">
                                             <?php
-                                            // Fetch active session from tblsessions
-                                            $activeSessionSql = "SELECT session_id FROM tblsessions WHERE is_active = 1 AND IsDeleted = 0";
-                                            $activeSessionQuery = $dbh->prepare($activeSessionSql);
-                                            $activeSessionQuery->execute();
-                                            $activeSession = $activeSessionQuery->fetch(PDO::FETCH_COLUMN);
-
                                             // Get the current active session
                                             $currentActiveSessionID = $activeSession;
 
@@ -203,14 +241,8 @@ else
 <!-- plugins:js -->
 <script src="vendors/js/vendor.bundle.base.js"></script>
 <!-- endinject -->
-<!-- Plugin js for this page -->
-<script src="./vendors/chart.js/Chart.min.js"></script>
-<script src="./vendors/moment/moment.min.js"></script>
-<script src="./vendors/daterangepicker/daterangepicker.js"></script>
-<script src="./vendors/chartist/chartist.min.js"></script>
 <!-- End plugin js for this page -->
 <!-- inject:js -->
-<script src="js/off-canvas.js"></script>
 <script src="js/misc.js"></script>
 <!-- endinject -->
 <!-- Custom js for this page -->

@@ -27,16 +27,18 @@ else
         return $optionalGradingCount > 0;
     }
 
-    if (isset($_GET['className']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
+    if (isset($_GET['className']) && isset($_GET['sectionName']) && isset($_GET['examSession']) && isset($_GET['examName'])) 
     {
         $className = urldecode($_GET['className']);
+        $sectionName = urldecode($_GET['sectionName']);
         $examSession = urldecode($_GET['examSession']);
         $examName = urldecode($_GET['examName']);
 
         // Fetch all students and their reports based on the specified criteria
-        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND IsDeleted = 0";
+        $sqlReports = "SELECT * FROM tblreports WHERE ClassName = :className AND SectionName = :sectionName AND ExamSession = :examSession AND IsDeleted = 0";
         $stmtReports = $dbh->prepare($sqlReports);
         $stmtReports->bindParam(':className', $className, PDO::PARAM_STR);
+        $stmtReports->bindParam(':sectionName', $sectionName, PDO::PARAM_STR);
         $stmtReports->bindParam(':examSession', $examSession, PDO::PARAM_STR);
         $stmtReports->execute();
         $allReports = $stmtReports->fetchAll(PDO::FETCH_ASSOC);
@@ -227,6 +229,7 @@ else
 
                                                // Loop through allSubjectsJson to find the matching subject and extract marks obtained
                                                 $marksObtained = "";
+                                                $isAbsent = 0;
                                                 foreach ($allSubjectsJsonArray as $row) 
                                                 {
                                                     $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -235,6 +238,7 @@ else
                                                         if ($data['ExamName'] === $examName && $data['SubjectID'] === $subject['ID']) 
                                                         {
                                                             $marksObtained = $data['SubMarksObtained'];
+                                                            $isAbsent = $data['isAbsent'] ?? 0;
                                                             $totalMaxMarks += (float)$data['SubMaxMarks'];
                                                             break 2;
                                                         }
@@ -246,7 +250,7 @@ else
                                                 echo "<tr>
                                                         <td class='text-center'>{$counter}</td>
                                                         <td>{$subject['SubjectName']}</td>";
-                                                        echo "<td>{$marksObtained}</td>";
+                                                        echo "<td>" . ($isAbsent ? 'a' : $marksObtained) . "</td>";
                                                 echo "</tr>";
                                                 $counter++;
                                             }
@@ -368,6 +372,7 @@ else
                                                 foreach ($subjects as $subject) 
                                                 {
                                                     $subMarksObtained = '';
+                                                    $isAbsent = 0;
 
                                                     // Loop through the decoded JSON to find the SubMarksObtained for the current subject
                                                     foreach ($subjectsData as $subjectData) 
@@ -375,10 +380,11 @@ else
                                                         if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] === $examName) 
                                                         {
                                                             $subMarksObtained = $subjectData['SubMarksObtained'];
+                                                            $isAbsent = $subjectData['isAbsent'] ?? 0;
                                                             break;
                                                         }
                                                     }
-                                                    echo "<td>" . $subMarksObtained . "</td>";
+                                                    echo "<td>" . ($isAbsent ? 'a' : $subMarksObtained) . "</td>";
 
                                                     $studentTotalMarks += (float)$subMarksObtained;
                                                 }
@@ -424,6 +430,7 @@ else
                                                 <?php
                                                     foreach ($optionalSubjects as $subject) {
                                                         $marksObtained = ""; 
+                                                        $isAbsent = 0;
 
                                                         foreach ($allSubjectsJsonArray as $row) {
                                                             $subjectData = json_decode($row['SubjectsJSON'], true); 
@@ -431,12 +438,13 @@ else
                                                             foreach ($subjectData as $data) {
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] === $examName) {
                                                                     $marksObtained = $data['SubMarksObtained'];
+                                                                    $isAbsent = $data['isAbsent'] ?? 0;
                                                                     break 2;
                                                                 }
                                                             }
                                                         }
 
-                                                        echo "<td>{$marksObtained}</td>";
+                                                        echo "<td>" . ($isAbsent ? 'a' : $marksObtained) . "</td>";
                                                     }
                                                 ?>
                                             </tr>
@@ -469,6 +477,7 @@ else
                                                 foreach ($optionalSubjects as $subject) 
                                                 {
                                                     $maxMarks = "";
+                                                    $isAbsent = 0;
                                                     foreach ($allSubjectsJsonArray as $row) 
                                                     {
                                                         $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -477,6 +486,7 @@ else
                                                             if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] === $examName) 
                                                             {
                                                                 $maxMarks = $data['SubMaxMarks'];
+                                                                $isAbsent = $data['isAbsent'] ?? 0;
                                                                 break 2;
                                                             }
                                                         }
@@ -493,9 +503,11 @@ else
                                                 <td>Marks Obtained</td>
                                                 <?php
                                                     $totalMarksObtained = 0;
+                                                    $isAbsent = 0;
                                                     foreach ($optionalSubjects as $subject) 
                                                     {
                                                         $marksObtained = 0;
+                                                        $isAbsent = 0;
                                                         foreach ($allSubjectsJsonArray as $row) 
                                                         {
                                                             $subjectData = json_decode($row['SubjectsJSON'], true);
@@ -505,14 +517,15 @@ else
                                                                 if ($data['SubjectID'] === $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] === $examName) 
                                                                 {
                                                                     $marksObtained = (float)$data['SubMarksObtained'];
+                                                                    $isAbsent = $data['isAbsent'] ?? 0;
                                                                     break 2;
                                                                 }
                                                             }
                                                         }
                                                         $totalMarksObtained += $marksObtained;
-                                                        echo "<td>{$marksObtained}</td>";
+                                                        echo "<td>" . ($isAbsent ? 'a' : $marksObtained) . "</td>";
                                                     }
-                                                    echo "<td>{$totalMarksObtained}</td>";
+                                                    echo "<td>" . ($isAbsent ? 'a' : $totalMarksObtained) . "</td>";
                                                 ?>
                                             </tr>
                                         </tbody>

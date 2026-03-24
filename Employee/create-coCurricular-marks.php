@@ -26,7 +26,6 @@ else
     $assignedSubjects = explode(',', $employeeData['AssignedSubjects']);
     
     // Check if any assigned subject is co-curricular
-    $coCurricularAssigned = false;
     
     if (!empty($assignedSubjects)) 
     {
@@ -108,7 +107,7 @@ else
             $classIDs = unserialize($_SESSION['class']);
             $sectionIDs = unserialize($_SESSION['Section']);
 
-            $sql = "SELECT * FROM tblstudent WHERE StudentClass IN ($classIDs) AND StudentSection IN ($sectionIDs) AND IsDeleted = 0";
+            $sql = "SELECT * FROM tblstudent WHERE StudentClass IN ($classIDs) AND StudentSection IN ($sectionIDs) AND IsDeleted = 0 ORDER BY CAST(RollNo AS UNSIGNED)";
             $query = $dbh->prepare($sql);
             $query->execute();
             $students = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -157,7 +156,7 @@ else
                     return null;
                 }
                 // Function to check if the max marks are assigned by the teacher
-                function getTeacherAssignedMaxMarks($classIDs, $sessionID, $subjectID, $type)
+                function getTeacherAssignedMaxMarks($classID, $sessionID, $subjectID, $type)
                 {
                     global $dbh;
 
@@ -207,14 +206,27 @@ else
                         
                         foreach ($subjects as $subject) 
                         {   
+                            $subjectID = $subject['ID'];
+
                             $coCurricularMaxMarks = isset($_POST['SubMaxMarks'][$studentID][$subject['ID']]) ? (float)$_POST['SubMaxMarks'][$studentID][$subject['ID']] : 0;
                             $coCurricularMarksObtained = isset($_POST['SubMarksObtained'][$studentID][$subject['ID']]) ? $_POST['SubMarksObtained'][$studentID][$subject['ID']] : 0;
 
+                            $isAbsent = 0; 
+                            if(isset($_POST['subjectCheckbox'][$studentID][$subjectID])) {
+                                $isAbsent = $_POST['subjectCheckbox'][$studentID][$subjectID] == '1' ? 1 : 0;
+                            }
+                            
+                            // Force marks obtained to 0 if absent
+                            if($isAbsent) {
+                                $SubMarksObtained = 0;
+                            }
+                            
                             // An array for subject data
                             $subjectData = array(
                                 'SubjectID' => $subject['ID'],
                                 'CoCurricularMaxMarks' => $coCurricularMaxMarks,
                                 'CoCurricularMarksObtained' => $coCurricularMarksObtained,
+                                'isAbsent' => $isAbsent
                             );
                             $studentSubjectsData[] = $subjectData;
 
@@ -225,13 +237,11 @@ else
                                                     WHERE ExamSession = :sessionID 
                                                     AND ClassName = :classID 
                                                     AND StudentName = :studentID 
-                                                    AND SubjectsJSON = :subjectData
                                                     AND IsDeleted = 0";
                             $checkExistingQuery = $dbh->prepare($checkExistingSql);
                             $checkExistingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
                             $checkExistingQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
-                            $checkExistingQuery->bindParam(':subjectData', $subjectsJSON, PDO::PARAM_INT);
                             $checkExistingQuery->execute();
                             $existingReportDetails = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
 
@@ -316,6 +326,9 @@ else
                                 {
                                     if ($existingSubjectData['SubjectID'] == $newSubjectData['SubjectID']) 
                                     {
+                                        // Update absent status and marks
+                                        $existingSubjectData['isAbsent'] = $newSubjectData['isAbsent'];
+                                        
                                         // If the subject already exists, update its marks
                                         $existingSubjectData['CoCurricularMaxMarks'] = $newSubjectData['CoCurricularMaxMarks'];
                                         $existingSubjectData['CoCurricularMarksObtained'] = $newSubjectData['CoCurricularMarksObtained'];
@@ -360,6 +373,126 @@ else
                     $msg = "Ops! An error occurred.";
                     $dangerAlert = true;
                     echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
+                }
+            }
+
+            if (isset($_POST['assignAllMarks'])) 
+            {
+                try {
+                    $dbh->beginTransaction();
+                    $totalPass = true;
+
+                    foreach ($students as $student) {
+                        $studentID = $student['ID'];
+                        $studentSubjectsData = array();
+ 
+                        foreach ($subjects as $subject) {
+                            // Get the marks from POST data
+                            $coCurricularMaxMarks = isset($_POST['SubMaxMarks'][$studentID][$subject['ID']]) ? 
+                                (float)$_POST['SubMaxMarks'][$studentID][$subject['ID']] : 0;
+                            $coCurricularMarksObtained = isset($_POST['SubMarksObtained'][$studentID][$subject['ID']]) ? 
+                                (float)$_POST['SubMarksObtained'][$studentID][$subject['ID']] : 0;
+                            $isAbsent = isset($_POST['subjectCheckbox'][$studentID][$subject['ID']]) ? 1 : 0; // Check if the student is absent for this subject
+
+                            // Skip if no marks are entered for this subject
+                            if ($coCurricularMaxMarks == 0 && $coCurricularMarksObtained == 0) {
+                                continue;
+                            }
+
+                            // Prepare subject data for JSON
+                            $subjectData = array(
+                                'SubjectID' => $subject['ID'],
+                                'CoCurricularMaxMarks' => $coCurricularMaxMarks,
+                                'CoCurricularMarksObtained' => $coCurricularMarksObtained,
+                                'isAbsent' => $isAbsent // Store isAbsent in the subject data
+                            );
+                            $studentSubjectsData[] = $subjectData;
+
+                            // Check for existing entry in tblmaxcocurricular
+                            $existingMaxReportDetails = checkExistingMaxMarks($dbh, $sessionID, $classIDs, $subject['ID']);
+
+                            // Insert or Update Max Marks in tblmaxcocurricular
+                            if (!$existingMaxReportDetails) {
+                                // Insert new max marks
+                                $insertAdminSql = "INSERT INTO tblmaxcocurricular (SessionID, ClassID, SubjectID, SubMaxMarks, PassingPercentage)
+                                                VALUES (:sessionID, :classID, :subjectID, :SubMaxMarks, :passingPercentage)";
+                                $insertAdminMaxQuery = $dbh->prepare($insertAdminSql);
+                                $insertAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                $insertAdminMaxQuery->bindParam(':SubMaxMarks', $coCurricularMaxMarks, PDO::PARAM_STR);           
+                                $insertAdminMaxQuery->bindParam(':passingPercentage', $defaultPassPercent, PDO::PARAM_INT);            
+                                $insertAdminMaxQuery->execute();
+                            } else {
+                                // Update existing max marks
+                                $updateAdminSql = "UPDATE tblmaxcocurricular SET 
+                                                SubMaxMarks = :SubMaxMarks
+                                                WHERE SessionID = :sessionID 
+                                                AND ClassID = :classID 
+                                                AND SubjectID = :subjectID";
+                                $updateAdminMaxQuery = $dbh->prepare($updateAdminSql);
+                                $updateAdminMaxQuery->bindParam(':SubMaxMarks', $coCurricularMaxMarks, PDO::PARAM_STR);
+                                $updateAdminMaxQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                $updateAdminMaxQuery->bindParam(':subjectID', $subject['ID'], PDO::PARAM_INT);
+                                $updateAdminMaxQuery->execute();
+                            }
+                        }
+
+                        // Only proceed if we have subject data for this student
+                        if (!empty($studentSubjectsData)) {
+                            $subjectsJSON = json_encode($studentSubjectsData);
+
+                            // Check for existing entry in tblcocurricularreports
+                            $checkExistingSql = "SELECT ID FROM tblcocurricularreports 
+                                                WHERE ExamSession = :sessionID 
+                                                AND ClassName = :classID 
+                                                AND StudentName = :studentID 
+                                                AND IsDeleted = 0";
+                            $checkExistingQuery = $dbh->prepare($checkExistingSql);
+                            $checkExistingQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                            $checkExistingQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                            $checkExistingQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
+                            $checkExistingQuery->execute();
+                            $existingReport = $checkExistingQuery->fetch(PDO::FETCH_ASSOC);
+
+                            if (!$existingReport) {
+                                // Insert new record
+                                $insertSql = "INSERT INTO tblcocurricularreports 
+                                            (ExamSession, ClassName, SectionName, StudentName, SubjectsJSON, IsPassed)
+                                            VALUES 
+                                            (:sessionID, :classID, :sectionID, :studentID, :subjectsJSON, :isPassed)";
+                                $insertQuery = $dbh->prepare($insertSql);
+                                $insertQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                $insertQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                $insertQuery->bindParam(':sectionID', $sectionIDs, PDO::PARAM_INT);
+                                $insertQuery->bindParam(':studentID', $studentID, PDO::PARAM_INT);
+                                $insertQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
+                                $insertQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_BOOL);
+                                $insertQuery->execute();
+                            } else {
+                                // Update existing record
+                                $updateSql = "UPDATE tblcocurricularreports SET 
+                                            SubjectsJSON = :subjectsJSON,
+                                            IsPassed = :isPassed
+                                            WHERE ID = :reportID";
+                                $updateQuery = $dbh->prepare($updateSql);
+                                $updateQuery->bindParam(':subjectsJSON', $subjectsJSON, PDO::PARAM_STR);
+                                $updateQuery->bindParam(':isPassed', $totalPass, PDO::PARAM_BOOL);
+                                $updateQuery->bindParam(':reportID', $existingReport['ID'], PDO::PARAM_INT);
+                                $updateQuery->execute();
+                            }
+                        }
+                    }
+
+                    $dbh->commit();
+                    $msg = "Marks assigned to all students successfully.";
+                    $successAlert = true;
+                } catch (Exception $e) {
+                    $dbh->rollBack();
+                    $msg = "Error: " . $e->getMessage();
+                    $dangerAlert = true;
+                    error_log($e->getMessage());
                 }
             }
         } 
@@ -459,7 +592,7 @@ else
                                                 </div>
                                                 <?php foreach ($students as $student) 
                                                 { ?>
-                                                    <form class="forms-sample" method="post" id="student-<?php echo htmlentities($student['ID']); ?>">
+                                                <form class="forms-sample" method="post" id="student-<?php echo htmlentities($student['ID']); ?>">
                                                     <div class="student-info">
                                                         <div class="roll-no">
                                                             <label>Roll No:</label>
@@ -477,6 +610,7 @@ else
                                                                     <th>Subjects</th>
                                                                     <th>Max Marks</th>
                                                                     <th>Marks Obtained</th>
+                                                                    <th>Absent</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -507,12 +641,14 @@ else
                                                                         $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
 
                                                                         $SubMarksObtained = '';
+                                                                        $isAbsent = 0;
                                                                         // Find the subject in the SubjectsJSON array and extract the marks
                                                                         foreach ($subjectsJSON as $subjectData) 
                                                                         {
                                                                             if ($subjectData['SubjectID'] == $subjectID) 
                                                                             {
                                                                                 $SubMarksObtained = $subjectData['CoCurricularMarksObtained'] ?? '';
+                                                                                $isAbsent = $subjectData['isAbsent'] ?? 0;
                                                                                 break;
                                                                             }
                                                                         }
@@ -527,22 +663,34 @@ else
                                                                         ?>
                                                                         <tr>
                                                                             <td class="text-left"><?php echo htmlentities($subject['SubjectName']);?></td>
-                                                                                <td>
+                                                                            <td>
                                                                                     <input type='number' min="0" step="any" class='marks-input border border-secondary max-marks-input' name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                                         <?php echo $disabledSub; ?>
                                                                                         value="<?php echo ($SubMaxMarksToShow !== null) ? $SubMaxMarksToShow : ''; ?>"
                                                                                         data-subject-id="<?php echo $subject['ID']; ?>"
+                                                                                        data-student-id="<?php echo $student['ID']; ?>"
+                                                                                        data-input-type="max"
                                                                                         >
                                                                                 </td>
                                                                                 <td colspan=<?php echo ($isGradingSystem1) ? '2' : '1'; ?>>
                                                                                     <input type="number" step="any" class='marks-input border border-secondary marks-obtained-input' name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
                                                                                         <?php echo $disabledSub; ?>
-                                                                                        value="<?php echo $SubMarksObtained; ?>">
+                                                                                        value="<?php echo $SubMarksObtained; ?>"
+                                                                                        data-subject-id="<?php echo $subject['ID']; ?>"
+                                                                                        data-student-id="<?php echo $student['ID']; ?>"
+                                                                                        data-input-type="obtained"
+                                                                                        >
                                                                                         <div class="error-message text-wrap"></div>
                                                                                 </td>
-                                                                                <?php 
-                                                                                ?>
-                                                                        
+                                                                            <td>
+                                                                                <input type="checkbox" 
+                                                                                       class="absent-checkbox"
+                                                                                       name="subjectCheckbox[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]" 
+                                                                                       value="1"
+                                                                                       data-student-id="<?php echo $student['ID']; ?>"
+                                                                                       data-subject-id="<?php echo $subject['ID']; ?>"
+                                                                                       <?php echo $isAbsent ? 'checked' : ''; ?>>
+                                                                            </td>
                                                                         </tr>
                                                                         <?php 
                                                                     }
@@ -582,6 +730,87 @@ else
                                                     <?php 
                                                 } 
                                                 ?>
+
+                                            <form method="POST" id="assign-all-form">
+                                                <?php foreach ($students as $student) { ?>
+                                                    <?php foreach ($subjects as $subject) { 
+
+                                                        // Get existing marks data
+                                                        $checkMarksSql = "SELECT SubjectsJSON FROM tblcocurricularreports 
+                                                            WHERE ExamSession = :sessionID 
+                                                            AND ClassName = :classID 
+                                                            AND StudentName = :studentID 
+                                                            AND IsDeleted = 0";
+                                                        $checkMarksQuery = $dbh->prepare($checkMarksSql);
+                                                        $checkMarksQuery->bindParam(':sessionID', $sessionID, PDO::PARAM_INT);
+                                                        $checkMarksQuery->bindParam(':classID', $classIDs, PDO::PARAM_INT);
+                                                        $checkMarksQuery->bindParam(':studentID', $student['ID'], PDO::PARAM_INT);
+                                                        $checkMarksQuery->execute();
+                                                        $marksData = $checkMarksQuery->fetch(PDO::FETCH_ASSOC);
+                                                        
+                                                        $SubMarksObtained = '';
+                                                        $isAbsent = 0;
+                                                        
+                                                        if ($marksData) {
+                                                            $subjectsJSON = json_decode($marksData['SubjectsJSON'], true);
+                                                            foreach ($subjectsJSON as $subjectData) {
+                                                                if ($subjectData['SubjectID'] == $subject['ID']) {
+                                                                    $SubMarksObtained = $subjectData['CoCurricularMarksObtained'] ?? '';
+                                                                    $isAbsent = $subjectData['isAbsent'] ?? 0;
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Storing max marks that admin gives, in variables.
+                                                        $adminSubMaxMarks = getMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'Sub');
+                                                        // Check if the teacher has assigned max marks, if not, fallback to admin's max marks
+                                                        $SubMaxMarksToShow = ($adminSubMaxMarks === null) ? getTeacherAssignedMaxMarks($student['StudentClass'], $sessionID, $subject['ID'], 'CoCurricular') : $adminSubMaxMarks;
+                                                        
+                                                    ?>
+                                                        <input type="hidden" 
+                                                            name="SubMaxMarks[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]"
+                                                            class="hidden-max-marks"
+                                                            data-student-id="<?php echo $student['ID']; ?>"
+                                                            data-subject-id="<?php echo $subject['ID']; ?>"
+                                                            value="<?php echo $SubMaxMarksToShow; ?>"
+                                                        >
+                                                        <input type="hidden"
+                                                            name="SubMarksObtained[<?php echo $student['ID']; ?>][<?php echo $subject['ID']; ?>]"
+                                                            class="hidden-obtained-marks"
+                                                            data-student-id="<?php echo $student['ID']; ?>"
+                                                            data-subject-id="<?php echo $subject['ID']; ?>"
+                                                            value="<?php echo $SubMarksObtained; ?>"
+                                                        >
+                                                        
+                                                    <?php } ?>
+                                                <?php } ?>
+                                                
+                                                <!-- <button class="btn btn-primary assign-marks-btn mt-3"
+                                                    <?php echo ($publishedResult == 0) ? 'disabled' : 'type="button" data-toggle="modal" data-target="#assignAllConfirmationModal"'; ?>
+                                                >
+                                                    Assign All Marks
+                                                </button> -->
+                                                
+                                                <!-- Confirmation Modal -->
+                                                <div class="modal fade" id="assignAllConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="assignAllModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h4 class="modal-title" id="assignAllModalLabel">Confirmation</h4>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Are you sure you want to assign given marks to all students?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary" name="assignAllMarks">Assign</button>
+                                                        </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
                                 </div>
                                 <?php
                                 }
@@ -620,6 +849,99 @@ else
 <script src="js/select2.js"></script>
 <script src="./js/manageAlert.js"></script>
 <script src="./js/marksAssignValidation.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const assignAllForm = document.getElementById('assign-all-form');
+        if (!assignAllForm) return;
+
+        // Function to update hidden inputs
+        function updateHiddenInputs(studentId, subjectId, type, value) {
+            const selector = type === 'max' ? 
+                `.hidden-max-marks[data-student-id="${studentId}"][data-subject-id="${subjectId}"]` :
+                `.hidden-obtained-marks[data-student-id="${studentId}"][data-subject-id="${subjectId}"]`;
+                
+            const hiddenInput = assignAllForm.querySelector(selector);
+            if (hiddenInput) {
+                hiddenInput.value = value;
+                console.log(`Updated ${type} marks for student ${studentId}, subject ${subjectId} with value: ${value}`);
+            } else {
+                console.warn(`Hidden input not found for student ${studentId}, subject ${subjectId}, type ${type}`);
+            }
+        }
+
+        // Listen to changes on all visible mark inputs
+        document.querySelectorAll('.marks-input').forEach(input => {
+            input.addEventListener('change', function() { // Changed from 'input' to 'change'
+                const studentId = this.dataset.studentId;
+                const subjectId = this.dataset.subjectId;
+                const inputType = this.dataset.inputType;
+                
+                if (!studentId || !subjectId || !inputType) {
+                    console.warn('Missing data attributes on input:', this);
+                    return;
+                }
+                
+                updateHiddenInputs(studentId, subjectId, inputType, this.value);
+            });
+        });
+
+        // Validate before submission
+        assignAllForm.addEventListener('submit', function(e) {
+            const hiddenInputs = this.querySelectorAll('input[type="hidden"]');
+            let hasValues = false;
+            let hasInvalidValues = false;
+
+            hiddenInputs.forEach(input => {
+                const value = input.value.trim();
+                if (value !== '') {
+                    hasValues = true;
+                    // Check if the value is a valid number
+                    if (isNaN(value) || value < 0) {
+                        hasInvalidValues = true;
+                    }
+                }
+            });
+
+            if (!hasValues) {
+                e.preventDefault();
+                alert('Please enter marks in at least one field before assigning all.');
+                return;
+            }
+
+            if (hasInvalidValues) {
+                e.preventDefault();
+                alert('Please ensure all entered marks are valid numbers greater than or equal to 0.');
+                return;
+            }
+        });
+
+
+        // Update the hidden inputs handling in the assign all form
+        document.querySelectorAll('.absent-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const studentID = this.dataset.studentId;
+                const subjectID = this.dataset.subjectId;
+                const hiddenCheckbox = document.querySelector(
+                    `#assign-all-form input[name="subjectCheckbox[${studentID}][${subjectID}]"]`
+                );
+                
+                if(hiddenCheckbox) {
+                    hiddenCheckbox.value = this.checked ? '1' : '0';
+                    if(!this.checked) {
+                        hiddenCheckbox.remove();
+                    }
+                } else if(this.checked) {
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.name = `subjectCheckbox[${studentID}][${subjectID}]`;
+                    newInput.value = '1';
+                    document.querySelector('#assign-all-form').appendChild(newInput);
+                }
+            });
+        });
+    }); 
+
+</script>
 <!-- End custom js for this page -->
 </body>
 </html>

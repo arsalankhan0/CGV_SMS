@@ -30,7 +30,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                 $maxFileSize = 20 * 1048576; // 20MB
                 // File upload validation
                 if (in_array($fileExtension, $allowedExtensions) && $syllabusSize <= $maxFileSize) {
-                    $newFileName = "planner_" . time() . '.' . $fileExtension;
+                    $newFileName = "Assignment_" . time() . '.' . $fileExtension;
                     $uploadFileDir = 'syllabus/';
                     $destPath = $uploadFileDir . $newFileName;
 
@@ -44,7 +44,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                         $query->bindParam(':eid', $eid, PDO::PARAM_INT);
                         $query->execute();
                         $successAlert = true;
-                        $msg = "Planner of the selected class has been updated successfully.";
+                        $msg = "Assignment of the selected class has been updated successfully.";
                     } else {
                         $msg = "Failed to move uploaded file.";
                         $dangerAlert = true;
@@ -54,7 +54,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                     $dangerAlert = true;
                 }
             } else {
-                $msg = "Failed to upload planner file.";
+                $msg = "Failed to upload Assignment file.";
                 $dangerAlert = true;
             }
         }
@@ -80,7 +80,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>TPS || Update planner</title>
+    <title>TPS || Update Assignment</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -108,11 +108,11 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="page-header">
-                        <h3 class="page-title"> Update Planner </h3>
+                        <h3 class="page-title"> Update Assignment </h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> Update Planner</li>
+                                <li class="breadcrumb-item active" aria-current="page"> Update Assignment</li>
                             </ol>
                         </nav>
                     </div>
@@ -120,7 +120,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title" style="text-align: center;">Update Planner of Class <?php echo htmlspecialchars($className); ?></h4>
+                                    <h4 class="card-title" style="text-align: center;">Update Assignment of Class <?php echo htmlspecialchars($className); ?></h4>
                                     <!-- Dismissible Alert messages -->
                                     <?php if ($successAlert) { ?>
                                         <!-- Success -->
@@ -150,7 +150,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                             foreach($results as $row)
                                             {               ?>
                                                 <div class="form-group">
-                                                    <label for="syllabusInput">Upload Planner (PDF only)</label>
+                                                    <label for="syllabusInput">Upload Assignment (PDF only)</label>
                                                     <div class="file-input-wrapper">
                                                         <input type="file" name="syllabus" class="form-control-file border-border-dark" id="syllabusInput" onchange="updateFileName(this)">
                                                         <span id="fileNameLabel"><?php
@@ -177,7 +177,7 @@ if (strlen($_SESSION['sturecmsaid']) == 0) {
                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        Are you sure you want to update Planner of Class <?php echo htmlspecialchars($className); ?>?
+                                                        Are you sure you want to update Assignment of Class <?php echo htmlspecialchars($className); ?>?
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

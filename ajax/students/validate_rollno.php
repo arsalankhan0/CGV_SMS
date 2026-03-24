@@ -6,7 +6,7 @@ if (isset($_POST['stuRollNo']) && isset($_POST['stuclass']) && isset($_POST['stu
     $stuclass = $_POST['stuclass'];
     $stusection = $_POST['stusection'];
 
-    $sql = "SELECT COUNT(*) FROM tblstudent WHERE RollNo=:stuRollNo AND StudentClass=:stuclass AND StudentSection=:stusection AND IsDeleted = 0";
+    $sql = "SELECT COUNT(*) FROM tblstudent WHERE RollNo=:stuRollNo AND StudentClass=:stuclass AND StudentSection=:stusection AND IsDeleted = 0 AND is_discharged = 0";
     $query = $dbh->prepare($sql);
     $query->bindParam(':stuRollNo', $stuRollNo, PDO::PARAM_STR);
     $query->bindParam(':stuclass', $stuclass, PDO::PARAM_STR);

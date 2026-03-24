@@ -1,6 +1,6 @@
 <?php
 session_start();
-error_reporting(0);
+// error_reporting(0);
 include('../../includes/dbconnection.php');
 
 // Fetch active session from tblsessions
@@ -22,13 +22,13 @@ $total_records_sql = "SELECT COUNT(*) FROM (
     SELECT tblstudent.ID
     FROM tblstudent
     JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID
+    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID AND tblstudent.is_discharged = 0
     UNION 
     SELECT tblstudenthistory.ID
     FROM tblstudenthistory
     JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
     JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID
+    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID AND tblstudenthistory.is_discharged = 0
 ) AS total_records";
 $total_records_query = $dbh->prepare($total_records_sql);
 $total_records_query->bindParam(':sessionId', $sessionId, PDO::PARAM_STR);
@@ -49,12 +49,15 @@ $studentSql = "SELECT * FROM (
         tblstudent.SessionID,
         tblclass.ClassName,
         tblclass.Section as ClassSection,
+        tblstudent.RollNo as RollNo,
         NULL as HistoricalClass,
         NULL as HistoricalSection
     FROM tblstudent
     JOIN tblclass ON tblstudent.StudentClass = tblclass.ID
-    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID
+    WHERE tblstudent.SessionID = :sessionId AND tblstudent.IsDeleted = 0 AND tblstudent.StudentClass = :classID AND tblstudent.is_discharged = 0
+    
     UNION 
+    
     SELECT 
         tblstudenthistory.ID as ID,
         tblstudent.StuID as StuID, 
@@ -65,13 +68,19 @@ $studentSql = "SELECT * FROM (
         tblstudenthistory.SessionID as SessionID,
         tblclass.ClassName,
         tblclass.Section as ClassSection,
+        tblstudenthistory.rollno,
         tblstudenthistory.ClassID as HistoricalClass,
         tblstudenthistory.Section as HistoricalSection
     FROM tblstudenthistory
     JOIN tblclass ON tblstudenthistory.ClassID = tblclass.ID
     JOIN tblstudent ON tblstudenthistory.StudentID = tblstudent.ID
-    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID
+    WHERE tblstudenthistory.SessionID = :sessionId AND tblstudenthistory.IsDeleted = 0 AND tblstudenthistory.ClassID = :classID AND tblstudenthistory.is_discharged = 0
 ) as derived
+ORDER BY 
+    StudentClass,
+    StudentSection DESC,
+     LENGTH(COALESCE(NULLIF(TRIM(RollNo), ''), '0')), 
+    CAST(COALESCE(NULLIF(TRIM(RollNo), ''), '0') AS UNSIGNED)
 LIMIT :offset, :no_of_records_per_page";
 
 $studentQuery = $dbh->prepare($studentSql);
@@ -116,6 +125,7 @@ function getSectionName($sectionID)
                 <th class="font-weight-bold">Student Name</th>
                 <th class="font-weight-bold">Student Class</th>
                 <th class="font-weight-bold">Student Section</th>
+                <th class="font-weight-bold">Roll No.</th>
                 <th class="font-weight-bold">Entry Date</th>
                 <th class="font-weight-bold">Action</th>
             </tr>
@@ -131,6 +141,7 @@ function getSectionName($sectionID)
                         <td><?php echo htmlentities($student->StudentName); ?></td>
                         <td><?php echo htmlentities(getClassName($student->HistoricalClass ?: $student->StudentClass)); ?></td>
                         <td><?php echo htmlentities(getSectionName($student->HistoricalSection ?: $student->StudentSection)); ?></td>
+                        <td><?php echo htmlentities($student->RollNo); ?></td>
                         <td><?php echo htmlentities($student->DateofAdmission); ?></td>
                         <td>
                             <div>
@@ -140,6 +151,10 @@ function getSectionName($sectionID)
                                 ||
                                 <a href="" onclick="setDeleteId(<?php echo ($student->ID);?>)" data-toggle="modal" data-target="#confirmationModal">
                                     <i class="icon-trash"></i>
+                                </a>
+                                ||
+                                <a href="" onclick="setDischargeId(<?php echo ($student->ID);?>)" data-toggle="modal" data-target="#dischargeModal">
+                                    <i class="icon-logout"></i> <!-- Use any icon you like -->
                                 </a>
                             </div>
                         </td>
@@ -181,8 +196,31 @@ function getSectionName($sectionID)
             <div class="modal-footer">
                 <form id="deleteForm" action="" method="post">
                     <input type="hidden" name="studentID" id="studentID">
+                    <input type="hidden" id="sessionID" name="sessionID">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" name="confirmDelete">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dischargeModal" tabindex="-1" role="dialog" aria-labelledby="dischargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="dischargeModalLabel">Discharge Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to discharge this Student?
+            </div>
+            <div class="modal-footer">
+                <form id="dischargeForm" action="" method="post">
+                    <input type="hidden" name="studentID" id="dischargeStudentID">
+                    <input type="hidden" id="dischargeSessionID" name="sessionID">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning" name="confirmDischarge">Discharge</button>
                 </form>
             </div>
         </div>

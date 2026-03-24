@@ -58,16 +58,34 @@
                 <div class="row">
                     <div class="col-lg-3">
                         <ul class="resource-menu">
-                            <li><a href="#syllabus">Planners</a></li>
+                            <li><a href="#assignments">Assignments</a></li>
                             <li><a href="#notes">Notes</a></li>
+                            <li><a href="#planner">Planner</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-9">
-                        <!-- Syllabus -->
+                        <!-- Assignments -->
                         <?php
                             $sql = "SELECT s.*, c.ClassName 
                             FROM tblsyllabus s 
-                            JOIN tblclass c ON s.Class = c.ID";
+                            JOIN tblclass c ON s.Class = c.ID
+                            ORDER BY 
+                                CASE LOWER(c.ClassName)
+                                    WHEN 'nursery' THEN 1
+                                    WHEN 'lkg' THEN 2
+                                    WHEN 'ukg' THEN 3
+                                    WHEN '1st' THEN 4
+                                    WHEN '2nd' THEN 5
+                                    WHEN '3rd' THEN 6
+                                    WHEN '4th' THEN 7
+                                    WHEN '5th' THEN 8
+                                    WHEN '6th' THEN 9
+                                    WHEN '7th' THEN 10
+                                    WHEN '8th' THEN 11
+                                    WHEN '9th' THEN 12
+                                    WHEN '10th' THEN 13
+                                    ELSE 14
+                                END";
                             $query = $dbh->prepare($sql);
                             $query->execute();
                             $rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -75,8 +93,8 @@
                             if ($rows) 
                             {
                                 ?>
-                                <div id="syllabus" class="resource-content">
-                                    <h3>Planner List</h3>
+                                <div id="assignments" class="resource-content">
+                                    <h3>Assignment List</h3>
                                     <div class="syllabus-list mt-4">
                                         <div class="">
                                             <table class="table w-100">
@@ -112,7 +130,7 @@
                             } 
                             else 
                             {
-                                echo "<div id='syllabus' class='resource-content'><h3>Planner List</h3>No records found</div>";
+                                echo "<div id='assignments' class='resource-content'><h3>Assignment List</h3>No record found</div>";
                             }
                         ?>
                         <!-- Notes -->
@@ -180,7 +198,76 @@
                             </div>
 
                         </div>
+                        
+                        <!-- Planner -->
+                        <?php
+                            $sql = "SELECT s.*, c.ClassName 
+                            FROM tblplanner s 
+                            JOIN tblclass c ON s.Class = c.ID
+                            ORDER BY 
+                                CASE LOWER(c.ClassName)
+                                    WHEN 'nursery' THEN 1
+                                    WHEN 'lkg' THEN 2
+                                    WHEN 'ukg' THEN 3
+                                    WHEN '1st' THEN 4
+                                    WHEN '2nd' THEN 5
+                                    WHEN '3rd' THEN 6
+                                    WHEN '4th' THEN 7
+                                    WHEN '5th' THEN 8
+                                    WHEN '6th' THEN 9
+                                    WHEN '7th' THEN 10
+                                    WHEN '8th' THEN 11
+                                    WHEN '9th' THEN 12
+                                    WHEN '10th' THEN 13
+                                    ELSE 14
+                                END";
+                            $query = $dbh->prepare($sql);
+                            $query->execute();
+                            $rows = $query->fetchAll(PDO::FETCH_ASSOC);
 
+                            if ($rows) 
+                            {
+                                ?>
+                                <div id="planner" class="resource-content">
+                                    <h3>Planner List</h3>
+                                    <div class="syllabus-list mt-4">
+                                        <div class="">
+                                            <table class="table w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">S.No</th>
+                                                        <th scope="col">Class</th>
+                                                        <th scope="col">Title</th>
+                                                        <th scope="col">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $count = 1;
+                                                    foreach ($rows as $row) 
+                                                    {
+                                                        ?>
+                                                        <tr>
+                                                            <td><?php echo $count++; ?></td>
+                                                            <td><?php echo $row['ClassName']; ?></td>
+                                                            <td><?php echo $row['Planners']; ?></td>
+                                                            <td><a href="admin/planners/<?php echo $row['Planners']; ?>" target="_blank">View</a></td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                    ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php
+                            } 
+                            else 
+                            {
+                                echo "<div id='planner' class='resource-content'><h3>Planner List</h3>No record found</div>";
+                            }
+                        ?>
                     </div>
                 </div>
             </div>

@@ -77,19 +77,20 @@ try
                     foreach ($_POST['selectedStudents'] as $selectedStudentID) 
                     {
                         // Store previous information in tblstudenthistory
-                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
+                        $sqlStudentDetails = "SELECT SessionID, StudentClass, StudentSection, RollNo FROM tblstudent WHERE ID = :studentID AND IsDeleted = 0";
                         $queryStudentDetails = $dbh->prepare($sqlStudentDetails);
                         $queryStudentDetails->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
                         $queryStudentDetails->execute();
                         $previousInfo = $queryStudentDetails->fetch(PDO::FETCH_ASSOC);
 
-                        $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section) 
-                                                VALUES (:studentID, :sessionID, :classID, :section)";
+                        $sqlPromoteStudent = "INSERT INTO tblstudenthistory (StudentID, SessionID, ClassID, Section, rollno) 
+                                                VALUES (:studentID, :sessionID, :classID, :section, :rollno)";
                         $queryPromoteStudent = $dbh->prepare($sqlPromoteStudent);
                         $queryPromoteStudent->bindParam(':studentID', $selectedStudentID, PDO::PARAM_STR);
                         $queryPromoteStudent->bindParam(':sessionID', $previousInfo['SessionID'], PDO::PARAM_STR);
                         $queryPromoteStudent->bindParam(':classID', $previousInfo['StudentClass'], PDO::PARAM_STR);
                         $queryPromoteStudent->bindParam(':section', $previousInfo['StudentSection'], PDO::PARAM_STR);
+                        $queryPromoteStudent->bindParam(':rollno', $previousInfo['RollNo'], PDO::PARAM_STR);
                         $queryPromoteStudent->execute();
 
                         // Update class, section, and session in tblstudent
@@ -323,14 +324,25 @@ catch (PDOException $e)
                                             echo "<div class='col-md-3 mb-3'>";
                                             echo "<label for='classDropdown'>Select Class:</label>";
                                             echo "<select id='classDropdown' name='promoteClass' class='form-control'>";
+
+                                            // Define the classes
+                                            $classesArray = ['Nursery', 'LKG', 'UKG', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th'];
+
                                             // Fetch all classes from tblclass
                                             $sqlAllClasses = "SELECT ID, ClassName FROM tblclass WHERE IsDeleted = 0";
                                             $queryAllClasses = $dbh->prepare($sqlAllClasses);
                                             $queryAllClasses->execute();
                                             $allClasses = $queryAllClasses->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($allClasses as $class) 
-                                            {
-                                                echo "<option value='" . $class['ID'] . "'>" . htmlspecialchars($class['ClassName']) . "</option>";
+
+                                            // Get the current class index
+                                            $currentClassIndex = array_search($filteredClassName['ClassName'], $classesArray);
+                                            $nextClassIndex = $currentClassIndex + 1;
+
+                                            // Populate the dropdown
+                                            foreach ($allClasses as $class) {
+                                                $selected = ($nextClassIndex < count($classesArray) && $class['ClassName'] == $classesArray[$nextClassIndex]) ? 'selected' : '';
+                                                $disabled = (array_search($class['ClassName'], $classesArray) < $currentClassIndex) ? 'disabled' : '';
+                                                echo "<option value='" . $class['ID'] . "' $selected $disabled>" . htmlspecialchars($class['ClassName']) . "</option>";
                                             }
                                             echo "</select>";
                                             echo "</div>";

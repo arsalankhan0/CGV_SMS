@@ -68,6 +68,7 @@ else
                                             <th class="font-weight-bold">S.No</th>
                                             <th class="font-weight-bold">Session Name</th>
                                             <th class="font-weight-bold">Status</th>
+                                            <th class="font-weight-bold">Action</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -112,6 +113,9 @@ else
                                                             echo '<button class="btn btn-secondary btn-sm" name="setActive" onclick="setActive(' . $row->session_id . ')">Inactive</button>';
                                                         }
                                                         ?>
+                                                    </td>
+                                                    <td>
+                                                        <a href="edit-session.php?session_id=<?php echo htmlentities ($row->session_id);?>"><i class="icon-pencil"></i></a>
                                                     </td>
                                                 </tr>
                                                 <?php $cnt = $cnt + 1;

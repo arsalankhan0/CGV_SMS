@@ -26,4 +26,10 @@ function changePage(page, totalPages) {
 
 function setDeleteId(id) {
     document.getElementById('studentID').value = id;
+    document.getElementById('sessionID').value = document.getElementById('session').value;
+}
+
+function setDischargeId(id) {
+    document.getElementById('dischargeStudentID').value = id;
+    document.getElementById('dischargeSessionID').value = document.getElementById('session').value;
 }

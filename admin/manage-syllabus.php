@@ -37,13 +37,13 @@ else
             $query->bindParam(':rid', $rid, PDO::PARAM_STR);
             $query->execute();
             $successAlert = true;
-            $msg = "Planner of the selected class deleted successfully.";
+            $msg = "Assignment of the selected class deleted successfully.";
         }
     }
     catch (PDOException $e) 
     {
         $dangerAlert = true;
-        $msg = "Ops! An error occurred while deleting the Planner!";
+        $msg = "Ops! An error occurred while deleting the Assignment!";
         echo "<script>console.error('Error:---> " . $e->getMessage() . "');</script>";
     }
         
@@ -51,7 +51,7 @@ else
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>TPS || Manage Planner</title>
+        <title>TPS || Manage Assignment</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- plugins:css -->
         <link rel="stylesheet" href="vendors/simple-line-icons/css/simple-line-icons.css">
@@ -80,11 +80,11 @@ else
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
-                            <h3 class="page-title"> Manage Planner</h3>
+                            <h3 class="page-title"> Manage Assignment</h3>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
                                     <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page"> Manage Planner</li>
+                                    <li class="breadcrumb-item active" aria-current="page"> Manage Assignment</li>
                                 </ol>
                             </nav>
                         </div>
@@ -93,7 +93,7 @@ else
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-sm-flex align-items-center mb-4">
-                                            <h4 class="card-title mb-sm-0">Manage Planner</h4>
+                                            <h4 class="card-title mb-sm-0">Manage Assignment</h4>
                                         </div>
                                         <!-- Dismissible Alert messages -->
                                         <?php 
@@ -124,7 +124,7 @@ else
                                                     <tr>
                                                         <th class="font-weight-bold">S.No</th>
                                                         <th class="font-weight-bold">Classes</th>
-                                                        <th class="font-weight-bold">Planner</th>
+                                                        <th class="font-weight-bold">Assignment</th>
                                                         <th class="font-weight-bold">Action</th>
                                                     </tr>
                                                 </thead>
@@ -164,7 +164,7 @@ else
                                                                     echo htmlentities($className);
                                                                     ?>
                                                                 </td>
-                                                                <td><a href="<?php echo "syllabus/".htmlentities($row->Syllabus); ?>" target="_blank">View Planner</a></td>
+                                                                <td><a href="<?php echo "syllabus/".htmlentities($row->Syllabus); ?>" target="_blank">View Assignment</a></td>
                                                                 <td>
                                                                     <div>
                                                                         <a href="edit-syllabus-details.php?editid=<?php echo htmlentities($row->ID);?>"><i class="icon-pencil"></i></a>

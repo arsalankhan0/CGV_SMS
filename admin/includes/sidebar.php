@@ -207,10 +207,12 @@
       </a>
       <div class="collapse" id="resources">
         <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="add-syllabus.php">Add Planner</a></li>
-          <li class="nav-item"> <a class="nav-link" href="manage-syllabus.php">Manage Planner</a></li>
+          <li class="nav-item"> <a class="nav-link" href="add-syllabus.php">Add Assignment</a></li>
+          <li class="nav-item"> <a class="nav-link" href="manage-syllabus.php">Manage Assignment</a></li>
           <li class="nav-item"> <a class="nav-link" href="add-notes.php">Add Notes</a></li>
           <li class="nav-item"> <a class="nav-link" href="manage-notes.php">Manage Notes</a></li>
+          <li class="nav-item"> <a class="nav-link" href="add-planner.php">Add Planner</a></li>
+          <li class="nav-item"> <a class="nav-link" href="manage-planner.php">Manage Planner</a></li>
         </ul>
       </div>
     </li>
