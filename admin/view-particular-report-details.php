@@ -177,8 +177,8 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                     <div class="site-name">tibetanpublicschool.com</div>
                                     <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                     <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                        <img src="../Main/img/logo1.png" width="120px" alt="TPS" class="img-fluid">
-                                        <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid mr-5 pr-5">
+                                        <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
+                                        <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
                                     </div>
                                     <div class="d-flex justify-content-center mt-4">
                                         <strong style="font-size: 1.3rem;">Result of
@@ -480,216 +480,255 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                         </table>
                                     </div>
 
-                                    <!-- Co-Curricular Component of Academic Session in Each Exam -->
+                                    <!-- Co-Curricular Component of Academic Session -->
+                                    <?php
+                                    // Fetch SubjectsJSON for the current student and session
+                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports 
+                                                                WHERE ClassName = :className 
+                                                                    AND ExamSession = :examSession 
+                                                                    AND StudentName = :studentID";
+                                    $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
+                                    $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
+                                    $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
+                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
+                                    $fetchSubjectsJsonQuery->execute();
+                                    $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
+
+                                    $ccSubjectsData = !empty($subjectsJson) ? json_decode($subjectsJson, true) : [];
+
+                                    $ccSubjectsRaw = getSubjects($dbh, $class, $examSession, 0, 1);
+                                    $ccSubjects = [];
+                                    foreach ($ccSubjectsRaw as $subject) {
+                                        $hasMaxMarks = false;
+                                        foreach ($ccSubjectsData as $data) {
+                                            if ($data['SubjectID'] == $subject['ID'] && in_array($data['ExamName'], $selectedExamIDs)) {
+                                                if (isset($data['SubMaxMarks']) && $data['SubMaxMarks'] > 0) {
+                                                    $hasMaxMarks = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if ($hasMaxMarks) {
+                                            $ccSubjects[] = $subject;
+                                        }
+                                    }
+
+                                    // Check if any marks are assigned for co-curricular subjects
+                                    $hasCoCurricularMarks = false;
+                                    if (!empty($ccSubjects)) {
+                                        foreach ($selectedExamIDs as $examID) {
+                                            foreach ($ccSubjects as $subject) {
+                                                foreach ((is_array($ccSubjectsData) ? $ccSubjectsData : []) as $data) {
+                                                    if ($data['SubjectID'] == $subject['ID'] && $data['ExamName'] == $examID) {
+                                                        if (isset($data['SubMarksObtained']) && $data['SubMarksObtained'] !== '' && $data['SubMarksObtained'] !== null) {
+                                                            $hasCoCurricularMarks = true;
+                                                            break 3;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if ($hasCoCurricularMarks) {
+                                    ?>
                                     <div class="d-flex flex-column mt-4">
                                         <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
-                                        <table class="table w-100">
-                                            <thead>
-                                                <tr class="text-center">
-                                                    <th class='font-weight-bold' style="vertical-align: middle">Exam</th>
-                                                    <?php
-                                                    $subjects = getSubjects($dbh, $class, $examSession, 0, 1);
-
-                                                    // Fetch SubjectsJSON for the current student and session
-                                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports 
-                                                                                WHERE ClassName = :className 
-                                                                                    AND ExamSession = :examSession 
-                                                                                    AND StudentName = :studentID";
-                                                    $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                    $fetchSubjectsJsonQuery->bindParam(':className', $className, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['ID'], PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->execute();
-                                                    $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
-
-                                                    $subjectsData = !empty($subjectsJson) ? json_decode($subjectsJson, true) : [];
-
-                                                    $studentTotalMaxMarks = 0;
-                                                    foreach ($subjects as $subject) {
-                                                        $maxMarks = '';
-
-                                                        // Loop through the decoded JSON to find the max marks for the current subject
-                                                        foreach ($subjectsData as $subjectData) {
-                                                            foreach ($selectedExamIDs as $examName) {
-                                                                if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) {
-                                                                    $maxMarks = $subjectData['SubMaxMarks'];
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        echo "<th class='font-weight-bold' style='font-size: 1rem !important;'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
-                                                        $studentTotalMaxMarks += (float) $maxMarks;
-                                                    }
-                                                    ?>
-                                                    <th class="font-weight-bold">Total
-                                                        Marks<br><br><?php echo "(" . htmlspecialchars($studentTotalMaxMarks) . ")"; ?>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                    <table class="table w-100">
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th class='font-weight-bold' style="vertical-align: middle">Exam</th>
                                                 <?php
-                                                $i = 0;
-                                                foreach ($selectedExamIDs as $examID) {
-                                                    $examName = $selectedExams[$i];
-                                                    ?>
-                                                    <tr>
-                                                        <td class="text-center"><strong><?php echo htmlspecialchars($examName); ?></strong>
-                                                        </td>
+                                                $studentTotalMaxMarks = 0;
+                                                foreach ($ccSubjects as $subject) {
+                                                    $maxMarks = '';
 
-                                                        <?php
-                                                        $studentTotalMarks = 0;
-
-                                                        foreach ($subjects as $subject) {
-                                                            $subMarksObtained = '';
-
-                                                            // Loop through the decoded JSON to find the SubMarksObtained for the current subject
-                                                            foreach ($subjectsData as $subjectData) {
-                                                                if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examID) {
-                                                                    $subMarksObtained = $subjectData['SubMarksObtained'];
-                                                                    $isAbsent = $subjectData['isAbsent'] ?? 0;
-                                                                    break;
-                                                                }
+                                                    // Loop through the decoded JSON to find the max marks for the current subject
+                                                    foreach ($ccSubjectsData as $subjectData) {
+                                                        foreach ($selectedExamIDs as $examName) {
+                                                            if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) {
+                                                                $maxMarks = $subjectData['SubMaxMarks'];
+                                                                break;
                                                             }
-                                                            echo "<td class='text-center'>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $subMarksObtained) . "</td>";
-
-                                                            $studentTotalMarks += (float) $subMarksObtained;
                                                         }
+                                                    }
 
-                                                        echo "<td class='text-center font-weight-bold'>{$studentTotalMarks}</td>";
-                                                        ?>
-                                                    </tr>
-                                                    <?php
-
-                                                    $i++;
+                                                    echo "<th class='font-weight-bold' style='font-size: 1rem !important;'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                    $studentTotalMaxMarks += (float) $maxMarks;
                                                 }
                                                 ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                <th class="font-weight-bold">Total
+                                                    Marks<br><br><?php echo "(" . htmlspecialchars($studentTotalMaxMarks) . ")"; ?>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $i = 0;
+                                            foreach ($selectedExamIDs as $examID) {
+                                                $i = array_search($examID, $selectedExamIDs);
+                                                $examName = $selectedExams[$i];
+                                                ?>
+                                                <tr>
+                                                    <td class="text-center"><strong><?php echo htmlspecialchars($examName); ?></strong></td>
+                                                    <?php
+                                                    $studentTotalMarks = 0;
+                                                    foreach ($ccSubjects as $subject) {
+                                                        $subMarksObtained = '';
+                                                        $isAbsent = 0;
+                                                        foreach ($ccSubjectsData as $subjectData) {
+                                                            if ($subjectData['SubjectID'] == $subject['ID'] && 
+                                                                $subjectData['ExamName'] == $examID) {
+                                                                $subMarksObtained = $subjectData['SubMarksObtained'];
+                                                                $isAbsent = $subjectData['isAbsent'] ?? 0;
+                                                                break;
+                                                            }
+                                                        }
+                                                        echo "<td class='text-center'>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $subMarksObtained) . "</td>";
+                                                        $studentTotalMarks += (float) ($isAbsent ? 0 : $subMarksObtained);
+                                                    }
+                                                    echo "<td class='text-center font-weight-bold'>" . ($studentTotalMarks) . "</td>";
+                                                    ?>
+                                                </tr>
+                                                <?php
+                                                $i++;
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php } ?>
 
                                     <?php
                                     $optionalSubjects = getSubjects($dbh, $class, $examSession, 1, 0);
-
-                                    if (hasOptionalSubjectWithGrading($dbh, $className, base64_decode(urldecode($_GET['examNames'])), $examSession)) {
-                                        ?>
-                                        <!-- Optional Subjects in Grades-->
-                                        <div class="d-flex flex-column mt-4">
-                                            <strong>Grade in Optional Subjects:</strong>
-                                            <table class="table ">
-                                                <thead>
-                                                    <tr class="text-center">
-                                                        <th class="font-weight-bold">Exam</th>
-                                                        <?php
-                                                        foreach ($optionalSubjects as $subject) {
-                                                            echo "<th class='font-weight-bold'>{$subject['SubjectName']}</th>";
-                                                        }
-                                                        ?>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    $i = 0;
-                                                    $marksObtained = "";
-                                                    foreach ($selectedExamIDs as $examID) {
-                                                        $examName = $selectedExams[$i];
-                                                        ?>
+                                    if (!empty($optionalSubjects)) {
+                                        if (hasOptionalSubjectWithGrading($dbh, $className, base64_decode(urldecode($_GET['examNames'])), $examSession)) {
+                                            ?>
+                                            <!-- Optional Subjects in Grades-->
+                                            <div class="d-flex flex-column mt-4">
+                                                <strong>Grade in Optional Subjects:</strong>
+                                                <table class="table ">
+                                                    <thead>
                                                         <tr class="text-center">
-                                                            <td class="font-weight-bold"><?php echo $examName; ?></td>
+                                                            <th class="font-weight-bold">Exam</th>
                                                             <?php
                                                             foreach ($optionalSubjects as $subject) {
-
-                                                                foreach ($allSubjectsJsonArray as $row) {
-                                                                    $subjectData = json_decode($row['SubjectsJSON'], true);
-
-                                                                    foreach ($subjectData as $data) {
-                                                                        if ($data['SubjectID'] == $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examID) {
-                                                                            $marksObtained = $data['SubMarksObtained'];
-                                                                            $isAbsent = $data['isAbsent'] ?? 0;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
-                                                                echo "<td>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $marksObtained) . "</td>";
+                                                                echo "<th class='font-weight-bold'>{$subject['SubjectName']}</th>";
                                                             }
                                                             ?>
                                                         </tr>
+                                                    </thead>
+                                                    <tbody>
                                                         <?php
-                                                        $i++;
-                                                    }
-                                                    ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <?php
-                                    } else {
-                                        ?>
-                                        <!-- Optional Subjects in Marks-->
-                                        <div class="d-flex flex-column mt-4">
-                                            <strong>Marks in Optional Subjects:</strong>
-                                            <table class="table ">
-                                                <thead>
-                                                    <tr class="text-center">
-                                                        <th class="align-middle font-weight-bold">Exam</th>
-                                                        <?php
-                                                        $totalMaxMarks = 0;
-                                                        foreach ($optionalSubjects as $subject) {
-                                                            $maxMarks = '';
-                                                            foreach ($allSubjectsJsonArray as $row) {
-                                                                $subjectData = json_decode($row['SubjectsJSON'], true);
-                                                                foreach ($subjectData as $data) {
-                                                                    foreach ($selectedExamIDs as $examName) {
-                                                                        if ($data['SubjectID'] == $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) {
-                                                                            $maxMarks = $data['SubMaxMarks'];
-                                                                            break 3; 
+                                                        $i = 0;
+                                                        $marksObtained = "";
+                                                        foreach ($selectedExamIDs as $examID) {
+                                                            $i = array_search($examID, $selectedExamIDs);
+                                                            $examName = $selectedExams[$i];
+                                                            ?>
+                                                            <tr class="text-center">
+                                                                <td class="font-weight-bold"><?php echo $examName; ?></td>
+                                                                <?php
+                                                                foreach ($optionalSubjects as $subject) {
+                                                                    $marksObtained = '';
+                                                                    $isAbsent = 0;
+                                                                    foreach ($allSubjectsJsonArray as $row) {
+                                                                        $subjectData = json_decode($row['SubjectsJSON'], true);
+                                                                        foreach ($subjectData as $data) {
+                                                                            if ($data['SubjectID'] == $subject['ID'] && 
+                                                                                $data['IsOptional'] == 1 && 
+                                                                                $data['ExamName'] == $examID) {
+                                                                                $marksObtained = $data['SubMarksObtained'];
+                                                                                $isAbsent = $data['isAbsent'] ?? 0;
+                                                                                break 2;
+                                                                            }
                                                                         }
                                                                     }
+                                                                    echo "<td>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $marksObtained) . "</td>";
                                                                 }
-                                                            }
-                                                            $totalMaxMarks += (float) $maxMarks;
-                                                            echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
-                                                        }
-                                                        echo "<th class='font-weight-bold'>Total <br><br>({$totalMaxMarks})</th>";
-                                                        ?>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    $i = 0;
-                                                    foreach ($selectedExamIDs as $examID) {
-                                                        $examName = $selectedExams[$i];
-                                                        ?>
-                                                        <tr class="text-center">
-                                                            <td class="font-weight-bold"><?php echo $examName; ?></td>
+                                                                ?>
+                                                            </tr>
                                                             <?php
-                                                            $totalMarksObtained = 0;
+                                                            $i++;
+                                                        }
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <!-- Optional Subjects in Marks-->
+                                            <div class="d-flex flex-column mt-4">
+                                                <strong>Marks in Optional Subjects:</strong>
+                                                <table class="table ">
+                                                    <thead>
+                                                        <tr class="text-center">
+                                                            <th class="align-middle font-weight-bold">Exam</th>
+                                                            <?php
+                                                            $totalMaxMarks = 0;
                                                             foreach ($optionalSubjects as $subject) {
-                                                                $marksObtained = '';
+                                                                $maxMarks = '';
                                                                 foreach ($allSubjectsJsonArray as $row) {
                                                                     $subjectData = json_decode($row['SubjectsJSON'], true);
-
                                                                     foreach ($subjectData as $data) {
-                                                                        if ($data['SubjectID'] == $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examID) {
-                                                                            $marksObtained = $data['SubMarksObtained'];
-                                                                            $isAbsent = $data['isAbsent'] ?? 0;
-                                                                            break;
+                                                                        foreach ($selectedExamIDs as $examName) {
+                                                                            if ($data['SubjectID'] == $subject['ID'] && $data['IsOptional'] == 1 && $data['ExamName'] == $examName) {
+                                                                                $maxMarks = $data['SubMaxMarks'];
+                                                                                break 3;
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
-                                                                $totalMarksObtained += (float) $marksObtained;
-                                                                echo "<td>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $marksObtained) . "</td>";
+                                                                $totalMaxMarks += (float) $maxMarks;
+                                                                echo "<th class='font-weight-bold'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
                                                             }
-                                                            echo "<td class='font-weight-bold'>{$totalMarksObtained}</td>";
+                                                            echo "<th class='font-weight-bold'>Total <br><br>({$totalMaxMarks})</th>";
                                                             ?>
                                                         </tr>
+                                                    </thead>
+                                                    <tbody>
                                                         <?php
-                                                        $i++;
-                                                    }
-                                                    ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <?php
+                                                        $i = 0;
+                                                        foreach ($selectedExamIDs as $examID) {
+                                                            $i = array_search($examID, $selectedExamIDs);
+                                                            $examName = $selectedExams[$i];
+                                                            ?>
+                                                            <tr class="text-center">
+                                                                <td class="font-weight-bold"><?php echo $examName; ?></td>
+                                                                <?php
+                                                                $totalMarksObtained = 0;
+                                                                foreach ($optionalSubjects as $subject) {
+                                                                    $marksObtained = '';
+                                                                    $isAbsent = 0;
+                                                                    foreach ($allSubjectsJsonArray as $row) {
+                                                                        $subjectData = json_decode($row['SubjectsJSON'], true);
+    
+                                                                        foreach ($subjectData as $data) {
+                                                                            if ($data['SubjectID'] == $subject['ID'] && 
+                                                                                $data['IsOptional'] == 1 && 
+                                                                                $data['ExamName'] == $examID) {
+                                                                                $marksObtained = $data['SubMarksObtained'];
+                                                                                $isAbsent = $data['isAbsent'] ?? 0;
+                                                                                break 2;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    echo "<td>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $marksObtained) . "</td>";
+                                                                    $totalMarksObtained += (float) ($isAbsent ? 0 : $marksObtained);
+                                                                }
+                                                                echo "<td class='font-weight-bold'>" . ($totalMarksObtained ?: '') . "</td>";
+                                                                ?>
+                                                            </tr>
+                                                            <?php
+                                                            $i++;
+                                                        }
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <?php
+                                        }
                                     }
                                     ?>
 

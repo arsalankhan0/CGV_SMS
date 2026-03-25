@@ -38,3 +38,15 @@ td, th
         font-size: 0.8rem;
     }
 }
+.site-name
+{
+    text-align: end;
+    font-size: 0.8rem;
+}
+table, th, td, tr {
+    border: 1px solid #000 !important;
+}
+.underline 
+{
+    border-bottom: 1px solid #000; 
+}

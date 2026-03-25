@@ -315,8 +315,8 @@ else
                                 <div class="site-name">tibetanpublicschool.com</div>
                                     <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                     <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                        <img src="../Main/img/logo1.png" width="120px" alt="TPS" class="img-fluid">
-                                        <img src="../Main/img/reportLogo.png" alt="TPS" class="img-fluid mr-5 pr-5">
+                                        <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
+                                        <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
                                     </div>
                                 <h4 class="card-title mt-4 mb-5" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
                                 <!-- Student's Details -->
@@ -350,28 +350,35 @@ else
                                 <div class="d-flex flex-column">
                                     <table class="table ">
                                         <thead>
+                                            <?php
+                                            $examNames = fetchExamNames($dbh, 'Formative', $examSession);
+                                            $coCurricularExamNames = fetchExamNames($dbh, 'Co-Curricular', $examSession);
+                                            $summativeExamNames = fetchExamNames($dbh, 'Summative', $examSession);
+                                            $showCC = ($tMaxMarks['curricular'] > 0);
+                                            ?>
                                             <tr class="text-center">
                                                 <th rowspan="2" colspan="2" class="font-weight-bold" style="vertical-align: middle;">Subjects</th>
                                                 <th colspan="7" class="font-weight-bold">Formative Assessment <br><br>Max. Marks: <?php echo $tMaxMarks['formative']; ?></th>
-                                                <th colspan="2" class="text-wrap font-weight-bold">Co-Curricular Activities</th>
+                                                <?php if ($showCC) { ?>
+                                                    <th colspan="2" class="text-wrap font-weight-bold">Co-Curricular Activities</th>
+                                                <?php } ?>
                                                 <th colspan="2" class="text-wrap font-weight-bold">Summative Assessment</th>
                                                 <th colspan="2" class="text-wrap font-weight-bold">Total (FA+CA+SA)</th>
                                             </tr>
                                             <tr class="text-center">
                                                 <?php
-                                                // Fetch exam names and IDs as per the parameters
-                                                $examNames = fetchExamNames($dbh, 'Formative', $examSession);
-                                                $coCurricularExamNames = fetchExamNames($dbh, 'Co-Curricular', $examSession);
-                                                $summativeExamNames = fetchExamNames($dbh, 'Summative', $examSession);
-
-                                                foreach ($examNames as $exam) 
-                                                {
+                                                foreach ($examNames as $exam) {
                                                     echo "<th scope='col'>" . $exam['ExamName'] . "</th>";
-                                                }?>
+                                                }
+                                                ?>
                                                 <th class="font-weight-bold">Total</br>(<?php echo $tMaxMarks['formative']; ?>)</th>
-                                                <th colspan="2">Max Marks: <?php echo $tMaxMarks['curricular']; ?></th>
+                                                <?php if ($showCC) { ?>
+                                                    <th colspan="2">Max Marks: <?php echo $tMaxMarks['curricular']; ?></th>
+                                                <?php } ?>
                                                 <th colspan="2">Max Marks: <?php echo $tMaxMarks['summative']; ?></th>
-                                                <th colspan="2" class="font-weight-bold">Max Marks: <?php echo $tMaxMarks['formative'] + $tMaxMarks['curricular'] + $tMaxMarks['summative']; ?></th>
+                                                <th colspan="2" class="font-weight-bold">Max Marks:
+                                                    <?php echo $tMaxMarks['formative'] + ($showCC ? $tMaxMarks['curricular'] : 0) + $tMaxMarks['summative']; ?>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -424,13 +431,11 @@ else
                                             }
                                             $CCtotalMarksObtained = array_sum(array_column($CCsubjectsData, 'CoCurricularMarksObtained'));
                                             $CCtotalMaxMarks = array_sum(array_column($CCsubjectsData, 'CoCurricularMaxMarks'));
-                                            $CCGrandTotal = 0;
-                                            $CCGrandMaxTotal = 0;
+                                            $CCGrandTotal = $CCtotalMarksObtained;
+                                            $CCGrandMaxTotal = $CCtotalMaxMarks;
 
                                             foreach ($subjects as $subject) 
                                             {
-                                                $CCGrandTotal += $CCtotalMarksObtained;
-                                                $CCGrandMaxTotal += $CCtotalMaxMarks;
 
                                                 // Fetch SubjectsJSON for the current subject from tblreports for all exam sessions
                                                 $allSubjectsJson = fetchSubjectsJson($dbh, $studentDetails['ClassID'], $studentDetails['StudentID'], $examSession);
@@ -484,18 +489,28 @@ else
                                                         foreach ($examMarksArray as $examMarks) {
                                                             echo "<td>$examMarks</td>";
                                                         }
-                                                        // Total marks obtained for each subject
-                                                        echo "<td class='font-weight-bold'>" . array_sum($examMarksArray) . "</td>";
+                                                        // Total marks obtained for each subject (treat 'a' as 0 in sum)
+                                                        $rowFaTotal = array_sum(array_map(function ($v) {
+                                                            return is_numeric($v) ? $v : 0;
+                                                        }, $examMarksArray));
+                                                        echo "<td class='font-weight-bold'>" . $rowFaTotal . "</td>";
 
                                                         //  Co-curricular marks
-                                                        echo "<td colspan='2'>". $CCtotalMarksObtained ."</td>";
+                                                        if ($showCC) {
+                                                            echo "<td colspan='2'>" . $CCtotalMarksObtained . "</td>";
+                                                        }
 
                                                         //  Summative marks
                                                         foreach ($summativeMarksArray as $summativeMarks) {
                                                             echo "<td colspan='2'>$summativeMarks</td>";
                                                         }
                                                         // Total marks obtained for all assessments (FA+CA+SA)
-                                                        echo "<td colspan='2' class='font-weight-bold'>" . (array_sum($examMarksArray) + $CCtotalMarksObtained + array_sum($summativeMarksArray)) . "</td>";
+                                                        $totalAllAssessments = $rowFaTotal
+                                                            + ($showCC ? $CCtotalMarksObtained : 0)
+                                                            + array_sum(array_map(function ($v) {
+                                                                return is_numeric($v) ? $v : 0;
+                                                            }, $summativeMarksArray));
+                                                        echo "<td colspan='2' class='font-weight-bold'>$totalAllAssessments</td>";
                                                 echo "</tr>";
                                             }
 
@@ -504,111 +519,70 @@ else
                                             <tr class="text-center">
                                                 <td class="font-weight-bold text-right" colspan="2">Marks Obtained</td>
                                                 <?php
-                                                // Total marks of each formative exam(column) in all subjects
                                                 foreach ($totalMarks as $examTotalMarks) 
                                                 {
-                                                    // if ($examTotalMarks > 0) 
-                                                    // {
-                                                        echo "<td>".$examTotalMarks."</td>";
-                                                    // } 
-                                                    // else 
-                                                    // {
-                                                    //     echo "<td></td>";
-                                                    // }
+                                                    echo "<td>".$examTotalMarks."</td>";
                                                 }
-                                                // Total marks obtained of all subjects in Formative
                                                 echo "<td class='font-weight-bold'>" . array_sum($totalMarks) . "</td>";
                                                 
-                                                // Total marks of co-curricular exam(column) in all subjects
-                                                echo "<td colspan='2'>". $CCGrandTotal ."</td>";
+                                                if ($showCC) {
+                                                    echo "<td colspan='2'>". $CCGrandTotal ."</td>";
+                                                }
 
-                                                // Total marks of summative exam(column) in all subjects
                                                 foreach ($totalSummativeMarks as $examTotalMarks) 
                                                 {
-                                                    if ($examTotalMarks > 0) 
-                                                    {
-                                                        echo "<td colspan='2'>".$examTotalMarks."</td>";
-                                                    } 
-                                                    else 
-                                                    {
-                                                        echo "<td colspan='2'></td>";
-                                                    }
+                                                    echo "<td colspan='2'>".($examTotalMarks > 0 ? $examTotalMarks : "")."</td>";
                                                 }
-                                                //total marks obtained in all three FA+CA+SA
-                                                echo "<td colspan='2' class='font-weight-bold'>" . array_sum($totalMarks) + $CCGrandTotal + array_sum($totalSummativeMarks) . "</td>"; 
+                                                echo "<td colspan='2' class='font-weight-bold'>" . (array_sum($totalMarks) + ($showCC ? $CCGrandTotal : 0) + array_sum($totalSummativeMarks)) . "</td>"; 
                                                 ?>
                                             </tr>
                                             <!-- Maximum Marks -->
                                             <tr class="text-center">
                                                 <td class="text-right font-weight-bold" colspan="2">Maximum Marks</td>
-                                                
                                                 <?php
-                                                // Total max marks of all formative exam(column) in all subjects
                                                 foreach ($totalMaxMarks as $maxMarks) 
                                                 {
-                                                    if ($maxMarks > 0) 
-                                                    {
-                                                        echo "<td>$maxMarks</td>";
-                                                    } 
-                                                    else 
-                                                    {
-                                                        echo "<td></td>";
-                                                    }
+                                                    echo "<td>".($maxMarks > 0 ? $maxMarks : "")."</td>";
                                                 }
-                                                // Total Max marks of all subjects
                                                 echo "<td class='font-weight-bold'>" . array_sum($totalMaxMarks) . "</td>";
-                                                // Total max marks of co-curricular exam(column) in all subjects
-                                                echo "<td colspan='2'>". $CCGrandMaxTotal ."</td>";
+                                                if ($showCC) {
+                                                    echo "<td colspan='2'>". $CCGrandMaxTotal ."</td>";
+                                                }
 
-                                                // Total max marks of summative exam(column) in all subjects
                                                 foreach ($totalSummativeMaxMarks as $maxMarks) 
                                                 {
-                                                    if ($maxMarks > 0) 
-                                                    {
-                                                        echo "<td colspan='2'>$maxMarks</td>";
-                                                    } 
-                                                    else 
-                                                    {
-                                                        echo "<td colspan='2'></td>";
-                                                    }
+                                                    echo "<td colspan='2'>".($maxMarks > 0 ? $maxMarks : "")."</td>";
                                                 }
-                                                //total max marks in all three FA+CA+SA
-                                                echo "<td colspan='2' class='font-weight-bold'>" . array_sum($totalMaxMarks) + $CCGrandMaxTotal + array_sum($totalSummativeMaxMarks) . "</td>";
+                                                echo "<td colspan='2' class='font-weight-bold'>" . (array_sum($totalMaxMarks) + ($showCC ? $CCGrandMaxTotal : 0) + array_sum($totalSummativeMaxMarks)) . "</td>";
                                                 ?>
                                             </tr>
                                             <!-- Percentage -->
                                             <tr class="text-center">
                                                 <td class="text-right font-weight-bold" colspan="2">Percentage</td>
                                                 <?php
-                                                // total marks obtained for each type of exam
                                                 $totalMarksObtained = array_sum($totalMarks);
                                                 $totalSummativeMarksObtained = array_sum($totalSummativeMarks);
-
-                                                // total maximum marks obtained for each type of exam
                                                 $totalMaxMarksObtained = array_sum($totalMaxMarks);
                                                 $totalSummativeMaxMarksObtained = array_sum($totalSummativeMaxMarks);
 
-                                                // percentage of each formative exam
                                                 foreach ($totalMarks as $key => $examTotalMarks) {
                                                     $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalMaxMarks[$key]) * 100, 2).'%' : '';
                                                     echo "<td class='font-weight-bold'>$percentage</td>";
                                                 }
-                                                // total percentage of formative exams
                                                 $totalFormativePercentage = $totalMaxMarksObtained > 0 ? round(($totalMarksObtained / $totalMaxMarksObtained) * 100, 2) : 0;
                                                 echo "<td class='font-weight-bold'>$totalFormativePercentage%</td>";
 
-                                                // percentage of co-curricular exam
-                                                $CCpercentage = $CCGrandMaxTotal > 0 ? round(($CCGrandTotal / $CCGrandMaxTotal) * 100, 2) . '%' : '';
-                                                echo "<td colspan='2' class='font-weight-bold'>". $CCpercentage ."</td>";
+                                                if ($showCC) {
+                                                    $CCpercentage = $CCGrandMaxTotal > 0 ? round(($CCGrandTotal / $CCGrandMaxTotal) * 100, 2) . '%' : '';
+                                                    echo "<td colspan='2' class='font-weight-bold'>". $CCpercentage ."</td>";
+                                                }
 
-                                                // percentage of summative exam
                                                 foreach ($totalSummativeMarks as $key => $examTotalMarks) {
                                                     $percentage = $examTotalMarks > 0 ? round(($examTotalMarks / $totalSummativeMaxMarks[$key]) * 100, 2).'%' : '';
                                                     echo "<td colspan='2' class='font-weight-bold'>$percentage</td>";
                                                 }
 
-                                                // Calculate the total percentage of all exams (FA+CA+SA) and display it
-                                                $totalAllExamsPercentage = ($totalMarksObtained + $CCGrandTotal + $totalSummativeMarksObtained) > 0 ? round((($totalMarksObtained + $CCGrandTotal + $totalSummativeMarksObtained) / ($totalMaxMarksObtained + $CCGrandMaxTotal + $totalSummativeMaxMarksObtained)) * 100, 2) : 0;
+                                                $totalAllExamsPercentage = ($totalMarksObtained + ($showCC ? $CCGrandTotal : 0) + $totalSummativeMarksObtained) > 0 ? round((($totalMarksObtained + ($showCC ? $CCGrandTotal : 0) + $totalSummativeMarksObtained) / ($totalMaxMarksObtained + ($showCC ? $CCGrandMaxTotal : 0) + $totalSummativeMaxMarksObtained)) * 100, 2) : 0;
                                                 echo "<td colspan='2' class='font-weight-bold'>$totalAllExamsPercentage%</td>";
                                                 ?>
                                             </tr>
@@ -652,17 +626,19 @@ else
                                                     echo "<td class='font-weight-bold'>$totalFormativeGrade</td>";
 
                                                     // Calculating Co-curricular grade
-                                                    $CoCurricularGrade = '';
-                                                    $CCpercentage = $CCGrandMaxTotal > 0 ? round(($CCGrandTotal / $CCGrandMaxTotal) * 100, 2) : '';
-                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) 
-                                                    {
-                                                        if ($CCpercentage >= $gradingSystem[1][$i] && $CCpercentage <= $gradingSystem[2][$i]) 
+                                                    if ($showCC) {
+                                                        $CoCurricularGrade = '';
+                                                        $CCpercentageValue = $CCGrandMaxTotal > 0 ? round(($CCGrandTotal / $CCGrandMaxTotal) * 100, 2) : '';
+                                                        for ($i = 0; $i < count($gradingSystem[0]); $i++) 
                                                         {
-                                                            $CoCurricularGrade = $gradingSystem[0][$i];
-                                                            break;
+                                                            if ($CCpercentageValue >= $gradingSystem[1][$i] && $CCpercentageValue <= $gradingSystem[2][$i]) 
+                                                            {
+                                                                $CoCurricularGrade = $gradingSystem[0][$i];
+                                                                break;
+                                                            }
                                                         }
+                                                        echo "<td colspan='2' class='font-weight-bold'>$CoCurricularGrade</td>";
                                                     }
-                                                    echo "<td colspan='2' class='font-weight-bold'>$CoCurricularGrade</td>";
 
                                                     // Calculating Summative grade
                                                     foreach ($totalSummativeMarks as $key => $examTotalMarks) 
@@ -683,12 +659,12 @@ else
                                                     }
 
                                                      // Calculate total percentage for all exams (FA+CA+SA)
-                                                    $totalPercentage = ($totalMarksObtained + $CCGrandTotal + $totalSummativeMarksObtained) > 0 ? round((($totalMarksObtained + $CCGrandTotal + $totalSummativeMarksObtained) / ($totalMaxMarksObtained + $CCGrandMaxTotal + $totalSummativeMaxMarksObtained)) * 100, 2) : 0;
+                                                    $totalPercentageFinal = ($totalMarksObtained + ($showCC ? $CCGrandTotal : 0) + $totalSummativeMarksObtained) > 0 ? round((($totalMarksObtained + ($showCC ? $CCGrandTotal : 0) + $totalSummativeMarksObtained) / ($totalMaxMarksObtained + ($showCC ? $CCGrandMaxTotal : 0) + $totalSummativeMaxMarksObtained)) * 100, 2) : 0;
 
                                                     // Determine total grade based on total percentage
                                                     $totalGrade = '';
                                                     for ($i = 0; $i < count($gradingSystem[0]); $i++) {
-                                                        if ($totalPercentage >= $gradingSystem[1][$i] && $totalPercentage <= $gradingSystem[2][$i]) {
+                                                        if ($totalPercentageFinal >= $gradingSystem[1][$i] && $totalPercentageFinal <= $gradingSystem[2][$i]) {
                                                             $totalGrade = $gradingSystem[0][$i];
                                                             break;
                                                         }
@@ -745,19 +721,18 @@ else
                                                 echo "<td class='text-wrap font-weight-bold' style='font-size: 0.7rem !important'>$totalRank</td>";
 
                                                 // Calculating Co-curricular rank
-                                                $CoCurricularGrade = '';
-                                                for ($i = 0; $i < count($gradingSystem[0]); $i++) {
-                                                    if ($CCpercentage >= $gradingSystem[1][$i] && $CCpercentage <= $gradingSystem[2][$i]) {
-                                                        $CoCurricularGrade = $gradingSystem[0][$i];
-                                                        break;
+                                                if ($showCC) {
+                                                    $CoCurricularGrade = '';
+                                                    $CCpercentageValue = $CCGrandMaxTotal > 0 ? round(($CCGrandTotal / $CCGrandMaxTotal) * 100, 2) : '';
+                                                    for ($i = 0; $i < count($gradingSystem[0]); $i++) {
+                                                        if ($CCpercentageValue >= $gradingSystem[1][$i] && $CCpercentageValue <= $gradingSystem[2][$i]) {
+                                                            $CoCurricularGrade = $gradingSystem[0][$i];
+                                                            break;
+                                                        }
                                                     }
+                                                    $CoCurricularRank = isset($rankMappings[$CoCurricularGrade]) ? $rankMappings[$CoCurricularGrade] : '';
+                                                    echo "<td colspan='2' class='font-weight-bold'>$CoCurricularRank</td>";
                                                 }
-
-                                                // Determine rank based on grade
-                                                $CoCurricularRank = isset($rankMappings[$CoCurricularGrade]) ? $rankMappings[$CoCurricularGrade] : '';
-
-                                                // Display the rank
-                                                echo "<td colspan='2' class='font-weight-bold'>$CoCurricularRank</td>";
 
                                                 // Calculating Summative rank
                                                 foreach ($totalSummativeMarks as $key => $examTotalMarks) {
@@ -825,221 +800,254 @@ else
                                     </table>
                                 </div>
                                 <?php
-                                // Check if any optional subject has a grading system
-                                if (hasOptionalSubjectWithGrading($dbh, $className, $sessionID)) 
-                                {
-                                ?>
-                                    <!-- Optional Subjects in Grades-->
-                                    <div class="d-flex flex-column mt-3">
-                                        <table class="table ">
-                                            <thead>
-                                                <tr class="text-center">
-                                                    <th rowspan="3" colspan="2" class="text-wrap font-weight-bold" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
-                                                    <th colspan="12" class="text-wrap font-weight-bold">FORMATIVE / SUMMATIVE ASSESSMENT</th>
-                                                </tr>
-                                                <tr class="text-center">
-                                                    <th colspan="8" class='font-weight-bold'>GRADE</th>
-                                                    <th colspan="2" class="text-wrap font-weight-bold">Summative Assessment</th>
-                                                    <th colspan="2" class="text-warp font-weight-bold">TOTAL (FA+SA)</th>
-                                                </tr>
-                                                <tr class="text-center">
-                                                    <!-- FA Exam Names for Optional Subjects -->
-                                                    <?php
-                                                        foreach ($examNames as $examName) 
-                                                        {
-                                                            echo "<th scope='col'>". $examName['ExamName'] . "</th>";
-                                                        }
-                                                    ?>
-                                                    <th colspan="2">GRADE</th>
-                                                    <th colspan="2">GRADE</th>
-                                                    <th colspan="2">GRADE</th>
-                                                </tr>
-                                                <?php
-                                                    // Fetch only those subjects of the class whose IsOptional is 1 and Co-curricular is 0
-                                                    $subjects = fetchSubjects($dbh, $class, 1, 0, $examSession);
-
-                                                    //Array to store Grades for each exam
-                                                    $examGradeMarksArray = array_fill(0, count($examNames), '');
-                                                    // Array to store summative marks for each exam
-                                                    $summativeGradeArray = array_fill(count($examNames), count($summativeExamNames), '');
-
-                                                    foreach ($subjects as $subject) 
-                                                    {
-                                                        $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID AND IsDeleted = 0";
-                                                        $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                        $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
-                                                        $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                        $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
-                                                        $fetchSubjectsJsonQuery->execute();
-                                                        $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
-
-                                                        $subjectsData = json_decode($subjectsJson, true);
-                                                        $subMarksObtained = '';
-
-                                                        foreach ($subjectsData as $subjectData) 
-                                                        {
-                                                            if ($subjectData['SubjectID'] == $subject['ID']) 
-                                                            {
-                                                                // Find the index of the exam ID in the $examNames, $summativeExamNames arrays
-                                                                $examGradeIndex = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
-                                                                $summativeGradeIndex = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
-
-                                                                if ($examGradeIndex !== false) {
-                                                                    $examGradeMarksArray[$examGradeIndex] = $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
-                                                                }
-                                                                $subMarksObtained = $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
-
-                                                                // Add Summative Grade if the exam type is Summative
-                                                                foreach ($summativeExamNames as $summativeExam) {
-                                                                    if ($subjectData['ExamName'] == $summativeExam['ID']) {
-                                                                        $summativeGradeIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
-                                                                        $summativeGradeArray[$summativeGradeIndex] = $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        echo "<tr>
-                                                                <td colspan='2'>{$subject['SubjectName']}</td>";
-                                                                // Formative Grade
-                                                                foreach ($examGradeMarksArray as $examMarks) {
-                                                                    echo "<td class='text-center'>$examMarks</td>";
-                                                                }
-                                                                echo "<td colspan='2'></td>";
-                                                                 //  Summative Grade
-                                                                foreach ($summativeGradeArray as $coCurricularMarks) {
-                                                                    echo "<td colspan='2' class='text-center'>$coCurricularMarks</td>";
-                                                                }
-                                                                echo "<td colspan='2'></td>";
-                                                            echo "</tr>";
-                                                    }
-                                                ?>
-                                            </thead>
-                                            <tbody>
-
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                <?php
-                                }
-                                else
-                                {
-                                ?>
-                                    <!-- Optional Subjects in Marks-->
-                                    <div class="d-flex flex-column mt-3">
+                                // Check if there are any optional subjects at all
+                                $optionalSubjectsAll = fetchSubjects($dbh, $class, 1, 0, $examSession);
+                                if (!empty($optionalSubjectsAll)) {
+                                    // Check if any optional subject has a grading system
+                                    if (hasOptionalSubjectWithGrading($dbh, $className, $sessionID)) 
+                                    {
+                                    ?>
+                                        <!-- Optional Subjects in Grades-->
+                                        <div class="d-flex flex-column mt-3">
                                             <table class="table ">
                                                 <thead>
                                                     <tr class="text-center">
                                                         <th rowspan="3" colspan="2" class="text-wrap font-weight-bold" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
-                                                        <th colspan="14" class="font-weight-bold">FORMATIVE / CO-CURRICULAR / SUMMATIVE ASSESSMENT</th>
+                                                        <th colspan="12" class="text-wrap font-weight-bold">FORMATIVE / SUMMATIVE ASSESSMENT</th>
                                                     </tr>
                                                     <tr class="text-center">
-                                                        <th colspan="8" class='font-weight-bold'>Formative Assessment<br><br> Max. Marks: <?php echo $tMaxMarks['formativeOptional']; ?></th>
-                                                        <th colspan="2" class="text-wrap font-weight-bold">Co-curricular Activities</th>
+                                                        <th colspan="8" class='font-weight-bold'>GRADE</th>
                                                         <th colspan="2" class="text-wrap font-weight-bold">Summative Assessment</th>
-                                                        <th colspan="2" class="text-wrap font-weight-bold">TOTAL (FA+CA+SA)</th>
+                                                        <th colspan="2" class="text-warp font-weight-bold">TOTAL (FA+SA)</th>
                                                     </tr>
                                                     <tr class="text-center">
                                                         <!-- FA Exam Names for Optional Subjects -->
                                                         <?php
                                                             foreach ($examNames as $examName) 
                                                             {
-                                                                echo "<th scope='col'>".$examName['ExamName']."</th>";
+                                                                echo "<th scope='col'>". $examName['ExamName'] . "</th>";
                                                             }
                                                         ?>
-                                                        <th colspan="2" class='font-weight-bold'>TOTAL(<?php echo $tMaxMarks['formativeOptional']; ?>)</th>
-                                                        <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['curricular']; ?></th>
-                                                        <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['summativeOptional']; ?></th>
-                                                        <th colspan="2" class="text-wrap font-weight-bold">Max Marks: <?php echo $tMaxMarks['formativeOptional'] + $tMaxMarks['curricular'] + $tMaxMarks['summativeOptional']; ?></th>
+                                                        <th colspan="2">GRADE</th>
+                                                        <th colspan="2">GRADE</th>
+                                                        <th colspan="2">GRADE</th>
                                                     </tr>
                                                     <?php
-                                                        // Fetch only those subjects of the class whose IsOptional is 1 and Co-curricular is 0
-                                                        $subjects = fetchSubjects($dbh, $class, 1, 0, $examSession);
-
-                                                        //Array to store marks for each exam
-                                                        $examMarksArrayOptional = array_fill(0, count($examNames), '');
+                                                        //Array to store Grades for each exam
+                                                        $examGradeMarksArray = array_fill(0, count($examNames), '');
                                                         // Array to store summative marks for each exam
-                                                        $summativeMarksArrayOptional = array_fill(count($examNames), count($summativeExamNames), '');
-
-                                                        foreach ($subjects as $subject) 
+                                                        $summativeGradeArray = array_fill(count($examNames), count($summativeExamNames), '');
+    
+                                                        foreach ($optionalSubjectsAll as $subject) 
                                                         {
-                                                            $subMarksObtained = '';
-
-                                                            $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
+                                                            $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID AND IsDeleted = 0";
                                                             $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
                                                             $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
                                                             $fetchSubjectsJsonQuery->execute();
                                                             $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
-
+    
                                                             $subjectsData = json_decode($subjectsJson, true);
-
+                                                            $subMarksObtained = '';
+    
                                                             foreach ($subjectsData as $subjectData) 
                                                             {
                                                                 if ($subjectData['SubjectID'] == $subject['ID']) 
                                                                 {
                                                                     // Find the index of the exam ID in the $examNames, $summativeExamNames arrays
-                                                                    $examIndexOptional = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
-                                                                    $summativeExamIndexOptional = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
-
-                                                                    // Update the corresponding index in the $examMarksArrayOptional with the marks obtained
-                                                                    if ($examIndexOptional !== false) {
-                                                                        $examMarksArrayOptional[$examIndexOptional] = isset($subjectData['isAbsent']) && $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
+                                                                    $examGradeIndex = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
+                                                                    $summativeGradeIndex = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
+    
+                                                                    if ($examGradeIndex !== false) {
+                                                                        $examGradeMarksArray[$examGradeIndex] = $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
                                                                     }
+                                                                    $subMarksObtained = $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
+    
+                                                                    // Add Summative Grade if the exam type is Summative
                                                                     foreach ($summativeExamNames as $summativeExam) {
                                                                         if ($subjectData['ExamName'] == $summativeExam['ID']) {
-                                                                            $summativeIndexOptional = count($examNames) + array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
-                                                                            $summativeMarksArrayOptional[$summativeIndexOptional] = isset($subjectData['isAbsent']) && $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
+                                                                            $summativeGradeIndex = count($examNames) + array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
+                                                                            $summativeGradeArray[$summativeGradeIndex] = $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
                                                                             break;
                                                                         }
                                                                     }
-
-                                                                    $subMarksObtained = $subjectData['SubMarksObtained'];
                                                                 }
                                                             }
                                                             echo "<tr>
                                                                     <td colspan='2'>{$subject['SubjectName']}</td>";
-                                                                    // All Formative Exams marks
-                                                                    foreach ($examMarksArrayOptional as $examMarks) {
+                                                                    // Formative Grade
+                                                                    foreach ($examGradeMarksArray as $examMarks) {
                                                                         echo "<td class='text-center'>$examMarks</td>";
                                                                     }
-                                                                    echo "<td colspan='2' class='text-center font-weight-bold'>" . array_sum($examMarksArrayOptional) . "</td>";
-                                                                    //Co-Curricular Exam marks
-                                                                    echo "<td colspan='2' class='text-center'>{$CCtotalMarksObtained}</td>";
-                                                                    //Summative Exam marks
-                                                                    foreach ($summativeMarksArrayOptional as $examMarks) {
-                                                                        echo "<td colspan='2' class='text-center'>$examMarks</td>";
+                                                                    echo "<td colspan='2'></td>";
+                                                                     //  Summative Grade
+                                                                    foreach ($summativeGradeArray as $coCurricularMarks) {
+                                                                        echo "<td colspan='2' class='text-center'>$coCurricularMarks</td>";
                                                                     }
-
-                                                                    // Total marks obtained for all assessments (FA+CA+SA) of Optional Subjects
-                                                                    echo "<td colspan='2' class='text-center font-weight-bold'>" . (array_sum($examMarksArrayOptional) + $CCtotalMarksObtained + array_sum($summativeMarksArrayOptional)) . "</td>";
-
-                                                            echo "</tr>";
+                                                                    echo "<td colspan='2'></td>";
+                                                                echo "</tr>";
                                                         }
                                                     ?>
                                                 </thead>
+                                                <tbody>
+    
+                                                </tbody>
                                             </table>
                                         </div>
                                     <?php
+                                    }
+                                    else
+                                    {
+                                    ?>
+                                        <!-- Optional Subjects in Marks-->
+                                        <div class="d-flex flex-column mt-3">
+                                                <table class="table ">
+                                                    <thead>
+                                                        <tr class="text-center">
+                                                            <th rowspan="3" colspan="2" class="text-wrap font-weight-bold" style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
+                                                            <th colspan="<?php echo $showCC ? 14 : 12; ?>" class="font-weight-bold">FORMATIVE / <?php echo $showCC ? "CO-CURRICULAR / " : ""; ?>SUMMATIVE ASSESSMENT</th>
+                                                        </tr>
+                                                        <tr class="text-center">
+                                                            <th colspan="8" class='font-weight-bold'>Formative Assessment<br><br> Max. Marks: <?php echo $tMaxMarks['formativeOptional']; ?></th>
+                                                            <?php if ($showCC) { ?>
+                                                                <th colspan="2" class="text-wrap font-weight-bold">Co-curricular Activities</th>
+                                                            <?php } ?>
+                                                            <th colspan="2" class="text-wrap font-weight-bold">Summative Assessment</th>
+                                                            <th colspan="2" class="text-wrap font-weight-bold">TOTAL (FA+CA+SA)</th>
+                                                        </tr>
+                                                        <tr class="text-center">
+                                                            <!-- FA Exam Names for Optional Subjects -->
+                                                            <?php
+                                                                foreach ($examNames as $examName) 
+                                                                {
+                                                                    echo "<th scope='col'>".$examName['ExamName']."</th>";
+                                                                }
+                                                            ?>
+                                                            <th colspan="2" class='font-weight-bold'>TOTAL(<?php echo $tMaxMarks['formativeOptional']; ?>)</th>
+                                                            <?php if ($showCC) { ?>
+                                                                <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['curricular']; ?></th>
+                                                            <?php } ?>
+                                                            <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['summativeOptional']; ?></th>
+                                                            <th colspan="2" class="text-wrap font-weight-bold">Max Marks: <?php echo $tMaxMarks['formativeOptional'] + ($showCC ? $tMaxMarks['curricular'] : 0) + $tMaxMarks['summativeOptional']; ?></th>
+                                                        </tr>
+                                                        <?php
+                                                            //Array to store marks for each exam
+                                                            $examMarksArrayOptional = array_fill(0, count($examNames), '');
+                                                            // Array to store summative marks for each exam
+                                                            $summativeMarksArrayOptional = array_fill(count($examNames), count($summativeExamNames), '');
+    
+                                                            foreach ($optionalSubjectsAll as $subject) 
+                                                            {
+                                                                $subMarksObtained = '';
+    
+                                                                $allSubjectsJsonOptional = fetchSubjectsJson($dbh, $studentDetails['ClassID'], $studentDetails['StudentID'], $examSession);
+                                                                $examMarksArrayOptional = array_fill(0, count($examNames), '');
+                                                                $summativeMarksArrayOptional = array_fill(0, count($summativeExamNames), '');
+
+                                                                foreach ($allSubjectsJsonOptional as $subjectsJson) {
+                                                                    $subjectsData = json_decode($subjectsJson, true) ?: [];
+                                                                    foreach ($subjectsData as $subjectData) {
+                                                                        if ($subjectData['SubjectID'] == $subject['ID']) {
+                                                                            // Find the index of the exam ID in the $examNames, $summativeExamNames arrays
+                                                                            $examIndexOptional = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
+                                                                            $summativeExamIndexOptional = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
+        
+                                                                            // Update the corresponding index in the $examMarksArrayOptional with the marks obtained
+                                                                            if ($examIndexOptional !== false) {
+                                                                                $examMarksArrayOptional[$examIndexOptional] = isset($subjectData['isAbsent']) && $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
+                                                                            }
+                                                                            foreach ($summativeExamNames as $summativeExam) {
+                                                                                if ($subjectData['ExamName'] == $summativeExam['ID']) {
+                                                                                    $summativeIndexOptional = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
+                                                                                    $summativeMarksArrayOptional[$summativeIndexOptional] = isset($subjectData['isAbsent']) && $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
+                                                                                    break;
+                                                                                }
+                                                                            }
+        
+                                                                            $subMarksObtained = $subjectData['SubMarksObtained'];
+                                                                        }
+                                                                    }
+                                                                }
+                                                                echo "<tr>
+                                                                        <td colspan='2'>{$subject['SubjectName']}</td>";
+                                                                        // All Formative Exams marks
+                                                                        foreach ($examMarksArrayOptional as $examMarks) {
+                                                                            echo "<td class='text-center'>$examMarks</td>";
+                                                                        }
+                                                                        echo "<td colspan='2' class='text-center font-weight-bold'>" . array_sum(array_filter($examMarksArrayOptional, 'is_numeric')) . "</td>";
+                                                                        //Co-Curricular Exam marks
+                                                                        if ($showCC) {
+                                                                            echo "<td colspan='2' class='text-center'>{$CCtotalMarksObtained}</td>";
+                                                                        }
+                                                                        //Summative Exam marks
+                                                                        foreach ($summativeMarksArrayOptional as $examMarks) {
+                                                                            echo "<td colspan='2' class='text-center'>$examMarks</td>";
+                                                                        }
+    
+                                                                        // Total marks obtained for all assessments (FA+CA+SA) of Optional Subjects
+                                                                        echo "<td colspan='2' class='text-center font-weight-bold'>" . (array_sum(array_filter($examMarksArrayOptional, 'is_numeric')) + ($showCC ? (float)$CCtotalMarksObtained : 0) + array_sum(array_filter($summativeMarksArrayOptional, 'is_numeric'))) . "</td>";
+    
+                                                                echo "</tr>";
+                                                            }
+                                                        ?>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                    <?php
+                                    }
                                 }
                                 ?>
-                                <!-- Co-Curricular Component of Academic Session -->
+                                <?php
+                                $ccSubjectsRaw = fetchSubjects($dbh, $class, 0, 1, $examSession);
+                                $ccSubjects = [];
+                                foreach ($ccSubjectsRaw as $subject) {
+                                    $subMax = getCoCurricularSubMaxMarks($dbh, $subject['ID'], $studentDetails['ClassID'], $examSession);
+                                    if ($subMax > 0) {
+                                        $ccSubjects[] = $subject;
+                                    }
+                                }
+
+                                // Fetch SubjectsJSON for the current student and session
+                                $fetchCCSubjectsJsonSql = "SELECT SubjectsJSON FROM tblcocurricularreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
+                                $fetchCCSubjectsJsonQuery = $dbh->prepare($fetchCCSubjectsJsonSql);
+                                $fetchCCSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
+                                $fetchCCSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
+                                $fetchCCSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
+                                $fetchCCSubjectsJsonQuery->execute();
+                                $ccSubjectsJson = $fetchCCSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
+
+                                $ccSubjectsData = !empty($ccSubjectsJson) ? json_decode($ccSubjectsJson, true) : [];
+
+                                // Check if any marks are assigned for co-curricular subjects
+                                $hasCoCurricularMarks = false;
+                                if (!empty($ccSubjects)) {
+                                    foreach ($ccSubjects as $subject) {
+                                        foreach ((is_array($ccSubjectsData) ? $ccSubjectsData : []) as $data) {
+                                            if ($data['SubjectID'] == $subject['ID']) {
+                                                if (isset($data['CoCurricularMarksObtained']) && $data['CoCurricularMarksObtained'] !== '' && $data['CoCurricularMarksObtained'] !== null) {
+                                                    $hasCoCurricularMarks = true;
+                                                    break 2;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if ($hasCoCurricularMarks) {
+                                ?>
                                 <div class="d-flex flex-column mt-3">
                                     <table class="table ">
                                         <thead>
                                             <tr class="text-center">
                                                 <?php
-                                                // Fetch only those subjects of the class whose IsOptional is 0 and Co-curricular is 1
-                                                $subjects = fetchSubjects($dbh, $class, 0, 1, $examSession);
-
-                                                $totalColspan = count($subjects) * 2 + 2;
-                                                echo "<th colspan='{$totalColspan}' class='font-weight-bold'>Marks Obtained in Co-curricular Component During the Academic Session</th>";
+                                                $totalColspanCC = count($ccSubjects) * 2 + 2;
+                                                echo "<th colspan='{$totalColspanCC}' class='font-weight-bold'>Marks Obtained in Co-curricular Component During the Academic Session</th>";
                                                 ?>
                                             </tr>
                                             <tr class="text-center">
                                                 <?php
-                                                foreach ($subjects as $subject) 
+                                                foreach ($ccSubjects as $subject) 
                                                 {
                                                     $subMaxMarks = getCoCurricularSubMaxMarks($dbh, $subject['ID'], $studentDetails['StudentClass'], $examSession);
                                                     echo "<th class='text-wrap font-weight-bold' colspan='2'>{$subject['SubjectName']}<br>({$subMaxMarks})</th>";
@@ -1051,24 +1059,13 @@ else
                                         <tbody>
                                             <tr class="text-center">
                                                 <?php
-                                                foreach ($subjects as $subject) 
+                                                foreach ($ccSubjects as $subject) 
                                                 {
                                                     // Initialize SubMarksObtained for the current subject
                                                     $subMarksObtained = '';
 
-                                                    // Fetch SubjectsJSON for the current subject from tblreports
-                                                    $fetchSubjectsJsonSql = "SELECT SubjectsJSON FROM tblcocurricularreports WHERE ClassName = :className AND ExamSession = :examSession AND StudentName = :studentID";
-                                                    $fetchSubjectsJsonQuery = $dbh->prepare($fetchSubjectsJsonSql);
-                                                    $fetchSubjectsJsonQuery->bindParam(':className', $studentDetails['ClassID'], PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':examSession', $examSession, PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->bindParam(':studentID', $studentDetails['StudentID'], PDO::PARAM_STR);
-                                                    $fetchSubjectsJsonQuery->execute();
-                                                    $subjectsJson = $fetchSubjectsJsonQuery->fetch(PDO::FETCH_COLUMN);
-
-                                                    $subjectsData = !empty($subjectsJson) ? json_decode($subjectsJson, true) : [];
-
                                                     // Loop through the decoded JSON to find the SubMarksObtained for the current subject
-                                                    foreach ($subjectsData as $subjectData) 
+                                                    foreach ($ccSubjectsData as $subjectData) 
                                                     {
                                                         if ($subjectData['SubjectID'] == $subject['ID']) 
                                                         {
@@ -1079,19 +1076,19 @@ else
 
                                                     echo "<td colspan='2'>" . $subMarksObtained . "</td>";
                                                 }
-                                                // $totalMarksObtained = array_sum(array_column($subjectsData, 'CoCurricularMarksObtained'));
-                                                $totalMarksObtained = 0;
-                                                foreach ($subjectsData as $subjectData) {
+                                                $totalCCMarksObtainedLoop = 0;
+                                                foreach ($ccSubjectsData as $subjectData) {
                                                     if (!isset($subjectData['isAbsent']) || !$subjectData['isAbsent']) {
-                                                        $totalMarksObtained += (float)($subjectData['CoCurricularMarksObtained'] ?? 0);
+                                                        $totalCCMarksObtainedLoop += (float)($subjectData['CoCurricularMarksObtained'] ?? 0);
                                                     }
                                                 }
-                                                echo "<td colspan='2' class='font-weight-bold'>". ($totalMarksObtained != NULL ? $totalMarksObtained : '') ."</td>";
+                                                echo "<td colspan='2' class='font-weight-bold'>". ($totalCCMarksObtainedLoop != 0 ? $totalCCMarksObtainedLoop : '') ."</td>";
                                                 ?>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php } ?>
                                 <footer class="d-flex flex-column  mt-3">
                                     <div class="d-flex mt-5 w-100 align-items-center">
                                         <label class="text-nowrap font-weight-bold" style="font-size: 20px">Remarks: </label>
