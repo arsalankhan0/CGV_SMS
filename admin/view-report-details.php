@@ -356,11 +356,16 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                             ?>
                             <div class="card d-flex justify-content-center align-items-center">
                                 <div class="card-body" id="report-card">
-                                    <div class="site-name">tibetanpublicschool.com</div>
-                                    <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                    <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                        <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
-                                        <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
+                                    <div class="site-name">www.tibetanpublicschool.com</div>
+                                    <div class="report-header">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="header-logo">
+                                        <div class="header-text">
+                                            <h1 class="school-name">Tibetan Public School</h1>
+                                            <span class="school-address">Badamwari, Hawal, Srinagar, J&K - 190003</span>
+                                        </div>
+                                    </div>
+                                    <div class="watermark-container">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                     </div>
                                     <h4 class="card-title mt-4 mb-5" style="text-align: center;">MARKS CARD for the Academic Session
                                         <?php echo $sessionName; ?>
@@ -937,12 +942,12 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                         // Find the index of the exam ID in the $examNames, $summativeExamNames arrays
                                                                         $examGradeIndex = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
                                                                         $summativeGradeIndex = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
-    
+
                                                                         if ($examGradeIndex !== false) {
                                                                             $examGradeMarksArray[$examGradeIndex] = $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
                                                                         }
                                                                         $subMarksObtained = $subjectData['isAbsent'] ? 'a' : $subjectData['SubMarksObtained'];
-    
+
                                                                         // Add Summative Grade if the exam type is Summative
                                                                         foreach ($summativeExamNames as $summativeExam) {
                                                                             if ($subjectData['ExamName'] == $summativeExam['ID']) {
@@ -986,7 +991,8 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                         <tr class="text-center">
                                                             <th rowspan="3" colspan="2" class="text-wrap font-weight-bold"
                                                                 style="vertical-align: middle;">OPTIONAL SUBJECTS</th>
-                                                            <th colspan="<?php echo $showCC ? 14 : 12; ?>" class="font-weight-bold">FORMATIVE / <?php echo $showCC ? "CO-CURRICULAR / " : ""; ?>SUMMATIVE ASSESSMENT</th>
+                                                            <th colspan="<?php echo $showCC ? 14 : 12; ?>" class="font-weight-bold">FORMATIVE /
+                                                                <?php echo $showCC ? "CO-CURRICULAR / " : ""; ?>SUMMATIVE ASSESSMENT</th>
                                                         </tr>
                                                         <tr class="text-center">
                                                             <th colspan="8" class="font-weight-bold">Formative Assessment<br><br> Max. Marks:
@@ -1008,7 +1014,8 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                             <th colspan="2" class="font-weight-bold">
                                                                 TOTAL(<?php echo $tMaxMarks['formativeOptional']; ?>)</th>
                                                             <?php if ($showCC) { ?>
-                                                                <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['curricular']; ?></th>
+                                                                <th colspan="2" class="text-wrap">Max Marks: <?php echo $tMaxMarks['curricular']; ?>
+                                                                </th>
                                                             <?php } ?>
                                                             <th colspan="2" class="text-wrap">Max Marks:
                                                                 <?php echo $tMaxMarks['summativeOptional']; ?>
@@ -1031,7 +1038,7 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                         $examIndexOptional = array_search($subjectData['ExamName'], array_column($examNames, 'ID'));
                                                                         $summativeExamIndexOptional = array_search($subjectData['ExamName'], array_column($summativeExamNames, 'ID'));
                                                                         $coCurricularIndex = array_search($subjectData['ExamName'], array_column($coCurricularExamNames, 'ID'));
-    
+
                                                                         if ($examIndexOptional !== false) {
                                                                             $examMarksArrayOptional[$examIndexOptional] = isset($subjectData['isAbsent']) && $subjectData['isAbsent'] ? '<span class="absent-mark">a</span>' : $subjectData['SubMarksObtained'];
                                                                         }
@@ -1046,13 +1053,16 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                             }
                                                             ?>
                                                             <tr class="text-center">
-                                                                <td colspan='2' class='text-left'><?php echo htmlentities($subject['SubjectName']); ?></td>
+                                                                <td colspan='2' class='text-left'>
+                                                                    <?php echo htmlentities($subject['SubjectName']); ?></td>
                                                                 <?php
                                                                 foreach ($examMarksArrayOptional as $examMarks) {
                                                                     echo "<td>$examMarks</td>";
                                                                 }
                                                                 ?>
-                                                                <td colspan='2' class='font-weight-bold'><?php echo array_sum(array_filter($examMarksArrayOptional, 'is_numeric')); ?></td>
+                                                                <td colspan='2' class='font-weight-bold'>
+                                                                    <?php echo array_sum(array_filter($examMarksArrayOptional, 'is_numeric')); ?>
+                                                                </td>
                                                                 <?php if ($showCC) { ?>
                                                                     <td colspan='2'><?php echo $CCGrandTotal; ?></td>
                                                                 <?php } ?>
@@ -1062,13 +1072,13 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                 }
                                                                 ?>
                                                                 <td colspan='2' class='font-weight-bold'>
-                                                                    <?php echo (array_sum(array_filter($examMarksArrayOptional, 'is_numeric')) + ($showCC ? (float)$CCGrandTotal : 0) + array_sum(array_filter($summativeMarksArrayOptional, 'is_numeric'))); ?>
+                                                                    <?php echo (array_sum(array_filter($examMarksArrayOptional, 'is_numeric')) + ($showCC ? (float) $CCGrandTotal : 0) + array_sum(array_filter($summativeMarksArrayOptional, 'is_numeric'))); ?>
                                                                 </td>
                                                             </tr>
                                                             <?php
                                                         }
                                                         ?>
-                                                    </tbody>
+                                                        </tbody>
                                                 </table>
                                             </div>
                                             <?php
@@ -1126,7 +1136,8 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                             echo "<th class='text-wrap font-weight-bold' colspan='2'>{$subject['SubjectName']}<br>({$subMaxMarks})</th>";
                                                         }
                                                         ?>
-                                                        <th colspan='2' class='font-weight-bold'>Marks Obtained<br>(<?php echo $tMaxMarks['curricular']; ?>)</th>
+                                                        <th colspan='2' class='font-weight-bold'>Marks
+                                                            Obtained<br>(<?php echo $tMaxMarks['curricular']; ?>)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1161,12 +1172,16 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                             <p class="dark-line ml-2 pt-4 pl-3 w-100" style="box-sizing: border-box;"></p>
                                         </div>
                                         <div class="d-flex justify-content-between mt-5">
-                                            <div><label class="font-weight-bold">Date:</label><span class="dark-line ml-2 signature-line"></span></div>
-                                            <div><label class="font-weight-bold">Signature of Tr. Incharge:</label><span class="dark-line ml-2 signature-line"></span></div>
+                                            <div><label class="font-weight-bold">Date:</label><span
+                                                    class="dark-line ml-2 signature-line"></span></div>
+                                            <div><label class="font-weight-bold">Signature of Tr. Incharge:</label><span
+                                                    class="dark-line ml-2 signature-line"></span></div>
                                         </div>
                                         <div class="d-flex justify-content-between mt-5">
-                                            <div><label class="font-weight-bold">Promoted to Class:</label><span class="dark-line ml-2 signature-line"></span></div>
-                                            <div><label class="font-weight-bold">Supervisor/Principal:</label><span class="dark-line ml-2 signature-line"></span></div>
+                                            <div><label class="font-weight-bold">Promoted to Class:</label><span
+                                                    class="dark-line ml-2 signature-line"></span></div>
+                                            <div><label class="font-weight-bold">Supervisor/Principal:</label><span
+                                                    class="dark-line ml-2 signature-line"></span></div>
                                         </div>
                                     </footer>
                                 </div>

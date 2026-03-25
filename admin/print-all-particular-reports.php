@@ -146,7 +146,8 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                     c.ClassName, 
                                     sec.SectionName, 
                                     s.RollNo, 
-                                    FIND_IN_SET(e.ID, '$allExamIDs') as HasExam,
+                                    s.FatherName,
+                                    FIND_IN_SET(e.ID, '$allExamIDs') as HasExam, 
                                     MIN(e.DurationFrom) as DurationFrom, 
                                     MAX(e.DurationTo) as DurationTo
                                 FROM tblstudent s
@@ -170,27 +171,31 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
-                                <div class="site-name">tibetanpublicschool.com</div>
-                                <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                    <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
-                                    <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
+                                <div class="site-name">www.tibetanpublicschool.com</div>
+                                <div class="report-header">
+                                    <img src="../Main/img/logo1.png" alt="TPS" class="header-logo">
+                                    <div class="header-text">
+                                        <h1 class="school-name">Tibetan Public School</h1>
+                                        <span class="school-address">Badamwari, Hawal, Srinagar, J&K - 190003</span>
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-center mt-4">
-                                    <strong style="font-size: 1.3rem;">Result of
-                                        <?php
-
-                                        $selectedExamsArray = explode(',', $examNames);
-                                        $lastExam = array_pop($selectedExamsArray);
-
-                                        if (count($selectedExamsArray) >= 1) {
-                                            $otherExams = implode(', ', $selectedExamsArray);
-                                            echo htmlspecialchars($otherExams . (count($selectedExamsArray) > 1 ? ' and ' : ' and ') . $lastExam);
-                                        } else {
-                                            echo htmlspecialchars($examNames);
-                                        }
-                                        ?></strong>
+                                <div class="watermark-container">
+                                    <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                 </div>
+                                <h4 class="card-title mt-4 mb-4" style="text-align: center;">Result of
+                                    <?php
+
+                                    $selectedExamsArray = explode(',', $examNames);
+                                    $lastExam = array_pop($selectedExamsArray);
+
+                                    if (count($selectedExamsArray) >= 1) {
+                                        $otherExams = implode(', ', $selectedExamsArray);
+                                        echo htmlspecialchars($otherExams . (count($selectedExamsArray) > 1 ? ' and ' : ' and ') . $lastExam);
+                                    } else {
+                                        echo htmlspecialchars($examNames);
+                                    }
+                                    ?>
+                                </h4>
                                 <!-- Duration -->
                                 <div class="container mt-4">
                                     <div class="d-flex flex-row align-items-start mb-3" style="gap: 30px;">
@@ -208,43 +213,39 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Student Details -->
-                                <div class="d-flex flex-column mb-4">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="font-weight-bold text-center" colspan="4">STUDENT DETAILS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Code No.
-                                                </td>
-                                                <td><?php echo htmlentities($studentDetails['CodeNumber']); ?></td>
-                                                <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Date
-                                                </td>
-                                                <td style="border-top: none; border-bottom: none;"></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="font-weight-bold">Name</td>
-                                                <td class="text-capitalize">
-                                                    <?php echo htmlentities($studentDetails['StudentName']); ?>
-                                                </td>
-                                                <td class="font-weight-bold">Class</td>
-                                                <td class="text-capitalize">
-                                                    <?php echo htmlentities($studentDetails['ClassName']); ?>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="font-weight-bold">Roll No</td>
-                                                <td><?php echo htmlentities($studentDetails['RollNo']); ?></td>
-                                                <td class="font-weight-bold">Section</td>
-                                                <td class="text-capitalize">
-                                                    <?php echo htmlentities($studentDetails['SectionName']); ?>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div class="mt-4">
+                                    <div class="d-flex flex-row justify-content-between font-weight-bold">
+                                        <div>
+                                            <label>Student's Code No:</label><span
+                                                class="dark-line ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
+                                        </div>
+                                        <div>
+                                            <label>Class:</label><span
+                                                class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
+                                        </div>
+                                        <div>
+                                            <label>Section:</label><span
+                                                class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
+                                        </div>
+                                        <div>
+                                            <label>Roll No:</label><span
+                                                class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                        </div>
+                                    </div>
+                                    <!-- Student's Name -->
+                                    <div class="d-flex w-100 align-items-center font-weight-bold">
+                                        <label class="text-nowrap">Student's Name: </label>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize"
+                                            style="box-sizing: border-box;">
+                                            <span><?php echo htmlentities($studentDetails['StudentName']); ?></span></p>
+                                    </div>
+                                    <!-- Parent's Name -->
+                                    <div class="d-flex w-100 align-items-center font-weight-bold">
+                                        <label class="text-nowrap">Parents'/Guardian's Name: </label>
+                                        <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize"
+                                            style="box-sizing: border-box;">
+                                            <span><?php echo htmlentities($studentDetails['FatherName']); ?></span></p>
+                                    </div>
                                 </div>
                                 <!-- Main Subjects -->
                                 <div class="d-flex flex-column">

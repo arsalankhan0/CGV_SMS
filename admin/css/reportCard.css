@@ -2,10 +2,14 @@
 {
     page-break-after: always;
 }
-.signature-line
-{
-    padding: 0 4em;
+.signature-line {
+    padding: 0 100px;
 }
+
+.dark-line {
+    border-bottom: 1px solid #000;
+}
+
 .absent-mark
 {
     color: red;
@@ -38,11 +42,61 @@ table,th, td, tr
     transform: translate(-50%, -50%);
     opacity: 0.1;
 }
-.site-name
-{
-    text-align: end;
+.site-name {
+    position: absolute;
+    right: 15px;
+    top: 5px;
     font-size: 0.8rem;
+    color: #800000;
 }
+
+/* New Header Styles */
+.report-header {
+    background-color: transparent !important;
+    color: #800000;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    border-bottom: 2px solid #800000;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.header-logo {
+    width: 100px;
+    margin-right: 10px;
+}
+
+.header-text {
+    text-align: center;
+}
+
+.school-name {
+    font-size: 2.5rem !important;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #800000;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.school-address {
+    font-size: 1.1rem !important;
+    margin-top: 2px;
+    display: block;
+    font-weight: 600;
+    color: #333;
+}
+
+#report-card {
+    position: relative !important;
+}
+
 body
 {
     font-size: 1.1rem;

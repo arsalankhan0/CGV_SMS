@@ -1,41 +1,47 @@
-.card 
-{
+.card {
     page-break-after: always;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
 }
-.absent-mark
-{
+
+.absent-mark {
     color: red;
     font-weight: bold;
     font-size: 1.2rem !important;
 }
-.signature-line
-{
+
+.signature-line {
     padding: 0 100px;
 }
-.dark-line
-{
+
+.dark-line {
     border-bottom: 1px solid #000;
 }
-table 
-{ 
-    table-layout:fixed;
-    width: 100%;                
+
+table {
+    table-layout: fixed;
+    width: 100%;
 }
-table,th, td, tr
-{
+
+table,
+th,
+td,
+tr {
     border: 1px solid #000 !important;
 }
-th, td
-{
+
+th,
+td {
     padding: 0.8em !important;
     font-size: 1rem !important;
 }
-span, label{
+
+span,
+label {
     font-size: 1.2rem !important;
 }
 
-.watermark
-{
+.watermark {
     width: 40%;
     position: absolute;
     top: 50%;
@@ -43,8 +49,63 @@ span, label{
     transform: translate(-50%, -50%);
     opacity: 0.1;
 }
-.site-name
-{
-    text-align: end;
+
+/* New Header Styles */
+.report-header {
+    background-color: transparent !important;
+    color: #800000;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    /* Center everything */
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    border-bottom: 2px solid #800000;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.header-logo {
+    width: 100px;
+    margin-right: 10px;
+    /* Reduced gap as requested */
+}
+
+.header-text {
+    text-align: center;
+}
+
+.school-name {
+    font-size: 2.5rem !important;
+    /* Larger size */
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    /* Extended type look */
+    color: #800000;
+    font-family: 'Times New Roman', Times, serif;
+    /* Formal extended look */
+}
+
+.school-address {
+    font-size: 1.1rem !important;
+    margin-top: 2px;
+    display: block;
+    font-weight: 600;
+    color: #333;
+}
+
+#report-card {
+    position: relative !important;
+}
+
+.site-name {
+    position: absolute;
+    right: 15px;
+    top: 5px;
     font-size: 0.8rem;
+    color: #800000;
 }

@@ -1,7 +1,7 @@
 <?php
 session_start();
 error_reporting(0);
-include ('includes/dbconnection.php');
+include('includes/dbconnection.php');
 
 if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
     header('location:logout.php');
@@ -147,6 +147,7 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                     c.ClassName, 
                                                     sec.SectionName,
                                                     s.RollNo, 
+                                                    s.FatherName,
                                                     GROUP_CONCAT(e.ExamName) as ExamNames, 
                                                     GROUP_CONCAT(e.ID) as ExamIDs, 
                                                     MIN(e.DurationFrom) as DurationFrom, 
@@ -168,34 +169,37 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
 
                             $durationFrom = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationFrom']))->format('d-m-Y') : '';
                             $durationTo = isset($studentDetails['DurationFrom']) ? (new DateTime($studentDetails['DurationTo']))->format('d-m-Y') : '';
-                            
+
                             $selectedExams = explode(',', $examNames);
                             $selectedExamIDs = explode(',', $examIDs);
                             ?>
                             <div class="card d-flex justify-content-center align-items-center">
                                 <div class="card-body" id="report-card">
-                                    <div class="site-name">tibetanpublicschool.com</div>
-                                    <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                    <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                        <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
-                                        <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
+                                    <div class="site-name">www.tibetanpublicschool.com</div>
+                                    <div class="report-header">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="header-logo">
+                                        <div class="header-text">
+                                            <h1 class="school-name">Tibetan Public School</h1>
+                                            <span class="school-address">Badamwari, Hawal, Srinagar, J&K - 190003</span>
+                                        </div>
                                     </div>
-                                    <div class="d-flex justify-content-center mt-4">
-                                        <strong style="font-size: 1.3rem;">Result of
-                                            <?php
-
-                                            $selectedExamsArray = explode(',', $examNames);
-                                            $lastExam = array_pop($selectedExamsArray);
-
-                                            if (count($selectedExamsArray) >= 1) {
-                                                $otherExams = implode(', ', $selectedExamsArray);
-                                                echo htmlspecialchars($otherExams . (count($selectedExamsArray) > 1 ? ' and ' : ' and ') . $lastExam);
-                                            } else {
-                                                echo htmlspecialchars($examNames);
-                                            }
-                                            ?>
-                                        </strong>
+                                    <div class="watermark-container">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                     </div>
+                                    <h4 class="card-title mt-4 mb-4" style="text-align: center;">Result of
+                                        <?php
+
+                                        $selectedExamsArray = explode(',', $examNames);
+                                        $lastExam = array_pop($selectedExamsArray);
+
+                                        if (count($selectedExamsArray) >= 1) {
+                                            $otherExams = implode(', ', $selectedExamsArray);
+                                            echo htmlspecialchars($otherExams . (count($selectedExamsArray) > 1 ? ' and ' : ' and ') . $lastExam);
+                                        } else {
+                                            echo htmlspecialchars($examNames);
+                                        }
+                                        ?>
+                                    </h4>
                                     <!-- Duration -->
                                     <div class="container mt-4">
                                         <div class="d-flex flex-row align-items-start mb-3" style="gap: 30px;">
@@ -213,40 +217,39 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Student Details -->
-                                    <div class="d-flex flex-column mb-4">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th class="font-weight-bold text-center" colspan="4">STUDENT DETAILS</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Code No.
-                                                    </td>
-                                                    <td><?php echo htmlentities($studentDetails['CodeNumber']); ?></td>
-                                                    <td class="font-weight-bold" style="border-top: none; border-bottom: none;">Date
-                                                    </td>
-                                                    <td style="border-top: none; border-bottom: none;"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="font-weight-bold">Name</td>
-                                                    <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['StudentName']); ?></td>
-                                                    <td class="font-weight-bold">Class</td>
-                                                    <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['ClassName']); ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="font-weight-bold">Roll No</td>
-                                                    <td><?php echo htmlentities($studentDetails['RollNo']); ?></td>
-                                                    <td class="font-weight-bold">Section</td>
-                                                    <td class="text-capitalize">
-                                                        <?php echo htmlentities($studentDetails['SectionName']); ?></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <div class="mt-4">
+                                        <div class="d-flex flex-row justify-content-between font-weight-bold">
+                                            <div>
+                                                <label>Student's Code No:</label><span
+                                                    class="dark-line ml-2 px-3"><?php echo htmlentities($studentDetails['CodeNumber']); ?></span>
+                                            </div>
+                                            <div>
+                                                <label>Class:</label><span
+                                                    class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['ClassName']); ?></span>
+                                            </div>
+                                            <div>
+                                                <label>Section:</label><span
+                                                    class="border-bottom border-dark ml-2 px-3 text-capitalize"><?php echo htmlentities($studentDetails['SectionName']); ?></span>
+                                            </div>
+                                            <div>
+                                                <label>Roll No:</label><span
+                                                    class="border-bottom border-dark ml-2 px-3"><?php echo htmlentities($studentDetails['RollNo']); ?></span>
+                                            </div>
+                                        </div>
+                                        <!-- Student's Name -->
+                                        <div class="d-flex w-100 align-items-center font-weight-bold">
+                                            <label class="text-nowrap">Student's Name: </label>
+                                            <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize"
+                                                style="box-sizing: border-box;">
+                                                <span><?php echo htmlentities($studentDetails['StudentName']); ?></span></p>
+                                        </div>
+                                        <!-- Parent's Name -->
+                                        <div class="d-flex w-100 align-items-center font-weight-bold">
+                                            <label class="text-nowrap">Parents'/Guardian's Name: </label>
+                                            <p class="border-bottom border-dark ml-2 pl-3 w-100 text-capitalize"
+                                                style="box-sizing: border-box;">
+                                                <span><?php echo htmlentities($studentDetails['FatherName']); ?></span></p>
+                                        </div>
                                     </div>
                                     <!-- Main Subjects -->
                                     <div class="d-flex flex-row">
@@ -327,7 +330,7 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                 }
                                                             }
                                                         }
-                                                        
+
                                                         $subjectMarks[$examID] = $isAbsent ? 'a' : ($marksObtained ?: 'N/A');
                                                         $subjectAbsentStatus[$examID] = $isAbsent;
                                                         $subjectMaxMarks[$examID] = $maxMarks ?: 'N/A';
@@ -531,73 +534,76 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                     }
 
                                     if ($hasCoCurricularMarks) {
-                                    ?>
-                                    <div class="d-flex flex-column mt-4">
-                                        <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
-                                    <table class="table w-100">
-                                        <thead>
-                                            <tr class="text-center">
-                                                <th class='font-weight-bold' style="vertical-align: middle">Exam</th>
-                                                <?php
-                                                $studentTotalMaxMarks = 0;
-                                                foreach ($ccSubjects as $subject) {
-                                                    $maxMarks = '';
+                                        ?>
+                                        <div class="d-flex flex-column mt-4">
+                                            <strong>Marks Obtained in Co-curricular Component During the Assessment period</strong>
+                                            <table class="table w-100">
+                                                <thead>
+                                                    <tr class="text-center">
+                                                        <th class='font-weight-bold' style="vertical-align: middle">Exam</th>
+                                                        <?php
+                                                        $studentTotalMaxMarks = 0;
+                                                        foreach ($ccSubjects as $subject) {
+                                                            $maxMarks = '';
 
-                                                    // Loop through the decoded JSON to find the max marks for the current subject
-                                                    foreach ($ccSubjectsData as $subjectData) {
-                                                        foreach ($selectedExamIDs as $examName) {
-                                                            if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) {
-                                                                $maxMarks = $subjectData['SubMaxMarks'];
-                                                                break;
+                                                            // Loop through the decoded JSON to find the max marks for the current subject
+                                                            foreach ($ccSubjectsData as $subjectData) {
+                                                                foreach ($selectedExamIDs as $examName) {
+                                                                    if ($subjectData['SubjectID'] == $subject['ID'] && $subjectData['ExamName'] == $examName) {
+                                                                        $maxMarks = $subjectData['SubMaxMarks'];
+                                                                        break;
+                                                                    }
+                                                                }
                                                             }
-                                                        }
-                                                    }
 
-                                                    echo "<th class='font-weight-bold' style='font-size: 1rem !important;'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
-                                                    $studentTotalMaxMarks += (float) $maxMarks;
-                                                }
-                                                ?>
-                                                <th class="font-weight-bold">Total
-                                                    Marks<br><br><?php echo "(" . htmlspecialchars($studentTotalMaxMarks) . ")"; ?>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $i = 0;
-                                            foreach ($selectedExamIDs as $examID) {
-                                                $i = array_search($examID, $selectedExamIDs);
-                                                $examName = $selectedExams[$i];
-                                                ?>
-                                                <tr>
-                                                    <td class="text-center"><strong><?php echo htmlspecialchars($examName); ?></strong></td>
+                                                            echo "<th class='font-weight-bold' style='font-size: 1rem !important;'>{$subject['SubjectName']}<br><br>({$maxMarks})</th>";
+                                                            $studentTotalMaxMarks += (float) $maxMarks;
+                                                        }
+                                                        ?>
+                                                        <th class="font-weight-bold">Total
+                                                            Marks<br><br><?php echo "(" . htmlspecialchars($studentTotalMaxMarks) . ")"; ?>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     <?php
-                                                    $studentTotalMarks = 0;
-                                                    foreach ($ccSubjects as $subject) {
-                                                        $subMarksObtained = '';
-                                                        $isAbsent = 0;
-                                                        foreach ($ccSubjectsData as $subjectData) {
-                                                            if ($subjectData['SubjectID'] == $subject['ID'] && 
-                                                                $subjectData['ExamName'] == $examID) {
-                                                                $subMarksObtained = $subjectData['SubMarksObtained'];
-                                                                $isAbsent = $subjectData['isAbsent'] ?? 0;
-                                                                break;
+                                                    $i = 0;
+                                                    foreach ($selectedExamIDs as $examID) {
+                                                        $i = array_search($examID, $selectedExamIDs);
+                                                        $examName = $selectedExams[$i];
+                                                        ?>
+                                                        <tr>
+                                                            <td class="text-center"><strong><?php echo htmlspecialchars($examName); ?></strong>
+                                                            </td>
+                                                            <?php
+                                                            $studentTotalMarks = 0;
+                                                            foreach ($ccSubjects as $subject) {
+                                                                $subMarksObtained = '';
+                                                                $isAbsent = 0;
+                                                                foreach ($ccSubjectsData as $subjectData) {
+                                                                    if (
+                                                                        $subjectData['SubjectID'] == $subject['ID'] &&
+                                                                        $subjectData['ExamName'] == $examID
+                                                                    ) {
+                                                                        $subMarksObtained = $subjectData['SubMarksObtained'];
+                                                                        $isAbsent = $subjectData['isAbsent'] ?? 0;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                echo "<td class='text-center'>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $subMarksObtained) . "</td>";
+                                                                $studentTotalMarks += (float) ($isAbsent ? 0 : $subMarksObtained);
                                                             }
-                                                        }
-                                                        echo "<td class='text-center'>" . ($isAbsent ? '<span class="absent-mark">a</span>' : $subMarksObtained) . "</td>";
-                                                        $studentTotalMarks += (float) ($isAbsent ? 0 : $subMarksObtained);
+                                                            echo "<td class='text-center font-weight-bold'>" . ($studentTotalMarks) . "</td>";
+                                                            ?>
+                                                        </tr>
+                                                        <?php
+                                                        $i++;
                                                     }
-                                                    echo "<td class='text-center font-weight-bold'>" . ($studentTotalMarks) . "</td>";
                                                     ?>
-                                                </tr>
-                                                <?php
-                                                $i++;
-                                            }
-                                            ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <?php } ?>
 
                                     <?php
                                     $optionalSubjects = getSubjects($dbh, $class, $examSession, 1, 0);
@@ -635,9 +641,11 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                     foreach ($allSubjectsJsonArray as $row) {
                                                                         $subjectData = json_decode($row['SubjectsJSON'], true);
                                                                         foreach ($subjectData as $data) {
-                                                                            if ($data['SubjectID'] == $subject['ID'] && 
-                                                                                $data['IsOptional'] == 1 && 
-                                                                                $data['ExamName'] == $examID) {
+                                                                            if (
+                                                                                $data['SubjectID'] == $subject['ID'] &&
+                                                                                $data['IsOptional'] == 1 &&
+                                                                                $data['ExamName'] == $examID
+                                                                            ) {
                                                                                 $marksObtained = $data['SubMarksObtained'];
                                                                                 $isAbsent = $data['isAbsent'] ?? 0;
                                                                                 break 2;
@@ -703,11 +711,13 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                                                     $isAbsent = 0;
                                                                     foreach ($allSubjectsJsonArray as $row) {
                                                                         $subjectData = json_decode($row['SubjectsJSON'], true);
-    
+
                                                                         foreach ($subjectData as $data) {
-                                                                            if ($data['SubjectID'] == $subject['ID'] && 
-                                                                                $data['IsOptional'] == 1 && 
-                                                                                $data['ExamName'] == $examID) {
+                                                                            if (
+                                                                                $data['SubjectID'] == $subject['ID'] &&
+                                                                                $data['IsOptional'] == 1 &&
+                                                                                $data['ExamName'] == $examID
+                                                                            ) {
                                                                                 $marksObtained = $data['SubMarksObtained'];
                                                                                 $isAbsent = $data['isAbsent'] ?? 0;
                                                                                 break 2;
@@ -774,12 +784,12 @@ if (!isset($_SESSION['sturecmsaid']) || empty($_SESSION['sturecmsaid'])) {
                                             beginAtZero: true,
                                             max: 100,
                                             ticks: {
-                                                callback: function(value) {
+                                                callback: function (value) {
                                                     const customTicks = [10, 40, 60, 80, 100];
                                                     if (customTicks.includes(value)) {
                                                         return value;
                                                     }
-                                                    return null; 
+                                                    return null;
                                                 },
                                             }
                                         }

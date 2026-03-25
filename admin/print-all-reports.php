@@ -312,11 +312,16 @@ else
                         ?>
                         <div class="card d-flex justify-content-center align-items-center">
                             <div class="card-body" id="report-card">
-                                <div class="site-name">tibetanpublicschool.com</div>
-                                    <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
-                                    <div class="d-flex justify-content-center align-items-center pb-2 border-bottom border-secondary">
-                                        <img src="../Main/img/logo1.png" width="90px" alt="TPS" class="img-fluid">
-                                        <img src="../Main/img/reportLogo.png" width="350px" alt="TPS" class="img-fluid mr-5 pr-5">
+                                    <div class="site-name">www.tibetanpublicschool.com</div>
+                                    <div class="report-header">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="header-logo">
+                                        <div class="header-text">
+                                            <h1 class="school-name">Tibetan Public School</h1>
+                                            <span class="school-address">Badamwari, Hawal, Srinagar, J&K - 190003</span>
+                                        </div>
+                                    </div>
+                                    <div class="watermark-container">
+                                        <img src="../Main/img/logo1.png" alt="TPS" class="watermark">
                                     </div>
                                 <h4 class="card-title mt-4 mb-5" style="text-align: center;">MARKS CARD for the Academic Session <?php echo $sessionName; ?></h4>
                                 <!-- Student's Details -->
